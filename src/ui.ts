@@ -1,11 +1,15 @@
 import * as G from './engine';
 import type { State, Scenario, Note } from './engine';
 import { countStats } from './content';
+import { AWARD_TEXT } from './content/culture';
+import { startScene, redraw } from './scene';
+import { openBooking } from './booking-ui';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string): T => document.getElementById(id) as T;
 const esc = (t: string): string => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
 
-let s: State;
+let s!: State;
+let idle = false;
 let selected = G.origins[0].id;
 
 /* ---------- title screen ---------- */
@@ -18,6 +22,7 @@ function renderOrigins(): void {
 function show(id: 'title' | 'game' | 'end'): void {
   (['title', 'game', 'end'] as const).forEach(x => { $(x).hidden = x !== id; });
   if (id === 'title') $('continueBtn').hidden = !G.load();
+  if (id === 'game') { buildMap(); redraw(); }
 }
 
 /* ---------- game screen ---------- */
@@ -26,7 +31,56 @@ const STAT: [keyof State, string, string][] = [
   ['rep', 'Reputation', '#f0b43c'], ['know', 'Knowledge', '#a56be0'], ['clothes', 'Clothing', '#2bb5c9'], ['famLove', 'Family bond', '#e07bb0'],
 ];
 
+/* ---------- live map ---------- */
+function buildMap(): void {
+  const places = G.PLACES.map(p => {
+    const left = p.x > 70;
+    return `<g class="place" data-place="${p.id}"><title>${p.n}</title><circle id="pl-${p.id}" cx="${p.x}" cy="${p.y}" r="2.6"/><text x="${p.x + (left ? -3.6 : 3.6)}" y="${p.y + 1.2}" text-anchor="${left ? 'end' : 'start'}">${p.n}</text></g>`;
+  }).join('');
+  const roads = G.PLACES.filter(p => p.id !== 'home').map(p => `M50 52 L${p.x} ${p.y}`).join(' ');
+  const flakes = Array.from({ length: 26 }, (_, i) => `<circle class="flake" cx="${(i * 41) % 100}" cy="0" r=".8" style="animation-delay:-${(i * 0.37).toFixed(2)}s"/>`).join('');
+  $('miniMap').innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="250" role="img" aria-label="Interactive city map">
+    <path d="${roads}" stroke="currentColor" stroke-opacity=".25" stroke-width=".8" fill="none"/>
+    ${places}<circle class="pulse" id="mapPulse" r="3" fill="#3b6fe0" cx="-10" cy="-10"/><g id="mapSnow" class="snow" style="display:none">${flakes}</g>
+    <g class="avatar" id="mapAvatar"><text class="av" x="-3" y="-2">${s.icon}</text></g></svg>`;
+  $('miniMap').querySelectorAll<SVGGElement>('.place').forEach(el => {
+    el.onclick = () => {
+      const id = el.dataset.place as string;
+      if (!idle || id === s.loc || (id === 'work' && !s.job)) return;
+      showScenario(G.startTrip(s, id), [], 'You pull up the map and head out.');
+    };
+  });
+}
+
+function updateMap(): void {
+  G.PLACES.forEach(p => {
+    const c = document.getElementById('pl-' + p.id);
+    if (!c) return;
+    c.setAttribute('class', p.id === s.loc ? 'here' : s.known[p.id] ? 'known' : 'unk');
+    (c.parentElement as unknown as SVGGElement).style.display = p.id === 'work' && !s.job ? 'none' : '';
+  });
+  const here = G.placeById(s.loc);
+  const av = document.getElementById('mapAvatar') as SVGGElement | null;
+  if (av) av.style.transform = `translate(${here.x}px, ${here.y}px)`;
+  const dest = s.dest ? G.placeById(s.dest) : here;
+  const pulse = document.getElementById('mapPulse');
+  if (pulse) { pulse.setAttribute('cx', String(dest.x)); pulse.setAttribute('cy', String(dest.y)); }
+  const snow = document.getElementById('mapSnow');
+  if (snow) snow.style.display = s.weather === 'snow' ? '' : 'none';
+}
+
+function profileHtml(): string {
+  const tier = s.merit >= 80 ? 'Laureate' : s.merit >= 40 ? 'Nominee' : s.merit >= 15 ? 'Active citizen' : 'Newcomer to the community';
+  const done = G.goals.filter(g => g.done(s)).length;
+  return `<div class="profile"><div class="row2"><div class="big">${s.icon}</div><div><h2 style="margin:0">${esc(s.name)}</h2><div class="sub">${esc(s.label)} · ${esc(s.city)} · ${esc(s.status)}</div><div class="sub">Home: ${esc(s.home)} · Day ${s.day + 1}</div></div></div>
+    <div class="medal ${s.flags.award ? 'on' : ''}"><b>${s.flags.award ? '🏅 Awarded the community «Patriot» Award' : '🏅 Community merit: ' + s.merit}</b><div class="sub">Standing: ${tier} · merit ${s.merit}/40 for nomination</div></div>
+    <div class="sub">${esc(AWARD_TEXT)}</div>
+    <div class="sub">Goals achieved: ${done} / ${G.goals.length} · Friends: ${s.friends} · Children: ${s.kids}${s.partner ? ' · Partner: ' + esc(s.partner.name) : ''}</div>
+    <ul style="list-style:none;padding:0;margin:0">${G.goals.map(g => `<li>${g.done(s) ? '✔' : '○'} ${g.label}</li>`).join('')}</ul></div>`;
+}
+
 function header(): void {
+  updateMap();
   const d = G.dateOf(s);
   $('who').textContent = `${s.icon} ${s.name} — ${s.label}`;
   $('where').textContent = `${s.city} · ${s.job ? G.jobById(s.job).name : 'unemployed'} · ${s.status}`;
@@ -51,6 +105,12 @@ function header(): void {
   if (s.kids) ch.push(`<span class="chip ok">👶 ${s.kids} child${s.kids > 1 ? 'ren' : ''}</span>`);
   if (s.flags.pregnant) ch.push('<span class="chip warn">Baby expected</span>');
   ch.push(`<span class="chip">Friends: ${s.friends}</span>`);
+  ch.push(`<span class="chip ${s.phone >= 2 ? 'ok' : ''}">📱 Phone ${['broken', 'basic', 'good', 'flagship'][s.phone] || 'basic'}</span>`);
+  if (s.car) ch.push(`<span class="chip ok">🚗 ${esc(s.car.model)}</span>`);
+  if (s.housing !== 'rented') ch.push(`<span class="chip ok">🏠 Homeowner</span>`);
+  if (s.pet) ch.push(`<span class="chip ok">🐕 ${esc(s.pet.name)} (bond ${Math.round(s.pet.bond)})</span>`);
+  if (s.booking && !s.booking.done) ch.push(`<span class="chip warn">✈️ flight in ${Math.max(0, s.booking.dep - s.day)}d</span>`);
+  if (Number(s.tmp.debt) > 0) ch.push(`<span class="chip warn">💳 debt ${G.money(Number(s.tmp.debt))}</span>`);
   if (s.flags.rutest) ch.push('<span class="chip ok">Language test ✓</span>');
   if (s.flags.admitted) ch.push('<span class="chip ok">University ✓</span>');
   $('docs').innerHTML = ch.join('');
@@ -67,11 +127,19 @@ function turn(): void {
   }
   const probs = G.problems(s);
   $('stage').innerHTML = `<div class="cat">${G.SLOTS[s.slot]}</div><h2>What now?</h2><p>${probs.length ? '⚠ Warning: ' + probs.join('; ') + '.' : 'Pick how to spend this part of the day.'}</p>`;
+  idle = true;
   $('actions').innerHTML = G.actions.map(a => `<button data-a="${a.id}">${a.icon} ${a.label}<small>${a.hint}</small></button>`).join('');
   $('actions').querySelectorAll<HTMLButtonElement>('button').forEach(b => { b.onclick = () => act(b.dataset.a as string); });
 }
 
+function showBooking(): void {
+  idle = false;
+  $('actions').innerHTML = '';
+  openBooking(s, $('stage'), () => turn());
+}
+
 function act(id: string): void {
+  if (id === 'flight') return showBooking();
   const r = G.perform(s, id);
   header();
   if (!r.sc) return turn();
@@ -86,19 +154,10 @@ function noteHtml(notes: Note[]): string {
   }).join('') + '</div>';
 }
 
-function mapSvg(): string {
-  const dots = G.PLACES.filter(p => p.id !== 'work' || s.job).map(p => {
-    const cls = p.id === s.loc ? 'here' : s.known[p.id] ? 'known' : 'unk';
-    return `<circle class="${cls}" cx="${p.x}" cy="${p.y}" r="2.6"/><text x="${p.x + 3.6}" y="${p.y + 1.2}">${p.n}${p.id === s.loc ? ' (you)' : ''}</text>`;
-  }).join('');
-  const snow = s.weather === 'snow' ? Array.from({ length: 40 }, (_, i) => `<circle class="snow" cx="${(i * 37) % 100}" cy="${(i * 53) % 100}" r=".7"/>`).join('') : '';
-  return `<div class="mapbox"><svg viewBox="0 0 100 100" width="100%" height="260" role="img" aria-label="City map"><rect width="100" height="100" fill="none"/>
-    <path d="M14 20 L50 52 L88 62 M50 52 L72 24 M50 52 L12 62 M50 52 L62 84 M50 52 L30 80 M50 52 L40 28 M50 52 L55 10 M50 52 L82 40" stroke="currentColor" stroke-opacity=".25" stroke-width=".8" fill="none"/>${dots}${snow}</svg></div>`;
-}
-
 function showScenario(sc: Scenario, notes: Note[], pre: string): void {
+  idle = false;
   $('actions').innerHTML = '';
-  $('stage').innerHTML = `<div class="cat">${esc(sc.cat)}</div><h2>${esc(G.fill(sc.title, s))}</h2>${pre ? `<p class="sub">${esc(pre)}</p>` : ''}${noteHtml(notes)}${sc.map ? mapSvg() : ''}<p>${esc(G.fill(sc.text, s))}</p>
+  $('stage').innerHTML = `<div class="cat">${esc(sc.cat)}</div><h2>${esc(G.fill(sc.title, s))}</h2>${pre ? `<p class="sub">${esc(pre)}</p>` : ''}${noteHtml(notes)}<p>${esc(G.fill(sc.text, s))}</p>
     <div class="choices">${sc.choices.map((c, i) => `<button data-i="${i}">${esc(G.fill(c.t, s))}</button>`).join('')}</div>`;
   $('stage').querySelectorAll<HTMLButtonElement>('.choices button').forEach(b => {
     b.onclick = () => {
@@ -106,7 +165,7 @@ function showScenario(sc: Scenario, notes: Note[], pre: string): void {
       header();
       $('stage').innerHTML = `<div class="cat">Result</div><h2>${esc(G.fill(sc.title, s))}</h2><p>${esc(res.msg)}</p>${noteHtml(res.notes)}${res.dayNotes.map(t => `<p class="sub">${esc(t)}</p>`).join('')}
         <div class="choices"><button class="primary" id="nextBtn">Continue</button></div>`;
-      $('nextBtn').onclick = turn;
+      $('nextBtn').onclick = res.ui === 'booking' ? showBooking : turn;
     };
   });
 }
@@ -139,6 +198,9 @@ export function boot(): void {
     $('modalBody').innerHTML = '<h3>Journal</h3><ul>' + (s.log.length ? s.log.map(l => `<li><b>Day ${l.day + 1}</b> — ${esc(l.text)}</li>`).join('') : '<li>Nothing yet.</li>') + '</ul>';
     $('modal').hidden = false;
   };
+  $('awardQuote').innerHTML = '<b>«Patriot» Award</b> — ' + esc(AWARD_TEXT) + ' Earn it in the game by learning, taking part and helping others.';
+  $('profileBtn').onclick = () => { $('modalBody').innerHTML = profileHtml(); $('modal').hidden = false; };
+  startScene($<HTMLCanvasElement>('scene'), () => s ?? null);
   renderOrigins();
   show('title');
   $('tagCount').textContent = countStats().total.toLocaleString('en-US') + ' scenarios';

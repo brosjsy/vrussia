@@ -11,11 +11,22 @@ export interface Effects {
   money?: number; energy?: number; health?: number; stress?: number; rep?: number; know?: number;
   strike?: number; docs?: Partial<Docs>; setDocs?: Partial<Docs>;
   flag?: string | string[]; unflag?: string | string[];
-  clothes?: number; friends?: number; famLove?: number; kids?: number; love?: number;
+  clothes?: number; merit?: number; friends?: number; famLove?: number; kids?: number; love?: number;
   partner?: Partner | null; bank?: string | string[]; unbank?: string;
   mark?: string | string[]; dest?: string | null; loc?: string;
   job?: string | null; city?: string; status?: Status; queue?: string; skip?: number;
+  phone?: number; setRent?: number;
+  /** Escape hatch for complex state changes (bookings, purchases, pets...). */
+  run?: (s: State) => void;
+  /** Ask the UI to open an interactive screen after this result. */
+  ui?: 'booking';
 }
+export interface Booking {
+  dest: string; intl: boolean; dep: number; stay: number; price: number; pnr: string;
+  passenger: string; passport: string; baggage: boolean; done: boolean;
+}
+export interface Pet { name: string; kind: string; bond: number }
+export interface Car { model: string; value: number }
 export interface Outcome { msg: string; fx: Effects }
 export interface Choice { t: string; r?: (s: State) => Outcome; msg?: string; fx?: Effects }
 export interface Scenario {
@@ -39,8 +50,10 @@ export interface State {
   seen: Record<string, number>; queue: string[]; log: LogEntry[]; rent: number; allow: number;
   over: EndingId | null; earned: number; version: number;
   marks: Record<string, number>; bank: Record<string, boolean>; loc: string; known: Record<string, boolean>;
-  dest: string | null; weather: Weather; clothes: number; partner: Partner | null; kids: number; friends: number; famLove: number;
+  dest: string | null; weather: Weather; clothes: number; merit: number; partner: Partner | null; kids: number; friends: number; famLove: number;
   skip?: number;
+  phone: number; car: Car | null; pet: Pet | null; housing: string; booking: Booking | null;
+  tmp: Record<string, string | number>;
 }
 
 /* ---------- helpers ---------- */
@@ -91,10 +104,14 @@ export const PLACES: Place[] = [
   { id: 'home', n: 'Home', x: 50, y: 52 }, { id: 'station', n: 'Railway station', x: 14, y: 20 }, { id: 'mfc', n: 'MFC', x: 72, y: 24 },
   { id: 'guvm', n: 'Migration dept.', x: 88, y: 62 }, { id: 'uni', n: 'University', x: 30, y: 80 }, { id: 'market', n: 'Market', x: 12, y: 62 },
   { id: 'clinic', n: 'Polyclinic', x: 62, y: 84 }, { id: 'work', n: 'Workplace', x: 82, y: 40 }, { id: 'bank', n: 'Bank branch', x: 40, y: 28 },
-  { id: 'center', n: 'City centre', x: 55, y: 10 },
+  { id: 'center', n: 'City centre', x: 55, y: 10 }, { id: 'mall', n: 'Electronics mall', x: 28, y: 44 },
+  { id: 'airport', n: 'Airport', x: 8, y: 88 }, { id: 'dealer', n: 'Car dealership', x: 80, y: 90 }, { id: 'agency', n: 'Real estate agency', x: 68, y: 60 },
+  { id: 'hospital', n: 'City hospital', x: 46, y: 72 }, { id: 'shelter', n: 'Animal shelter', x: 90, y: 12 },
 ];
 export const placeById = (id: string): Place => PLACES.find(p => p.id === id) as Place;
-const PLACE_CATS: Record<string, string[]> = { mfc: ['paper'], guvm: ['paper'], uni: ['edu'], market: ['shop'], clinic: ['health'], bank: ['bank'], work: ['work'], center: ['social', 'police', 'life'], station: ['police', 'life'], home: ['home'] };
+const PLACE_CATS: Record<string, string[]> = { mfc: ['paper'], guvm: ['paper'], uni: ['edu'], market: ['shop'], clinic: ['health'], bank: ['bank'], work: ['work'], center: ['social', 'police', 'life', 'culture'], station: ['police', 'life'], home: ['home'],
+  mall: ['phone', 'shop'], airport: ['air'], dealer: ['car'], agency: ['estate'], hospital: ['hospital', 'health'], shelter: ['pets'] };
+const SERVICE_PLACES = ['mall', 'airport', 'dealer', 'agency', 'hospital', 'shelter'];
 
 export const WEATHER: Record<Weather, string> = { snow: '❄️ Snow', frost: '🥶 Hard frost', rain: '🌧️ Rain', heat: '☀️ Heat', clear: '⛅ Clear' };
 export function weatherFor(date: Date): Weather {
@@ -111,9 +128,10 @@ export function newState(name: string, originId: string, city?: string): State {
     name: name || 'Player', o: o.id, label: o.label, icon: o.icon, status: o.status, home: o.home, city: city || o.city,
     day: 0, slot: 0, money: o.money, energy: 80, health: 90, stress: 15, rep: o.rep, know: o.know,
     strikes: 0, docs: { reg: 0, patent: 0, visa: 0, ...o.docs }, flags: {}, job: null,
-    seen: {}, queue: [], log: [], rent: o.rent, allow: o.allow, over: null, earned: 0, version: 2,
+    seen: {}, queue: [], log: [], rent: o.rent, allow: o.allow, over: null, earned: 0, version: 4,
+    phone: 1, car: null, pet: null, housing: 'rented', booking: null, tmp: {},
     marks: {}, bank: {}, loc: 'home', known: { home: true }, dest: null, weather: 'clear',
-    clothes: o.id === 'moscow' ? 90 : o.status === 'citizen' ? 55 : 35, partner: null, kids: 0, friends: 1, famLove: 60,
+    merit: 0, clothes: o.id === 'moscow' ? 90 : o.status === 'citizen' ? 55 : 35, partner: null, kids: 0, friends: 1, famLove: 60,
   };
   s.weather = weatherFor(START);
   s.queue.push('intro_' + o.status);
@@ -162,6 +180,7 @@ export function apply(s: State, fx?: Effects): Note[] {
   if (fx.flag) arr(fx.flag).forEach(f => { s.flags[f] = true; });
   if (fx.unflag) arr(fx.unflag).forEach(f => { delete s.flags[f]; });
   if (fx.clothes) { s.clothes = clamp(s.clothes + fx.clothes, 0, 100); notes.push({ k: 'clothes', v: fx.clothes, label: 'Clothing' }); }
+  if (fx.merit) { s.merit = Math.max(0, s.merit + fx.merit); notes.push({ k: 'merit', v: fx.merit, label: 'Community merit' }); }
   if (fx.friends) { s.friends = Math.max(0, s.friends + fx.friends); notes.push({ k: 'friends', v: fx.friends, label: 'Friends' }); }
   if (fx.famLove) { s.famLove = clamp(s.famLove + fx.famLove, 0, 100); notes.push({ k: 'famLove', v: fx.famLove, label: 'Family bond' }); }
   if (fx.kids) { s.kids += fx.kids; notes.push({ k: 'kids', v: fx.kids, label: 'Children' }); }
@@ -177,6 +196,9 @@ export function apply(s: State, fx?: Effects): Note[] {
   if (fx.status) s.status = fx.status;
   if (fx.queue) s.queue.push(fx.queue);
   if (fx.skip) s.skip = (s.skip || 0) + fx.skip;
+  if (fx.phone !== undefined) { s.phone = fx.phone; notes.push({ k: 'phone', v: 0, label: 'New phone' }); }
+  if (fx.setRent !== undefined) s.rent = fx.setRent;
+  if (fx.run) fx.run(s);
   return notes;
 }
 
@@ -251,7 +273,8 @@ dyn.trip_method = s => {
   const bad = s.weather === 'snow' ? 0.3 : s.weather === 'frost' ? 0.15 : s.weather === 'rain' ? 0.08 : 0;
   const unk = s.known[to.id] ? -0.12 : 0.18;
   const arrive = (msg: string, fx: Effects): Outcome => O(msg, { loc: to.id, dest: null, ...fx });
-  const lost = (p: number, okMsg: string, lostMsg: string, extra?: Effects): Outcome => Math.random() < p
+  const ph = (s.phone - 1) * 0.03;
+  const lost = (p: number, okMsg: string, lostMsg: string, extra?: Effects): Outcome => Math.random() < Math.max(0.02, p - ph)
     ? O(lostMsg, { loc: to.id, dest: null, energy: -18, stress: 10, ...extra })
     : arrive(okMsg, { energy: -Math.round(dist / 6), ...(extra && extra.money ? { money: extra.money } : {}) });
   return {
@@ -259,13 +282,14 @@ dyn.trip_method = s => {
     text: `Distance is about ${Math.round(dist)} map units. ${s.weather === 'snow' ? 'Snow covers the signs and the pavements. ' : s.weather === 'frost' ? 'Your phone battery drops fast in the frost. ' : ''}How do you go?`,
     choices: [
       { t: 'Follow the maps app (Yandex Maps)', r: () => {
-        if (s.weather === 'frost' && Math.random() < 0.25) return O('Your phone dies in the frost halfway there. You walk by instinct.', { loc: to.id, dest: null, energy: -20, stress: 12 });
+        if (s.weather === 'frost' && s.phone < 2 && Math.random() < 0.25) return O('Your phone dies in the frost halfway there. You walk by instinct.', { loc: to.id, dest: null, energy: -20, stress: 12 });
         return lost(Math.max(0.04, 0.08 + bad * 0.5 + unk * 0.3), 'The blue dot leads you right to the door.', 'The dot jumps around between courtyards; you lose forty minutes in a dead-end.');
       } },
       { t: 'Ask people on the street', r: () => lost(Math.max(0.05, 0.12 + bad + unk * 0.5), 'A kind grandmother points the way and adds advice about your hat.', 'Three people give three answers. You arrive eventually.') },
       { t: `Take a taxi (about ${money(cost + 250)})`, r: () => s.money < cost + 250
         ? O('You do not have enough money for the fare. You walk instead and get tired.', { loc: to.id, dest: null, energy: -20, stress: 6 })
         : arrive('The driver talks the entire ride about politics, prices and his son. You arrive fast.', { money: -(cost + 250), energy: -2 }) },
+      ...(s.car ? [{ t: 'Drive your own car', r: (): Outcome => (s.weather === 'snow' || s.weather === 'frost') && Math.random() < 0.3 ? O('The engine coughs in the cold and the road is a skating rink. You arrive late and frazzled.', { loc: to.id, dest: null, energy: -14, stress: 10, money: -300 }) : arrive('You park, lock the car, and walk the last metres.', { money: -150, energy: -3, rep: 1 }) }] : []),
       { t: 'Metro / bus with a ticket (₽90)', r: () => lost(Math.max(0.05, 0.1 + bad * 0.7 + unk), 'Right line, right exit.', 'You exit at the wrong metro exit and pop up in an unknown street.', { money: -90 }) },
     ],
   };
@@ -279,10 +303,13 @@ export const actions: Action[] = [
   { id: 'travel', label: 'Travel (map)', icon: '🗺️', cats: ['life'], hint: 'Go somewhere in the city' },
   { id: 'out', label: 'Go out', icon: '🚇', cats: ['police', 'social', 'life'], hint: 'City life, people, checks' },
   { id: 'paper', label: 'Paperwork', icon: '📄', cats: ['paper'], hint: 'MFC, migration, documents' },
-  { id: 'money', label: 'Bank & shops', icon: '💳', cats: ['bank', 'shop'], hint: 'Sber, VTB, clothes, SIM' },
-  { id: 'people', label: 'People & love', icon: '❤️', cats: ['love'], hint: 'Friends, partner, children' },
+  { id: 'money', label: 'Bank & shops', icon: '💳', cats: ['bank', 'shop', 'phone', 'car', 'estate'], hint: 'Banks, phones, cars, flats' },
+  { id: 'people', label: 'People & love', icon: '❤️', cats: ['love', 'family_decision'], hint: 'Friends, partner, children' },
   { id: 'edu', label: 'Study / Exams', icon: '📚', cats: ['edu'], hint: 'Knowledge, admission' },
   { id: 'home', label: 'Stay home', icon: '🛏️', cats: ['home', 'health'], hint: 'Rest and housing' },
+  { id: 'flight', label: 'Book a flight', icon: '✈️', cats: [], hint: 'Airline website' },
+  { id: 'pets', label: 'Pets & strays', icon: '🐕', cats: ['pets'], hint: 'Stray dogs, adoption ads' },
+  { id: 'culture', label: 'Culture & community', icon: '🏛️', cats: ['culture'], hint: 'History, traditions, volunteering' },
   { id: 'family', label: 'Call family', icon: '📞', cats: ['family'], hint: 'Remittances, home' },
 ];
 
@@ -304,6 +331,9 @@ export function perform(s: State, actionId: string): Performed {
   else if (actionId === 'edu') { base = { energy: -10, stress: 3, know: 2 }; pre = 'You hit the books.'; }
   else if (actionId === 'home') { base = { energy: 28, stress: -6 }; pre = 'You stay in.'; }
   else if (actionId === 'family') { base = { stress: -5 }; pre = 'You call home.'; }
+  else if (actionId === 'flight') { return { sc: null, notes: [], pre: '' }; }
+  else if (actionId === 'pets') { base = { energy: -4, stress: -4 }; pre = 'You look around for four-legged friends.'; }
+  else if (actionId === 'culture') { base = { energy: -6, stress: -4 }; pre = 'You step into the life of the city.'; }
   else if (actionId === 'money') { base = { energy: -4 }; pre = 'Errands.'; }
   else if (actionId === 'people') { base = { energy: -4, stress: -3 }; pre = 'You make time for people.'; }
   const notes = apply(s, base);
@@ -311,7 +341,7 @@ export function perform(s: State, actionId: string): Performed {
   return { sc, notes, pre };
 }
 
-export interface Chosen { msg: string; notes: Note[]; dayNotes: string[] }
+export interface Chosen { msg: string; notes: Note[]; dayNotes: string[]; ui?: string }
 export function choose(s: State, sc: Scenario, i: number): Chosen {
   const c = sc.choices[i];
   const res = c.r ? c.r(s) : O(c.msg || '', c.fx);
@@ -324,13 +354,19 @@ export function choose(s: State, sc: Scenario, i: number): Chosen {
   let advanceNow = !sc.free;
   if (sc.id === 'trip_method') advanceNow = !arrivalHook(s);
   if (advanceNow && !s.over) dayNotes = advance(s);
-  return { msg: res.msg, notes, dayNotes };
+  return { msg: res.msg, notes, dayNotes, ui: res.fx.ui };
+}
+
+/** Start a trip to a place chosen directly on the map. */
+export function startTrip(s: State, destId: string): Scenario {
+  s.dest = destId;
+  return dyn.trip_method(s);
 }
 
 /** On arriving somewhere something may happen there. Returns true if an event was queued. */
 export function arrivalHook(s: State): boolean {
   const cats = PLACE_CATS[s.loc];
-  if (!cats || Math.random() > 0.65) return false;
+  if (!cats || (!SERVICE_PLACES.includes(s.loc) && Math.random() > 0.65)) return false;
   const sc = draw(s, cats);
   if (!sc) return false;
   s.queue.push(sc.id);
@@ -379,11 +415,18 @@ export function endDay(s: State): string[] {
   s.clothes = clamp(s.clothes - 0.3, 0, 100);
   if (s.partner) s.partner.love = clamp(s.partner.love - 0.4, 0, 100);
   if (s.kids > 0 && d.getDay() === 6) { const c = 2500 * s.kids; s.money -= c; out.push(`Child expenses this week: −${money(c)}.`); }
+  if (s.pet) { s.money -= 120; s.pet.bond = clamp(s.pet.bond + 0.4, 0, 100); }
+  if (s.booking && !s.booking.done && s.booking.dep < s.day) { s.booking = null; out.push('You missed your flight; the ticket is void.'); }
+  if (d.getDay() === 6 && Number(s.tmp.debt) > 0) { const pay = Math.min(Number(s.tmp.debt), Number(s.tmp.debtPay) || 5000); s.money -= pay; s.tmp.debt = Number(s.tmp.debt) - pay; out.push(`Loan / mortgage instalment: −${money(pay)} (left: ${money(Number(s.tmp.debt))}).`); if (Number(s.tmp.debt) <= 0) { s.tmp.debt = 0; s.tmp.debtPay = 0; out.push('You have paid off your loan!'); } }
+  if (s.car && d.getDay() === 6) { s.money -= 3000; out.push('Car upkeep this week: fuel and insurance −₽3,000.'); }
+  if (s.health <= 20 && (s.marks.hospital === undefined || s.day - s.marks.hospital > 30) && !s.queue.includes('hosp_admit')) s.queue.push('hosp_admit');
+  if (s.booking && !s.booking.done && s.booking.dep === s.day) s.queue.push('fl_airport');
   if (d.getDay() === 1 && s.allow) { s.money += s.allow; out.push(`Weekly transfer from family: +${money(s.allow)}.`); }
   if (d.getDay() === 6 && s.rent > 0) {
     if (s.money >= s.rent) { s.money -= s.rent; out.push(`Saturday: rent paid, −${money(s.rent)}.`); }
     else s.queue.push('rent_short');
   }
+  if (d.getMonth() === 8 && d.getDate() === 6) s.queue.push('cal_cityday');
   CAL.forEach(c => { if (c.m === d.getMonth() + 1 && c.d === d.getDate()) s.queue.push(c.id); });
   if (d.getDate() === 1 && s.job === null && s.status !== 'citizen') out.push('New month: remember to check your documents.');
   return out;
@@ -407,6 +450,10 @@ export const goals: { id: string; label: string; done: (s: State) => boolean }[]
   { id: 'citizen', label: 'Become a Russian citizen', done: s => !!s.flags.naturalized },
   { id: 'bank', label: 'Open a bank account', done: s => !!(s.bank.sber || s.bank.vtb || s.bank.tbank) },
   { id: 'family', label: 'Build a family (partner or child)', done: s => !!s.flags.married || s.kids > 0 },
+  { id: 'award', label: 'Earn the community «Patriot» Award', done: s => !!s.flags.award },
+  { id: 'home', label: 'Own a home', done: s => s.housing !== 'rented' },
+  { id: 'car', label: 'Buy a car', done: s => !!s.car },
+  { id: 'pet', label: 'Adopt an abandoned dog', done: s => !!s.pet },
   { id: 'friends', label: 'Make 5 friends', done: s => s.friends >= 5 },
   { id: 'clean', label: 'Finish with zero legal strikes', done: s => s.strikes === 0 },
 ];
@@ -428,7 +475,7 @@ export function countStats(): { total: number; by: Record<string, number> } {
 const KEY = 'vrussia_save';
 export const save = (s: State): void => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* ignore */ } };
 export const load = (): State | null => {
-  try { const r = localStorage.getItem(KEY); const o = r ? JSON.parse(r) as State : null; return o && o.version === 2 ? o : null; } catch { return null; }
+  try { const r = localStorage.getItem(KEY); const o = r ? JSON.parse(r) as State : null; return o && o.version === 4 ? o : null; } catch { return null; }
 };
 export const clear = (): void => { try { localStorage.removeItem(KEY); } catch { /* ignore */ } };
 
@@ -437,3 +484,11 @@ export const RU = {
   util: { clamp, rnd, pick, O, gamble },
   S, scenarios, dyn, index, get, fill, jobs, jobById, CITIES, PLACES, WEATHER, money, problems, isForeigner,
 };
+
+/** Fast-forward `n` days while the player is away (flight, hospital stay). */
+export function absentDays(s: State, n: number): string[] {
+  const out: string[] = [];
+  for (let i = 0; i < n && !s.over; i++) { s.slot = 0; out.push(...endDay(s)); checkEnd(s); }
+  s.queue = s.queue.filter(id => !id.startsWith('cal_') && id !== 'rent_short' && id !== 'hosp_admit' && id !== 'fl_airport');
+  return out;
+}

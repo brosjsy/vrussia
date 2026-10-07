@@ -48,7 +48,17 @@ Progress autosaves to `localStorage`. Pushing to `main` builds and deploys to Gi
 - **Health:** polyclinic vs. private; voluntary insurance for foreigners
 - Starting city picker (12 cities) and 6+ origins incl. Dagestani student
 
-## Scenarios (1,700+)
+- **Culture & community:** quizzes on history, literature, science and landmarks; traditions (Maslenitsa, Sabantuy, Navruz, Sagaalgan, Eid, Easter); volunteering; Russian phrases; the in-game community «Patriot» Award for people who do not stand aside
+- **Live visuals:** animated city scene (time of day, weather, skyline per city, your avatar walking) and a clickable map card that moves your avatar
+
+- **Flights:** a full airline-site flow (search, flight, passenger details, extras, payment, bank SMS code, e-ticket), then departure day: airport transport, check-in (name must match the passport), passport control, the trip, and the return entry check
+- **Buying things:** phone shop (new, used, instalment), driving school + exam, car dealership (used or credit), estate agency (rent, village house, mortgage), loans repaid weekly
+- **Hospital:** collapse, ambulance, ward, injection, discharge; relatives in hospital; blood donation; first aid
+- **Pets:** stray dogs, volunteer adoption channel, meeting the dog, the volunteer's questions, adoption, pet life events
+- **Family decisions:** where to live, money vs family, children, in-laws, traditions, names, school, caring for parents, citizenship together
+- **City festivals** for all 12 cities, plus 16 daily errands
+
+## Scenarios (2,000+)
 
 About 50 hand-written set pieces (`src/content/core.ts`) plus template families in `src/content/generated.ts`:
 
@@ -65,7 +75,3 @@ About 50 hand-written set pieces (`src/content/core.ts`) plus template families 
 | Family (6 relatives × 8) | 48 |
 
 Add more by pushing to `RU.scenarios` with `RU.S({id, cat, who, req, title, text, choices})`.
-
-## Disclaimer
-
-Fiction and satire for a project demo. Rules, prices and procedures are simplified approximations and are **not legal advice**.
