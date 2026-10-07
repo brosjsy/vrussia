@@ -4,21 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>V Russia — Life Simulator</title>
-<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div id="errbar" hidden></div>
-<script>
-window.addEventListener('error', function (e) {
-  var b = document.getElementById('errbar'); b.hidden = false;
-  b.textContent = 'Script error: ' + e.message + ' (' + String(e.filename).split('/').pop() + ':' + e.lineno + ')';
-});
-</script>
 
 <section id="title" class="screen">
   <div class="flagbar"><i></i><i></i><i></i></div>
   <h1>V&nbsp;Russia</h1>
-  <p class="tag">A free browser life simulator: <b>1,200+ scenarios</b> from MFC queues and ЕГЭ to police checks, rent day and New Year's Eve.</p>
+  <p class="tag">A free browser life simulator: <b id="tagCount">1,700+ scenarios</b> from MFC queues and ЕГЭ to police checks, rent day and New Year's Eve.</p>
   <label class="field">Your name <input id="nameInput" maxlength="20" placeholder="e.g. Rustam, Aisha, Ivan"></label>
   <label class="field">Starting city (optional — migrants default to Moscow)
     <select id="citySel"><option value="">Default for your character</option></select></label>
@@ -54,10 +47,6 @@ window.addEventListener('error', function (e) {
 <section id="end" class="screen" hidden></section>
 <div id="modal" class="modal" hidden><div class="sheet"><button id="closeModal" class="ghost">Close</button><div id="modalBody"></div></div></div>
 
-<script src="js/engine.js"></script>
-<script src="js/content-core.js"></script>
-<script src="js/content-generated.js"></script>
-<script src="js/content-life.js"></script>
-<script src="js/ui.js"></script>
+<script type="module" src="/src/main.ts"></script>
 </body>
 </html>

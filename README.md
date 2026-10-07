@@ -3,9 +3,21 @@
 A free, browser-based life sim (inspired by *Lagos Life*) set in Russia. Pick a life, then survive two years
 (730 days) of bureaucracy, work, study, police checks, rent day and holidays.
 
-## Play
+## Stack
 
-Open `index.html` in any browser. No build step, no dependencies. Progress autosaves to `localStorage`.
+TypeScript 5 · Vite 5 · Vitest. The engine (`src/engine.ts`) is DOM-free and fully typed; scenarios live in
+`src/content/*.ts`; the UI is `src/ui.ts`.
+
+```
+npm install
+npm run dev        # local dev server
+npm run typecheck  # tsc --noEmit
+npm test           # headless simulation of random playthroughs for every origin
+npm run build      # production build into dist/
+```
+
+Progress autosaves to `localStorage`. Pushing to `main` builds and deploys to GitHub Pages via
+`.github/workflows/deploy.yml` (enable Settings → Pages → Source: GitHub Actions).
 
 ## Characters
 
@@ -38,7 +50,7 @@ Open `index.html` in any browser. No build step, no dependencies. Progress autos
 
 ## Scenarios (1,700+)
 
-About 50 hand-written set pieces (`js/content-core.js`) plus template families in `js/content-generated.js`:
+About 50 hand-written set pieces (`src/content/core.ts`) plus template families in `src/content/generated.ts`:
 
 | Family | Count |
 |---|---|
@@ -53,13 +65,6 @@ About 50 hand-written set pieces (`js/content-core.js`) plus template families i
 | Family (6 relatives × 8) | 48 |
 
 Add more by pushing to `RU.scenarios` with `RU.S({id, cat, who, req, title, text, choices})`.
-
-## Test
-
-```
-node test/simulate.js
-```
-Plays 1,200 random games headlessly and checks for crashes, duplicate IDs and out-of-range stats.
 
 ## Disclaimer
 

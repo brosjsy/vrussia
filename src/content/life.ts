@@ -1,5 +1,7 @@
+import { RU } from '../engine';
+import type { State, Outcome, Partner, Choice } from '../engine';
+type Fn = (s: State) => Outcome;
 /* Life systems: banking, map/weather, clothes, relationships, children, health, immigration extras */
-(function () {
   const { O, gamble, rnd, pick } = RU.util;
   const S = RU.S;
   const C = (t, msg, fx) => ({ t, msg, fx });
@@ -10,7 +12,7 @@
     compatriot: ['Madina', 'Rustam', 'Farida', 'Jamshed', 'Aisha', 'Bakhtiyor', 'Zarina', 'Timur'],
     foreigner: ['Li', 'Maria', 'Joao', 'Amara', 'Hiro', 'Selin', 'Daniel', 'Nia'],
   };
-  const newPartner = kind => ({ name: pick(NAMES[kind]), kind, love: 25 });
+  const newPartner = (kind: Partner['kind']): Partner => ({ name: pick(NAMES[kind]), kind, love: 25 });
   const cap = t => t[0].toUpperCase() + t.slice(1);
 
   /* =================== IMMIGRATION EXTRAS =================== */
@@ -68,11 +70,11 @@
 
   /* =================== BANKING =================== */
   const banks = [['sber', 'Sber'], ['vtb', 'VTB'], ['tbank', 'T-Bank']];
-  const bankSits = [
+  const bankSits: [string, (s: State, k: string, n: string) => Outcome][] = [
     ['Open an account', (s, k, n) => {
       const p = foreign(s) && !s.flags.rvp ? (s.docs.reg > 0 ? 0.7 : 0.2) : 0.95;
       return gamble(p, O(`${n} opens your account and issues a card. First salary has a place to land.`, { bank: k, stress: -4, money: -200 }), O(`${n} asks for extra papers and tells you to come back.`, { stress: 6, energy: -6 }));
-    }, s => !s.bank[k0(s)] ],
+    }],
     ['Card blocked for "suspicious transactions"', (s, k, n) => gamble(0.6, O(`A call to ${n} support and an explanation about the source of funds unblocks it.`, { stress: 6, energy: -6 }), O('The block stays for a week while compliance reviews.', { stress: 14, money: -300 }))],
     ['App glitch', (s, k, n) => O(`${n} app crashes at the shop counter. You pay cash and sigh.`, { stress: 4, money: -50 })],
     ['Cashback', (s, k, n) => O(`${n} adds a small cashback for groceries.`, { money: rnd(80, 400), stress: -2 })],
@@ -83,15 +85,14 @@
     ['Document verification', (s, k, n) => gamble(foreign(s) && s.docs.reg <= 0 ? 0.2 : 0.8, O(`${n} confirms your documents. Account stays active.`, { stress: -2 }), O('Your registration has expired; the bank freezes services until you renew.', { stress: 12, strike: 0 }))],
     ['Savings deposit', (s, k, n) => s.money < 5000 ? O('You do not have enough money to open a deposit.', { stress: 3 }) : O(`You put ₽5,000 into a ${n} savings account. A little interest each week.`, { money: 400, know: 1 })],
   ];
-  function k0() { return '__none'; }
-  banks.forEach(([k, n]) => bankSits.forEach(([t, fn, reqf], i) => S({
+  banks.forEach(([k, n]) => bankSits.forEach(([t, fn], i) => S({
     id: `bank-${k}-${i}`, cat: 'bank', title: `${n}: ${t}`, text: `${n}. ${t}.`,
     req: i === 0 ? (s => !s.bank[k]) : (s => !!s.bank[k]), w: i === 0 ? 3 : 1,
     choices: [{ t: 'Handle it', r: s => fn(s, k, n) }, { t: 'Put it off', r: () => O('It can wait. Probably.', { stress: 2 }) }],
   })));
 
   const corridors = ['Tajikistan', 'Uzbekistan', 'Kyrgyzstan', 'Nigeria', 'Armenia', 'Kazakhstan'];
-  const remitSits = [
+  const remitSits: [string, Fn][] = [
     ['Compare transfer fees', s => O('Bank 3%, transfer app 1.5%, courier 5%. You choose the middle one.', { know: 2, money: -200 })],
     ['Exchange rate drops', s => O('The rate worsens overnight. Your family receives less.', { stress: 6 })],
     ['Transfer delayed', s => O('Money is "in processing" for three days. Your mother calls twice.', { stress: 8 })],
@@ -119,7 +120,7 @@
     choices: [C('Register', 'It takes eight minutes in the app.', { rep: 2, know: 1 }), C('Skip it', 'Under the table for now.', {})] });
 
   /* =================== MAP / SNOW / LOST =================== */
-  const lostSits = [
+  const lostSits: [string, Fn][] = [
     ['Wrong metro exit', s => O('Exit 4 and exit 5 are two kilometres apart. You find out the hard way.', { energy: -12, stress: 6 })],
     ['Map shows a closed road', s => O('The maps app leads you to a closed bridge. You make a detour.', { energy: -10, stress: 6 })],
     ['Courtyard maze', s => O('Building 2, building 2 "stroenie 1": a nine-minute walk through courtyards.', { energy: -8, stress: 5 })],
@@ -134,7 +135,7 @@
     choices: [{ t: 'Check the map and sort it out', r: fn }, { t: 'Ask a passer-by', r: () => gamble(0.6, O('A stranger points you the right way.', { stress: -2, rep: 1 }), O('The stranger is also lost.', { stress: 6, energy: -6 })) }, { t: 'Take a taxi from here', r: s => s.money < 500 ? O('You cannot afford it.', { stress: 6, energy: -8 }) : O('A ₽500 ride rescues the day.', { money: -500 }) }],
   })));
 
-  const wSits = [
+  const wSits: [string, Fn][] = [
     ['The map freezes', s => O('Your phone dies in the cold when you most need it.', { stress: 8, energy: -10 })],
     ['Unploughed pavement', s => O('You wade through knee-high snow.', { energy: -12, stress: 5 })],
     ['Lost in a snowy courtyard', s => O('Everything looks the same under snow. The map shows the wrong side.', { stress: 8, energy: -12 })],
@@ -150,8 +151,8 @@
   })));
 
   /* =================== SHOPPING / CLOTHES =================== */
-  const clothes = [['winter coat', 6000, 40], ['ushanka hat', 1200, 8], ['winter boots', 4500, 22], ['jeans', 2500, 10], ['sneakers', 3200, 10], ['thermal underwear', 1800, 12], ['scarf', 700, 4], ['mittens', 600, 4], ['interview suit', 7000, 8], ['sportswear', 2200, 6], ['raincoat', 1900, 8], ['sweater', 2300, 10], ['work overalls', 1500, 6], ['down jacket', 8000, 36], ['felt boots (valenki)', 3500, 20]];
-  const shopSits = [
+  const clothes: [string, number, number][] = [['winter coat', 6000, 40], ['ushanka hat', 1200, 8], ['winter boots', 4500, 22], ['jeans', 2500, 10], ['sneakers', 3200, 10], ['thermal underwear', 1800, 12], ['scarf', 700, 4], ['mittens', 600, 4], ['interview suit', 7000, 8], ['sportswear', 2200, 6], ['raincoat', 1900, 8], ['sweater', 2300, 10], ['work overalls', 1500, 6], ['down jacket', 8000, 36], ['felt boots (valenki)', 3500, 20]];
+  const shopSits: [string, (s: State, n: string, p: number, c: number) => Outcome][] = [
     ['Bargain at Sadovod', (s, n, p, c) => gamble(0.7, O(`You haggle a ${n} down to ${RU.money(Math.round(p * 0.6))}.`, { money: -Math.round(p * 0.6), clothes: c }), O(`The ${n} falls apart after a week.`, { money: -Math.round(p * 0.6), clothes: Math.round(c / 3), stress: 4 }))],
     ['Second-hand from Avito', (s, n, p, c) => O(`A ${n} at half price from a seller in a Khrushchyovka.`, { money: -Math.round(p * 0.5), clothes: Math.round(c * 0.8) })],
     ['Wildberries: wrong size', (s, n, p, c) => O(`The ${n} arrives two sizes too small. Returns take a week.`, { money: -Math.round(p * 0.1), stress: 5, clothes: 0 })],
@@ -181,7 +182,7 @@
   /* =================== RELATIONSHIPS =================== */
   S({ id: 'love_meet', cat: 'love', req: s => !s.partner, w: 3, title: 'Someone interesting', text: 'At a friend\'s tea party, a person asks you where you are from and keeps laughing at your jokes.',
     choices: [
-      F('Exchange numbers', s => { const kind = s.status === 'citizen' ? pick(['citizen', 'citizen', 'compatriot']) : pick(['citizen', 'compatriot', 'foreigner']); const p = newPartner(kind); return O(`You and ${p.name} exchange numbers and a long look.`, { partner: p, friends: 1, stress: -6 }); }),
+      F('Exchange numbers', s => { const kind = s.status === 'citizen' ? pick<Partner['kind']>(['citizen', 'citizen', 'compatriot']) : pick<Partner['kind']>(['citizen', 'compatriot', 'foreigner']); const p = newPartner(kind); return O(`You and ${p.name} exchange numbers and a long look.`, { partner: p, friends: 1, stress: -6 }); }),
       C('Stay friends', 'You enjoy the conversation and walk home alone.', { friends: 1, stress: -3 })] });
   S({ id: 'love_date', cat: 'love', req: s => !!s.partner, w: 3, title: 'A date', text: 'You and your partner pick a place: cafe, park, cinema, or a walk by the river.',
     choices: [
@@ -232,14 +233,14 @@
 
   // generated dating + friends + kids
   const venues = ['a café on the Garden Ring', 'a library reading room', 'a university corridor', 'a marshrutka', 'a skating rink', 'the dacha of a friend', 'a mosque courtyard', 'a church fair', 'the gym', 'a hostel kitchen', 'a language exchange', 'a hiking group'];
-  const dateSits = [
+  const dateSits: [string, number][] = [
     ['starts a conversation', 0.35], ['asks about your accent', 0.4], ['shares a tea thermos', 0.45],
     ['offers an umbrella', 0.4], ['recommends a film', 0.35], ['asks for directions', 0.3],
   ];
   venues.forEach((v, i) => dateSits.forEach(([t, p], j) => S({
     id: `date-${i}-${j}`, cat: 'love', req: s => !s.partner, w: 0.6, title: `${cap(v)}: someone ${t}`, text: `At ${v}, someone ${t}.`,
     choices: [
-      { t: 'Chat and exchange numbers', r: s => { if (Math.random() < p + s.rep / 400) { const kind = s.status === 'citizen' ? pick(['citizen', 'citizen', 'compatriot']) : pick(['citizen', 'compatriot', 'foreigner']); const pr = newPartner(kind); return O(`${pr.name} laughs and types a number into your phone.`, { partner: pr, friends: 1, stress: -6 }); } return O('A pleasant chat, but no spark.', { friends: 1, stress: -2 }); } },
+      { t: 'Chat and exchange numbers', r: s => { if (Math.random() < p + s.rep / 400) { const kind = s.status === 'citizen' ? pick<Partner['kind']>(['citizen', 'citizen', 'compatriot']) : pick<Partner['kind']>(['citizen', 'compatriot', 'foreigner']); const pr = newPartner(kind); return O(`${pr.name} laughs and types a number into your phone.`, { partner: pr, friends: 1, stress: -6 }); } return O('A pleasant chat, but no spark.', { friends: 1, stress: -2 }); } },
       { t: 'Smile and move on', r: () => O('Maybe next time.', {}) }],
   })));
   const kidSits = ['has a fever', 'loses a toy', 'says the first word', 'needs a vaccination', 'refuses to eat borscht', 'starts kindergarten', 'is bullied at school', 'gets a prize at a drawing contest', 'asks why you speak differently', 'needs new winter boots'];
@@ -249,7 +250,7 @@
   }));
 
   /* =================== FAMILY / PARENTS =================== */
-  const parents = [
+  const parents: [string, string, Choice, string][] = [
     ['Mother announces she is pregnant', 'You are going to have a baby brother or sister in eight months. Everyone talks at once.', C('Celebrate', 'Joy and jokes.', { famLove: 6, stress: -4 }), 'You will be an adult sibling and a babysitter.'],
     ['Father needs a heart check', 'He says "it is nothing" as always. The doctor says otherwise.', C('Send money for treatment', 'The family breathes out.', { money: -8000, famLove: 8, stress: 6 }), 'Dad will be fine.'],
     ['Grandmother wants you to visit', 'She says she has pies, photographs and "one more piece of advice".', C('Visit', 'Photo albums and tea until night.', { famLove: 8, stress: -10, money: -2000 }), 'She is waiting.'],
@@ -276,7 +277,7 @@
     choices: [F('Buy a policy', s => s.money < 5000 ? O('Not enough money.', { stress: 4 }) : O('A paper policy and a hotline number. You feel safer.', { money: -5000, flag: 'insured', stress: -5 })), C('Skip it', 'Luck is not insurance.', {})] });
 
   /* =================== REGION FLAVOUR =================== */
-  const region = [
+  const region: [string, string, string, Choice, string?][] = [
     ['dagestan', 'Questions about origin', 'A stranger asks "where are you really from?" and stares at your name on the bus ticket.', C('Answer calmly: "Makhachkala"', 'The stranger softens. Conversation turns to khinkal.', { rep: 2, stress: 2 })],
     ['dagestan', 'Mountain hospitality', 'Your cousin hosts a table with twenty dishes for three people.', C('Eat everything', 'You waddle home.', { energy: 10, stress: -8 })],
     ['region', 'Panelka childhood', 'You walk past your old school. The same dog sleeps at the gate.', C('Say hi', 'Everything and nothing has changed.', { stress: -6 })],
@@ -290,6 +291,3 @@
   region.forEach(([o, t, text, ch, alt], i) => S({
     id: `reg-${i}`, cat: 'life', req: s => s.o === o, w: 1.5, title: t, text, choices: [ch, C(alt || 'Move on', 'You move on.', {})],
   }));
-
-  RU.index();
-})();

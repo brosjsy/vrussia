@@ -1,5 +1,6 @@
+import { RU } from '../engine';
+import type { State } from '../engine';
 /* Hand-written scenarios: intros, calendar, document chain, set pieces */
-(function () {
   const { O, gamble, rnd } = RU.util;
   const C = (t, msg, fx) => ({ t, msg, fx });
   const F = (t, r) => ({ t, r });
@@ -232,4 +233,3 @@
     choices: [
       C('Promise to visit', 'You mean it, mostly.', { stress: -8 }),
       C('Say you are busy', 'She says "of course" in a way that tells you otherwise.', { stress: 4 })] });
-})();

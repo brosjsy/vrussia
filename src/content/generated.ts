@@ -1,5 +1,7 @@
+import { RU } from '../engine';
+import type { State, Outcome, Job } from '../engine';
+type Fn = (s: State) => Outcome;
 /* Template-generated scenario families: each (slot × situation) pair is a distinct scenario. */
-(function () {
   const { O, gamble, rnd, pick } = RU.util;
   const S = RU.S;
   const money = RU.money;
@@ -33,7 +35,7 @@
   J('market', 'Market stall seller', 2400, { energy: 18, line: 'Fruit, haggling, a thermos of tea.' });
 
   const jobs = RU.jobs;
-  const inc = [
+  const inc: [string, string, (j: Job) => string, [string, (s: State, j: Job) => Outcome][]][] = [
     ['late_wages', 'Wages are late', j => `Payday for the ${j.name} job comes and goes. The boss says the money "will come on Monday".`, [
       ['Wait politely', (s, j) => gamble(0.6, O('The money arrives on Thursday, with an apology.', { stress: 3 }), O('The money never arrives.', { money: -j.pay, stress: 10, rep: -2 }))],
       ['Threaten to complain to the labour inspectorate', (s, j) => gamble(0.5, O('Paid the same day, but relations are chilly.', { stress: 6, rep: -1 }), O('Fired on the spot.', { job: null, money: -j.pay, stress: 12 }))],
@@ -76,7 +78,7 @@
 
   /* =================== POLICE =================== */
   const places = ['Kuntsevskaya metro', 'Paveletsky station', 'Sadovod market', 'Lyublino market', 'Kuznetsky Most', 'Vykhino metro', 'Moscow-City promenade', 'a Khimki construction gate', 'Tsaritsyno park', 'a Zelenograd bus stop', 'Sennaya Square', 'Nevsky Prospekt', 'the Kazan Kremlin embankment', 'Uralmash in Yekaterinburg', 'Gagarinskaya in Novosibirsk', 'Krasnaya Street in Krasnodar', 'Adler station in Sochi', 'the Golden Bridge in Vladivostok', 'central Grozny', 'a Pyaterochka entrance', 'a hostel stairwell', 'a night-club queue', 'a Wildberries pick-up point', 'the long-distance bus station', 'Sheremetyevo Terminal D', 'a dacha village', 'a university gate', 'an MFC queue', 'an election-day polling station', 'a Chertanovo courtyard'];
-  const sits = [
+  const sits: [string, string, number][] = [
     ['Routine ID check', 'Two officers: "Documents, please."', 1],
     ['"You match a description"', 'An officer says someone fitting your description robbed a shop an hour ago.', 2],
     ['A mass raid', 'Officers form a corridor and ask everyone who is not local to board a bus to the station.', 3],
@@ -106,7 +108,7 @@
 
   /* =================== EDUCATION =================== */
   const subjects = ['Russian language', 'Profile mathematics', 'Physics', 'Chemistry', 'Biology', 'History', 'Social studies', 'Literature', 'Informatics', 'English', 'Geography'];
-  const exSits = [
+  const exSits: [string, Fn][] = [
     ['Mock exam', s => O('The results show weak spots.', { know: 3, stress: 4 })],
     ['Tutor session', s => O('A tutor charges ₽2,500 an hour and is worth it.', { know: 5, money: -2500 })],
     ['Cheat sheet temptation', s => gamble(0.35, O('You slip a note in your sleeve and nobody sees. Guilt follows.', { know: 1, stress: 8, rep: -1 }), O('Caught: disqualified from the day\'s exam.', { know: -2, stress: 20, rep: -5 }))],
@@ -118,7 +120,7 @@
     { t: 'Go all in', r: fn }, { t: 'Take it easy', r: () => O('Less pressure, less progress.', { know: 1, stress: -3 }) } ] })));
 
   const unis = ['Lomonosov Moscow State University', 'HSE', 'MGIMO', 'Bauman MSTU', 'Saint Petersburg State University', 'ITMO', 'RUDN', 'Kazan Federal University', 'Ural Federal University', 'Novosibirsk State University', 'Tomsk Polytechnic', 'MEPhI', 'Sechenov University', 'Pirogov Medical University', 'Far Eastern Federal University', 'Southern Federal University', 'Samara University', 'MPGU (Pedagogical)', 'Gubkin Oil University', 'Moscow Conservatory'];
-  const admSits = [
+  const admSits: [string, string, Fn][] = [
     ['Budget places competition', 'There are 40 budget places for 600 applicants. The list changes every night.', s => O(s.know > 50 ? 'You climb to 28th place.' : 'You slide to 140th.', { stress: 8, know: 1 })],
     ['Olympiad bonus points', 'An olympiad diploma would give +10 points.', s => gamble(0.3 + s.know / 200, O('You win a bronze prize.', { know: 3, stress: 4, flag: 'olymp' }), O('You just miss.', { stress: 6 }))],
     ['Dormitory lottery', 'Beds are limited; the commission prioritises low-income applicants.', s => gamble(0.5, O('A bed in the dorm: ₽600 per month.', { stress: -6 }), O('You rent a corner instead.', { stress: 6, money: -3000 }))],
@@ -133,7 +135,7 @@
 
   /* =================== PAPERWORK =================== */
   const docs = ['Registration notice', 'Patent receipt', 'Work contract', 'Residence permit (RVP)', 'Residence card (VNZh)', 'Citizenship application', 'Military ID', 'SNILS (pension number)', 'INN (tax number)', 'Driver\'s licence', 'Medical certificate', 'Russian language test certificate', 'Fingerprint & photo registration', 'Gosuslugi confirmed account', 'Health insurance (OMS)'];
-  const issues = [
+  const issues: [string, Fn, string][] = [
     ['Endless queue', s => O('You get number 187. It is 09:00; the office closes at 17:00.', { energy: -12, stress: 6 }), 'Wait it out'],
     ['Missing stamp', s => O('A clerk asks for a document you were never told about.', { stress: 8, energy: -8 }), 'Argue politely'],
     ['Notarised translation', s => O('A translator charges ₽2,500 per page.', { money: -2500, stress: 3 }), 'Pay'],
@@ -148,7 +150,7 @@
 
   /* =================== HOUSING =================== */
   const cities = ['Moscow', 'Saint Petersburg', 'Kazan', 'Yekaterinburg', 'Novosibirsk', 'Krasnodar', 'Sochi', 'Vladivostok', 'Grozny', 'Nizhny Novgorod', 'Samara', 'Kaliningrad'];
-  const houseSits = [
+  const houseSits: [string, Fn][] = [
     ['Landlord raises the rent', s => gamble(0.5, O('You negotiate it down by half.', { money: -1000, stress: 4 }), O('He shows you a queue of other tenants.', { money: -3000, stress: 7 }))],
     ['Hostel bunk next to a snorer', s => O('You buy earplugs and survive.', { energy: -10, stress: 6, money: -300 })],
     ['Noisy neighbours', s => O('The neighbours party until 3 a.m. You discover the joy of the police number.', { energy: -12, stress: 8 })],
@@ -167,7 +169,7 @@
 
   /* =================== FOOD =================== */
   const dishes = ['shawarma', 'borscht', 'pelmeni', 'plov', 'buckwheat with sausage', 'blini', 'shashlik', 'khachapuri', 'olivier salad', 'manti', 'pirozhki', 'kebab', 'lagman', 'samsa', 'kholodets', 'okroshka', 'vareniki', 'shchi', 'syrniki', 'kvass and bread'];
-  const foodSits = [
+  const foodSits: [string, Fn][] = [
     ['Cheap and wonderful', s => O('A perfect meal for ₽250.', { energy: 8, stress: -5 })],
     ['Food poisoning risk', s => gamble(0.3, O('A bad stomach for 24 hours.', { health: -10, energy: -15 }), O('You get away with it.', { stress: 2 }))],
     ['Price shock', s => O('Prices doubled in one month. You pay anyway.', { money: -400, stress: 4 })],
@@ -182,7 +184,7 @@
 
   /* =================== SOCIAL =================== */
   const persons = ['an elderly neighbour', 'a taxi driver', 'a colleague', 'your roommate', 'the landlord\'s son', 'a classmate', 'a war veteran at the bus stop', 'a street musician', 'a hostel manager', 'a university professor', 'a volunteer lawyer', 'a fellow countryman'];
-  const socSits = [
+  const socSits: [string, Fn][] = [
     ['invites you for tea', s => O('Tea and a long conversation.', { stress: -8, rep: 3, money: -100 })],
     ['asks for help carrying groceries', s => O('You carry the bags up five floors. A blessing follows.', { energy: -6, rep: 3 })],
     ['gives unsolicited life advice', s => O('Half is nonsense, half is gold.', { know: 2, stress: 2 })],
@@ -197,7 +199,7 @@
 
   /* =================== FAMILY =================== */
   const relatives = ['your mother', 'your father', 'your older brother', 'your younger sister', 'your grandmother', 'your uncle'];
-  const famSits = [
+  const famSits: [string, Fn][] = [
     ['asks for money', s => s.money < 5000 ? O('You do not have enough. Guilt follows.', { stress: 8 }) : O('You send ₽5,000.', { money: -5000, stress: -6 })],
     ['is sick', s => O('You arrange a call with a doctor.', { money: -2000, stress: 8 })],
     ['has good news', s => O('A wedding is planned! You feel joy and distance.', { stress: -8 })],
@@ -209,11 +211,3 @@
   ];
   relatives.forEach((r, i) => famSits.forEach(([t, fn], j) => S({ id: `fam-${i}-${j}`, cat: 'family', title: `${r[0].toUpperCase() + r.slice(1)} ${t}`, text: `Phone call: ${r} ${t}.`, choices: [
     { t: 'Respond', r: fn }, { t: 'Let it ring', r: () => O('You call back tomorrow.', { stress: 3 }) } ] })));
-
-  RU.index();
-  RU.countStats = function () {
-    const by = {};
-    RU.scenarios.forEach(sc => { by[sc.cat] = (by[sc.cat] || 0) + 1; });
-    return { total: RU.scenarios.length, by };
-  };
-})();
