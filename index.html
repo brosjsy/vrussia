@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>V Russia — Life Simulator</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="errbar" hidden></div>
+<script>
+window.addEventListener('error', function (e) {
+  var b = document.getElementById('errbar'); b.hidden = false;
+  b.textContent = 'Script error: ' + e.message + ' (' + String(e.filename).split('/').pop() + ':' + e.lineno + ')';
+});
+</script>
+
+<section id="title" class="screen">
+  <div class="flagbar"><i></i><i></i><i></i></div>
+  <h1>V&nbsp;Russia</h1>
+  <p class="tag">A free browser life simulator: <b>1,200+ scenarios</b> from MFC queues and ЕГЭ to police checks, rent day and New Year's Eve.</p>
+  <label class="field">Your name <input id="nameInput" maxlength="20" placeholder="e.g. Rustam, Aisha, Ivan"></label>
+  <label class="field">Starting city (optional — migrants default to Moscow)
+    <select id="citySel"><option value="">Default for your character</option></select></label>
+  <h2>Choose your life <button class="ghost" id="randomBtn">🎲 Random</button></h2>
+  <div id="origins" class="origins"></div>
+  <div class="row">
+    <button id="startBtn" class="primary">Start</button>
+    <button id="continueBtn" class="secondary" hidden>Continue saved game</button>
+  </div>
+  <p class="fine">Fiction and satire for a project demo. Rules, prices and procedures are simplified approximations and are <b>not legal advice</b>.</p>
+</section>
+
+<section id="game" class="screen" hidden>
+  <header class="top">
+    <div><b id="who"></b><div class="sub" id="where"></div></div>
+    <div class="right"><div id="date"></div><div class="money" id="moneyBox"></div></div>
+  </header>
+  <div class="grid">
+    <aside class="panel">
+      <div id="stats"></div>
+      <h3>Documents</h3><div id="docs" class="chips"></div>
+      <h3>Goals</h3><ul id="goals"></ul>
+      <button class="ghost" id="logBtn">📜 Journal</button>
+      <button class="ghost" id="menuBtn">⟲ New game</button>
+    </aside>
+    <main>
+      <div id="stage" class="card"></div>
+      <div id="actions" class="actions"></div>
+    </main>
+  </div>
+</section>
+
+<section id="end" class="screen" hidden></section>
+<div id="modal" class="modal" hidden><div class="sheet"><button id="closeModal" class="ghost">Close</button><div id="modalBody"></div></div></div>
+
+<script src="js/engine.js"></script>
+<script src="js/content-core.js"></script>
+<script src="js/content-generated.js"></script>
+<script src="js/content-life.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
