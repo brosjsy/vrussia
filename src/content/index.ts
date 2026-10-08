@@ -27,6 +27,7 @@ import './packs/flat';
 import './packs/payday';
 import './packs/rail';
 import './packs/school';
+import './packs/emergency';
 import './business';
 import './arcs';
 import './arcs2';

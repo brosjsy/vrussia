@@ -555,3 +555,31 @@ At the owner's request a recurring job now runs every 15 minutes (at :07, :22, :
 - **Tests:** `test/refusal.test.ts` (3): the cap; consequences, small stress, other messages and mixed effects stay the same; a broke player paying for a patent gets at most about 3 stress. Added to `npm test`. tsc clean; 44 files / 238 tests passing; build clean.
 - **Balance (normal, regenerated):** cautious bots 97-100% citizens for migrants and students, 0% hospital endings; random play 90-97% deported for foreign origins, so careless play is still punished.
 - **Not verified:** the exhaustive test was not re-run after the change; it is due in round 64 (rounds counted from 61). The change only reduces a stress value, but this is a stated gap.
+
+## Round 62 - Data layer, hall of fame and database architecture (requested)
+
+- **Request:** continue with features, design and database architecture. The game has no server, so "database" was handled in three parts: a clean local data layer (built), documentation of the full data model (written), and an optional cloud design (documented only; nothing was created, no account or paid service touched, no external call made).
+- **Added:**
+  - `src/store.ts`: the local data layer with a typed `RunRow` table and `recordRun / hallOfFame / clearHall` over a small `KV` interface (the real `localStorage` or a fake in tests). It caps the list at 20, sorts best first, sanitises every row (lengths, numbers, negative scores stored as 0), and treats corrupt, foreign-schema or blocked storage as empty without throwing. The interface is written so a cloud store can sit behind the same functions later.
+  - Hall of fame on the title screen (best five finished games in this browser, with a Clear button; EN and RU text), and every finished game is recorded when the ending screen is shown (`src/ui.ts`, `index.html`, `src/i18n.ts`, small CSS).
+  - `docs/DATABASE.md`: the content/local tables as they are today, plus a proposed PostgreSQL schema (`runs`, `saves`), row-level-security rules, the integration point and privacy notes for an optional cloud version. Explicitly marked as NOT built.
+- **Tests (new, all in `npm test`):** `test/store.test.ts` (5: ordering, cap of 20 and the "kept" flag, corrupt/foreign/blocked storage, negative score, clear), `test/hall.test.ts` (title screen shows seeded runs best-first and Clear works), `test/hallrecord.test.ts` (plays a whole game through the page and checks the run was stored with name, ending and a score of at least 0). tsc clean; 47 files / 245 tests passing; build clean.
+- **Found by a test:** the game's score can be negative (a run scored -148), which would break the planned database constraint; the store now clamps to 0.
+- **Not verified:** the SQL in `docs/DATABASE.md` was never run on a database; it is a design. The hall of fame was not seen in a real browser (jsdom only).
+- **Decision for the owner:** a real cloud leaderboard or cloud saves need a hosted database project, which is outside the repository and may cost money or collect player data. I did not create one. Say so if you want it built.
+- Skipped: exhaustive test (due round 64); no balance rerun (the data layer does not touch game rules).
+
+## Round 63 - Exhaustive test; lifetime totals
+
+- **Exhaustive test:** passed (3 tests), run after the round-61 refusal cap and the round-62 data layer, closing the gap noted in round 61.
+- **Added:** a `lifetime` table in `src/store.ts` (key `vrussia_lifetime`, schema 1): games played, games ending in citizenship, best score, total days and a count per ending. `recordRun` updates it on every finished game, so it counts runs that are too weak to enter the top-20 hall of fame; clearing the hall clears it too. The title screen shows one line under the hall of fame title (EN and RU: games, became citizens, best score). Corrupt or negative stored numbers are read as 0.
+- **Docs:** `docs/DATABASE.md` lists the new table.
+- **Tests:** `test/store.test.ts` grew by 2 (totals counted beyond the cap; corrupt data ignored and cleared together with the list); `test/hall.test.ts` also checks the totals line on the page. tsc clean; build clean; the quick suite result is in the next line.
+- **Result:** 47 files / 247 tests passing. Skipped: balance rerun (rules untouched); next exhaustive test due round 66.
+
+## Round 64 - Emergencies and first help pack
+
+- **Added:** `src/content/packs/emergency.ts`, 8 hand-written two-choice scenes (`emerg-*`, category health), registered in `src/content/index.ts`: which number to call, calling with little Russian (non-citizens only), smoke in the stairwell, a smell of gas, someone collapsing in the metro, a slip on the ice, the pharmacy counter, a blackout. The first choice is always the sensible one (it gives equal or more knowledge and health than the second, which is the common mistake).
+- **Verified (web search):** 112 is Russia's single emergency number, free from mobile and fixed phones; it does not replace 101 (fire), 102 (police), 103 (ambulance) and 104 (gas), which are free from a mobile (01-04 from an old landline). The advice not to use the lift in a fire and not to switch lights on when you smell gas is standard rescuer guidance, stated briefly; the first-aid scenes are general and are not medical advice.
+- **Tests:** `test/emergency.test.ts` (3): 8 scenes with finite outcomes; the right choice never gives less knowledge or health in the five safety scenes; the operator scene is only for non-citizens. Added to `npm test`. tsc clean; build clean; suite numbers in the next line.
+- **Result:** 48 files / 250 tests passing. Skipped: exhaustive test (next due round 66); no balance rerun.

@@ -5,6 +5,7 @@ import { AWARD_TEXT } from './content/culture';
 import { startScene, redraw } from './scene';
 import { openBooking } from './booking-ui';
 import { openOnlineMenu } from './forms-ui';
+import { hallOfFame, recordRun, clearHall, lifetime } from './store';
 import { t, lang, setLang, applyStatic, actionText, originText, locale, HELP_RU, endingText } from './i18n';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string): T => document.getElementById(id) as T;
@@ -25,18 +26,27 @@ function renderAward(): void {
   $('awardQuote').innerHTML = '<b>' + t('award') + '</b> — ' + esc(t('awardText')) + ' ' + t('awardMore');
 }
 
+/** The local hall of fame: the best finished games stored in this browser (see src/store.ts). */
+function renderHall(): void {
+  const rows = hallOfFame();
+  $('hallBox').hidden = rows.length === 0;
+  const L = lifetime();
+  $('hallTotals').textContent = L.games ? `${t('hallGames')}: ${L.games} · ${t('hallCitizens')}: ${L.citizens} · ${t('hallBest')}: ${L.bestScore}` : '';
+  $('hallList').innerHTML = rows.slice(0, 5).map(r => `<li><b>${r.score}</b> · ${esc(r.name)} — ${esc(r.label)} · ${t('dayWord')} ${r.days} · ${t('hallEnd')}: ${esc(r.ending)}${r.citizen ? ' 🛂' : ''}</li>`).join('');
+}
+
 /** Re-applies the language to the whole page without changing any game state. */
 function refreshLanguage(): void {
   document.documentElement.lang = lang();
   applyStatic(document, countStats().total.toLocaleString('en-US') + ' ' + t('scenarios'));
-  renderOrigins(); renderAward();
+  renderOrigins(); renderAward(); renderHall();
   if (!$('game').hidden) { header(); if (idle) renderIdle(); }
 }
 function toggleLanguage(): void { setLang(lang() === 'ru' ? 'en' : 'ru'); refreshLanguage(); }
 
 function show(id: 'title' | 'game' | 'end'): void {
   (['title', 'game', 'end'] as const).forEach(x => { $(x).hidden = x !== id; });
-  if (id === 'title') $('continueBtn').hidden = !G.load();
+  if (id === 'title') { $('continueBtn').hidden = !G.load(); renderHall(); }
   if (id === 'game') { prevHud = {}; buildMap(); redraw(); }
 }
 
@@ -282,6 +292,7 @@ function showScenario(sc: Scenario, notes: Note[], pre: string): void {
 function end(): void {
   const [title, text] = endingText(String(s.over), G.endings[s.over as G.EndingId] || ['The end', '']);
   G.clear();
+  recordRun({ name: s.name, origin: G.origins.find(o => o.label === s.label)?.id ?? '', label: s.label, ending: String(s.over), score: G.score(s), days: s.day + 1, citizen: !!s.flags.naturalized || s.status === 'citizen', diff: s.diff, achievements: s.ach.length });
   $('end').innerHTML = `<div class="end"><div class="flagbar"><i></i><i></i><i></i></div><h1>${title}</h1><p>${text}</p>
     <div class="score">${G.score(s)}</div><p class="sub">${t('finalScore')}</p>
     <p>${t('dayWord')} ${s.day + 1} · ${G.money(s.money)} · ${s.strikes} ${t('strikesWord')} · ${s.label}</p>
@@ -295,6 +306,7 @@ function end(): void {
 
 /* ---------- boot ---------- */
 export function boot(): void {
+  $('hallClear').onclick = () => { clearHall(); renderHall(); };
   window.addEventListener('unhandledrejection', e => {
     const b = $('errbar'); b.hidden = false;
     b.textContent = `Script error: ${String((e.reason && e.reason.message) || e.reason)}`;
