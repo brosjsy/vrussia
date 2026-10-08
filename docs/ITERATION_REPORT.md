@@ -444,3 +444,114 @@ At the owner's request a recurring job now runs every 15 minutes (at :07, :22, :
 - **Added:** the "what now?" screen shows the last three journal entries under the prompt (EN "Lately" / RU "Недавно", entries truncated to 140 characters), so a returning player remembers what just happened. Code: `recentHtml()` in `src/ui.ts`, two i18n keys, a few CSS lines. Story texts stay English, as elsewhere.
 - **Tests:** `test/hud.test.ts` extended to require the strip to appear during play. Full suite: 34 files / 211 tests passing; tsc and build clean.
 - **Not verified:** still not seen in a real browser (the Browser pane refused localhost in round 45; not retried).
+
+## Round 47 - Scams and digital safety pack
+
+- **Added:** `src/content/packs/scams.ts`, 8 hand-written scenes (`scam-*`, category life), registered in `src/content/index.ts`: fake "bank security" call, fake courier link, a request for a Gosuslugi code, the "safe account" call, a buyer's link, a fake "director" in a messenger, a "number expires" call, an investment chat. Each has a trap choice (the better the player's knowledge, the higher the chance to see through it) and a safe choice that never costs money. Losses are capped at 60% of the player's money (minimum 300) so one bad call cannot end the game. Bank-related scams need a bank account; the fake director needs a job.
+- **Verified:** no web check; the pack uses only widely repeated scam patterns and quotes no laws, limits or amounts. The in-game claim that banks never ask for SMS codes is a general public-warning message, not checked against a specific source this round.
+- **Tests:** `test/scams.test.ts` (3): 8 scenes with a safe second choice; loss cap holds over 40 trials per scene; knowledge 100 loses clearly less often than knowledge 0 in the bank-call scene (400 trials each); bank scams are gated on having an account. Added to `npm test`. Result: tsc clean, 35 files / 214 tests passing, build clean.
+- Skipped: exhaustive test (next due round 49); no balance rerun (the pack is rare and capped).
+
+## Round 48 - Sport pack
+
+- **Added:** `src/content/packs/sport.ts`, 10 hand-written two-choice scenes (`sport-*`, category life), registered in `src/content/index.ts`: the GTO badge, yard football (summer), hockey on a rink (Dec-Mar), cross-country skiing (Dec-Feb), a gym membership (needs spare money), chess in the courtyard, volleyball by the river (summer), morning exercises, the office match debate (needs a job), the public pool.
+- **Verified (web search):** the GTO complex was revived by a presidential decree of 24 March 2014 and introduced from 1 September 2014; it has bronze, silver and gold badges and eleven age groups from six years up. The scene text says only that.
+- **Not verified:** the claim that public pools ask for a medical certificate, a cap and slippers is common knowledge but I did not check a source; treat it as flavour.
+- **Tests:** `test/sport.test.ts` (3): 10 scenes, two choices each, finite outcomes, cost at most 3,000; seasons gate the right scenes; the gym needs spare money. Added to `npm test`. tsc clean, 36 files / 217 tests passing, build clean.
+- Skipped: exhaustive test (due round 49); no balance rerun.
+
+## Round 49 - Exhaustive test; README states the 2026 duties
+
+- **Exhaustive test:** passed (3 tests) with the scams, sport, building and fee changes included.
+- **Fact/documentation fix:** the README did not mention the immigration state duties added in round 42. It now states RVP 15,000, VNZh 30,000 and citizenship 50,000 (law in force from 26 July 2026, verified in round 42), says exemptions are not modelled, and that filing needs the money.
+- **Guard test:** `test/docs.test.ts` gained a test that the README contains every amount in `G.FEE`, so the README fails the suite if the game's fees change.
+- **Run:** tsc clean; docs tests 8 passing; full quick suite and build re-run at the end of this round (see numbers below).
+- **Result:** 36 files / 218 tests passing; build clean.
+
+## Round 50 - Russian language in daily life pack
+
+- **Added:** `src/content/packs/language.ts`, 10 hand-written two-choice social scenes (`lang-*`), registered in `src/content/index.ts`. Five are for everyone (patronymic address, "ty" or "vy", "How are you?", an unknown regional word, a taxi driver quoting Pushkin) and five are for foreigners only (reading Cyrillic signs, "bring a certificate and a certified copy", an accent, a hand-written Cyrillic form, a free language club).
+- **Verified:** no web check; only general, well-known features of the language and office life are described, with no laws or amounts. The details of the clerk's wording are flavour.
+- **Tests:** `test/language.test.ts` (2): 10 scenes, finite outcomes, costs at most 500; a citizen sees the five general scenes and none of the foreigner-only ones, a migrant sees all ten. Added to `npm test`. tsc clean, 37 files / 220 tests passing, build clean.
+- Skipped: exhaustive test (next due round 52); no balance rerun.
+
+## Round 51 - Patent price wording checked and softened
+
+- **Researched:** Moscow patent price. Sources (snob.ru, ppt.ru, klerk-type news): in 2025 it was 8,900 a month; on 31 October 2025 a draft with regional coefficient 2.9323 was reviewed, which would raise it to about 10,000 for 2026, "proposed, not yet approved". Further searches (deflator 1.253 for 2026 federally) did not confirm that the Moscow increase was adopted.
+- **Fix:** the game charged 10,000 and said "from 1 January 2026 it is 10,000". That was stated as settled fact. The patent scene text (`src/content/core.ts`) and the README now say 8,900 in 2025, an increase to about 10,000 proposed for 2026, the game uses 10,000, and the real rate should be checked. Game mechanics and numbers unchanged.
+- **Run:** tsc clean; 37 files / 220 tests passing; build clean. No new tests (text only).
+- **Open:** if a later round can find the adopted Moscow law (Mosgorduma, December 2025), update the wording to the confirmed figure.
+
+## Round 52 - Moscow patent price confirmed; exhaustive test
+
+- **Exhaustive test:** passed (3 tests).
+- **Researched (closes the open item of round 51):** a Garant news article reports that the Moscow price rises from 8,900 to 10,000 rubles a month from 1 January 2026 (regional coefficient 2.9323, via the annual indexation mechanism); a Moscow-region law with the same coefficient was also found. I read only the news summary, not the text of the Moscow law itself.
+- **Change:** the patent scene (`src/content/core.ts`) and README wording restored to a plain statement (8,900 in 2025, about 10,000 from 1 January 2026). Mechanics unchanged.
+- **Run:** tsc clean; quick suite and build re-run (numbers below).
+- **Result:** 37 files / 220 tests passing; build clean.
+
+## Round 53 - Flat and utilities pack
+
+- **Added:** `src/content/packs/flat.ts`, 10 hand-written two-choice scenes (`flat-*`, category home), registered in `src/content/index.ts`: heating switch-on (Sep-Oct), heating switch-off (Apr-May), planned summer hot-water shut-off (Jun-Aug), meter readings, the single payment receipt, viewing a flat, the deposit, the landlord's visit (these three only for renters), a cold flat in winter (Dec-Feb), a leak from the flat above.
+- **Verified (web search):** under the utilities rules (Government Decree No. 354 of 6 May 2011) the heating period must start no later than the day after five days in a row below +8 C average daily temperature and may end after five days in a row above it; local authorities may start earlier. Press mentions discussion of changing the rule, so the scene says "under the rules in force when the game was written". Not verified: the planned summer hot-water shut-off and the "single payment document" are general knowledge, described without dates or numbers.
+- **Tests:** `test/flat.test.ts` (3): 10 scenes, finite outcomes and cost at most 1,500; seasonal gating; renter-only scenes. Added to `npm test`. tsc clean, build clean; suite numbers in the next line.
+- **Result:** 38 files / 223 tests passing. Skipped: exhaustive test (next due round 55); no balance rerun.
+
+## Round 54 - Wages and payday pack
+
+- **Added:** `src/content/packs/payday.ts`, 9 hand-written two-choice scenes (`pay-*`, category work, only for players with a job), registered in `src/content/index.ts`: advance and salary, payday on a weekend, the pay slip, an offer "in an envelope", a late salary, the labour inspection, holiday pay, a sick note, asking for a raise.
+- **Verified (web search):** Article 136 of the Labour Code: wages are paid at least every half month on days set by internal rules or contract; the first half-month is paid from the 16th to the end of the current month, the second from the 1st to the 15th of the next; if payday falls on a day off it is paid the day before. The scenes use only that. Not verified: holiday pay "before it begins, from average earnings" and that sick pay is lower than wages are well-known general rules, stated without numbers; tax rates and delay-compensation formulas are deliberately not quoted.
+- **Tests:** `test/payday.test.ts` (2): 9 scenes, two choices each, finite outcomes, cost at most 1,000; scenes appear only with a job. Added to `npm test`.
+- **Result:** tsc clean; 39 files / 225 tests passing; build clean. Skipped: exhaustive test (due round 55); no balance rerun.
+
+## Round 55 - Exhaustive test and balance check after the new packs (no new content)
+
+- **Exhaustive test:** passed (3 tests) with the scams, sport, language, flat and payday packs in.
+- **Balance rerun (normal, 30 games per origin, regenerated `docs/BALANCE.md`):** cautious bots: citizenship 97% Tajik, 100% Uzbek, 97% Kyrgyz (EAEU), 90% foreign student (with 7% ending in debt and 3% in hospital, the weakest origin); Moscow and Regional keep 100% survival. Random play: 80-93% deported for the foreign origins, 3-13% survive two years, so careless play is still punished. Median money of cautious migrants rose to about 1.1-1.3 million (from 0.7-0.8 million in round 42); the cause is not isolated (new wage and flat scenes add small gains, run-to-run noise on 30 games is large), so nothing was tuned.
+- Not done: hard and easy balance reports not regenerated; no new scenarios this round.
+
+## Round 56 - Long-distance train pack
+
+- **Added:** `src/content/packs/rail.ts`, 9 hand-written two-choice scenes (`rail-*`, category life), registered in `src/content/index.ts`: platzkart or kupe (needs spare money), the carriage attendant, tea in a glass holder, platform sellers, the neighbour on the lower berth, time zones, being left on the platform (rare), a night in the carriage, arrival.
+- **Verified (web search):** the Trans-Siberian line from Moscow to Vladivostok is about 9,300 km (sources give 9,288 or 9,289) and crosses many time zones (one source says eight); the full ride takes about a week. The scene says "about nine thousand three hundred kilometres" and does not name a number of zones. Not verified: the game ticket costs (2,500 / 5,500) are invented, not real prices, and the platzkart/kupe/attendant/platform-seller culture is general knowledge.
+- **Tests:** `test/rail.test.ts` (3): 9 scenes, finite outcomes, costs up to 6,000; the platzkart/kupe scene needs money; the "left on the platform" scene is rarer than a calm one. Added to `npm test`.
+- **Result:** tsc clean; 40 files / 228 tests passing; build clean. Skipped: exhaustive test (due round 58); no balance rerun.
+
+## Round 57 - School and kindergarten pack
+
+- **Added:** `src/content/packs/school.ts`, 9 hand-written two-choice scenes (`school-*`, category family, only for players with children), registered in `src/content/index.ts`: first-grade enrolment (Apr-Jun), the 1 September "Day of Knowledge" (September), the parents' chat, late homework, the parents' meeting, school clothes, the last bell (May), the kindergarten queue, a sick child.
+- **Verified (web search, 2026 rules):** applications for children of a school's catchment area run from 1 April to 30 June, via Gosuslugi, registered post or in person; for other children from 6 July until places run out; the child must be at least 6 years 6 months and not older than 8 on 1 September. The scene says "in 2026" because these dates change from year to year and by region. Not verified: school uniform rules, the parents' chat and meeting customs and the kindergarten online queue are general knowledge, described without prices or rules.
+- **Tests:** `test/school.test.ts` (3): 9 scenes, finite outcomes, costs up to 4,000; only parents see them; the seasonal scenes follow their months. Added to `npm test`. tsc clean; 41 files / 231 tests passing; build clean.
+- Skipped: exhaustive test (due round 58); no balance rerun.
+
+## Round 58 - Exhaustive test and hard/easy balance refresh (no new content)
+
+- **Exhaustive test:** passed (3 tests) with all packs from rounds 44-57 in (building, scams, sport, language, flat, payday, rail, school).
+- **Balance regenerated for hard and easy (30 games per origin, cautious bot):** hard: citizenship 93% Tajik, 93% Uzbek, 100% Kyrgyz, 87% foreign student (10% of students end in hospital, the weakest case); easy: 97-100% everywhere. These are in line with rounds 43 and 55, so no tuning.
+- Not done: no new scenarios; the foreign student on hard remains the least safe route and is a candidate for a future look (student work-permit rules).
+
+## Round 59 - Cold-weather nudge; looking into the student hospital endings
+
+- **Investigated:** the foreign student on hard ends in hospital 10-13% of balanced-bot games. A cause found in the code: students start with clothing 35, and on every frost or snow day a player with clothing under 40 loses 3 health; the shop warning scene existed but was only drawn if the player happened to open the shop.
+- **Added (`src/engine.ts`, `endDay`):** on a cold day with clothing under 40 the game now queues the existing `shop_winter_warning` scene, at most once every 25 days (mark `frostWarn`), so a player is told what to do instead of silently losing health. No new text; buying the winter set from that scene sets clothing to 70 when affordable.
+- **Tests:** `test/frostwarn.test.ts` (3): the first cold day queues the warning, then not again for 3 days; a well-dressed player gets none; the warning scene's first choice raises clothing to at least 40. Added to `npm test`. tsc clean; 42 files / 234 tests passing; build clean.
+- **Result on balance (hard, 30 games, regenerated `docs/BALANCE-hard.md`):** foreign student hospital endings were 13% (before: 10%), so the nudge did NOT fix the figure; within the noise of 30 games, no improvement is claimed. The balanced bot always takes choice 0 and may not be affected by the warning at all.
+- **Diagnosis attempt:** a throwaway diagnostic (deleted) played students badly and showed that spamming the language test at stress 100 kills a character in about five days through the burnout rule (health -3/day at stress 90+). That is a bad-play pattern, not proof of the cause of the balance figure. Still open: find what actually drives the balanced bot's student hospital endings (stress management during the exam and quota phase is the leading suspect).
+
+## Round 60 - Root cause of the student hospital endings found and fixed
+
+- **Diagnosis:** a throwaway diagnostic (deleted) replayed the balance bot's own policy for the hard-difficulty foreign student and printed the last 14 events of every hospital ending. All six showed the same pattern: the bot kept choosing "Prepare properly and take the exam" in the language-exam scene without money for the fee; each refusal added +5 stress, stress sat at 90-100, and the burnout rule (health -3 per day at stress 90+) killed the character in about five days.
+- **Fix (`src/content/core.ts`):** a refused exam (no money for the fee) now adds 1 stress instead of 5. Nothing else changed; an unaffordable fee is a refusal, not a punishment.
+- **Test:** `test/examfee.test.ts` (1): refusal gives no money or flag change and at most 1 stress. Added to `npm test`. tsc clean; 43 files / 235 tests passing; build clean.
+- **Result (hard balance regenerated, 30 games per origin, cautious bot):** foreign student hospital endings 13% -> 0%, citizenship 87% -> 100%. Tajik 90%, Uzbek 93%, Kyrgyz 100%; the 90-93% migrant rows are within noise of earlier runs.
+- **Caveat:** a human can still spam an unaffordable action at high stress; the burnout rule is deliberate and the game does warn. Not changed.
+- Skipped: exhaustive test (due round 61); the normal and easy balance reports were not regenerated.
+
+## Round 61 - Exhaustive test; one rule for all "you cannot pay" refusals
+
+- **Exhaustive test:** passed (3 tests) before the change below.
+- **Audit:** a throwaway audit (deleted) played every scene's every choice with an empty wallet for a student, a migrant and a Muscovite and listed outcomes whose only effect is stress of 4 or more and whose message says the player lacks money. Dozens of scenes do this (patent payment, insurance, remittances, family help, lost-item scenes: 5-8 stress each). Round 60 showed that repeating one of these can burn a character out.
+- **Change (`src/engine.ts`):** `softenRefusal` (called in `choose`) caps the stress of a plain refusal at `REFUSAL_STRESS` = 3. An outcome counts as a refusal only when its message matches "do not have / cannot afford / not enough / you need ..." and its only effect is stress. Outcomes with any other effect (a strike, money, a flag) are never touched, so real consequences such as the lawyer scene (+18 and more) are unchanged.
+- **Tests:** `test/refusal.test.ts` (3): the cap; consequences, small stress, other messages and mixed effects stay the same; a broke player paying for a patent gets at most about 3 stress. Added to `npm test`. tsc clean; 44 files / 238 tests passing; build clean.
+- **Balance (normal, regenerated):** cautious bots 97-100% citizens for migrants and students, 0% hospital endings; random play 90-97% deported for foreign origins, so careless play is still punished.
+- **Not verified:** the exhaustive test was not re-run after the change; it is due in round 64 (rounds counted from 61). The change only reduces a stress value, but this is a stated gap.

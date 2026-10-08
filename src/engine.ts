@@ -377,9 +377,22 @@ export function perform(s: State, actionId: string): Performed {
 }
 
 export interface Chosen { msg: string; notes: Note[]; dayNotes: string[]; ui?: string; unlocked: Achievement[] }
+/** Largest stress a plain "you cannot pay" refusal may cause. Repeating an unaffordable action must not be able to burn a character out. */
+export const REFUSAL_STRESS = 3;
+const REFUSAL = /do not have|don't have|cannot afford|can't afford|not enough|need ₽|you need|short of/i;
+
+/** A refusal is an outcome whose only effect is stress and whose message says the player lacks money; its stress is capped. */
+export function softenRefusal(res: Outcome): Outcome {
+  const fx = res.fx || {};
+  const stress = Number(fx.stress || 0);
+  if (stress <= REFUSAL_STRESS || !REFUSAL.test(res.msg || '')) return res;
+  for (const k of Object.keys(fx)) if (k !== 'stress' && (fx as Record<string, unknown>)[k]) return res;
+  return { ...res, fx: { ...fx, stress: REFUSAL_STRESS } };
+}
+
 export function choose(s: State, sc: Scenario, i: number): Chosen {
   const c = sc.choices[i];
-  const res = c.r ? c.r(s) : O(c.msg || '', c.fx);
+  const res = softenRefusal(c.r ? c.r(s) : O(c.msg || '', c.fx));
   const notes = apply(s, res.fx);
   if (!sc.dynamic) s.seen[sc.id] = (s.seen[sc.id] || 0) + 1;
   s.log.unshift({ day: s.day, text: `${sc.title}: ${res.msg}` });
@@ -446,7 +459,10 @@ export function endDay(s: State): string[] {
   else if (s.stress >= 75) s.health -= 1;
   if (s.strikes > 0 && s.day % diffOf(s).strikeDays === 0 && problems(s).length === 0) { s.strikes -= 1; out.push('A recorded violation has expired from your record.'); }
   s.weather = weatherFor(d);
-  if ((s.weather === 'frost' || s.weather === 'snow') && s.clothes < 40) { s.health -= 3; out.push('🥶 You are underdressed for the cold: health −3. Buy a proper coat and boots.'); }
+  if ((s.weather === 'frost' || s.weather === 'snow') && s.clothes < 40) { s.health -= 3; out.push('🥶 You are underdressed for the cold: health −3. Buy a proper coat and boots.');
+    // a gentle push toward the shop at most once per 25 days, so nobody freezes without having been told what to do
+    if ((s.marks.frostWarn === undefined || s.day - s.marks.frostWarn > 25) && !s.queue.includes('shop_winter_warning')) { s.marks.frostWarn = s.day; s.queue.push('shop_winter_warning'); }
+  }
   if (s.weather === 'rain' && s.clothes < 20) s.health -= 1;
   s.health = clamp(s.health, 0, 100);
   s.clothes = clamp(s.clothes - 0.3, 0, 100);

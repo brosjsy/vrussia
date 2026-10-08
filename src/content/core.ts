@@ -84,7 +84,7 @@ import type { State } from '../engine';
       F('Pay a clinic "VIP" service', s => gamble(0.55, O('No queue, same certificate, double price.', { flag: 'med', money: -16000 }), O('The certificate is fake. It is not recognised at the MFC.', { money: -16000, stress: 10, strike: 1 })))] });
 
   S({ id: 'patent_buy', cat: 'paper', who: ['migrant'], req: s => !!s.flags.med && !!s.flags.insured && s.docs.patent < 12 && !s.flags.rvp && !(s.flags.patentBan && s.day < (s.marks.patentBan ?? 0) + 365), w: 60,
-    title: 'Patent payment', text: 'A work patent is paid for in monthly advance payments of income tax. In Moscow from 1 January 2026 it is ₽10,000 a month (other regions differ). Pay on time and keep the receipts. After you receive the patent you must notify the Interior Ministry within two months.',
+    title: 'Patent payment', text: 'A work patent is paid for in monthly advance payments of income tax. In Moscow it was ₽8,900 a month in 2025 and rose to about ₽10,000 from 1 January 2026 (other regions differ). Pay on time and keep the receipts. After you receive the patent you must notify the Interior Ministry within two months.',
     choices: [
       F('Pay for 1 month', s => s.money < 10000 ? O('You do not have the money. The MFC clerk shrugs.', { stress: 6 }) : O('Receipt in hand, +30 days.', { money: -10000, docs: { patent: 30 }, ...(s.marks.patent === undefined ? { mark: 'patent' } : {}) })),
       F('Pay for 3 months', s => s.money < 30000 ? O('You do not have ₽30,000.', { stress: 6 }) : O('Peace of mind. +90 days.', { money: -30000, docs: { patent: 90 }, ...(s.marks.patent === undefined ? { mark: 'patent' } : {}) })),
@@ -137,7 +137,7 @@ import type { State } from '../engine';
           : 'The exam has three modules: Russian language, history of Russia, and the basics of legislation. The residence-permit version takes about two and a quarter hours and costs about ₽5,300 at a university testing centre (prices differ by centre; the shorter patent version is about ₽4,900). Fail one module and you can retake just that one for half price; fail two or more and you retake everything at full price. Beware of anyone selling a "guaranteed result".',
         choices: [
           { t: `Prepare properly and take the exam (₽${cost.toLocaleString('en-US')})`, r: st => {
-            if (st.money < cost) return O(`You need ₽${cost.toLocaleString('en-US')} for the exam fee.`, { stress: 5 });
+            if (st.money < cost) return O(`You need ₽${cost.toLocaleString('en-US')} for the exam fee.`, { stress: 1 });
             const p = Math.min(0.95, 0.3 + st.know / 100 + (st.flags.olga_prep ? 0.25 : 0));
             if (Math.random() < p) return O('You pass all three modules. The certificate is issued within about ten working days and is valid for five years.', { flag: 'rutest', unflag: 'exam_half', money: -cost, know: 3, stress: -5 });
             if (!half && Math.random() < 0.5) return O('You pass two modules and miss the third by a few points. You may retake only that module, at half price.', { flag: 'exam_half', money: -cost, stress: 8 });

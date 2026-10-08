@@ -48,4 +48,9 @@ describe('the docs only mention commands that exist', () => {
     expect(files.length).toBeGreaterThan(10);
     for (const f of files) expect(() => readFileSync(f, 'utf8'), f).not.toThrow();
   });
+
+  it('the README quotes the same immigration state duties as the game', () => {
+    const readme = readFileSync('README.md', 'utf8');
+    for (const v of Object.values(G.FEE)) expect(readme).toContain('₽' + v.toLocaleString('en-US'));
+  });
 });

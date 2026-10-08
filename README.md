@@ -35,7 +35,7 @@ Each day has three parts (morning, afternoon, evening); every action uses one. R
 
 **Characters.** Citizens, labour migrants (patent route), EAEU workers (no patent), foreign students — each with different rules, money and risks.
 
-**Papers.** Registration (7 days for most nationalities, 15 for Tajik and Uzbek citizens, 30 for EAEU workers), medical exam, health insurance, patent (₽10,000/month in Moscow, 2026) with the two-month notification rule, language test, a ground for RVP (quota / marriage / child), RVP, VNZh, citizenship. Expired papers lead to police checks, fines and legal strikes; three strikes mean deportation; a clean record slowly clears strikes. Waiting times that take years in real life are shortened to months and the game says so.
+**Papers.** Registration (7 days for most nationalities, 15 for Tajik and Uzbek citizens, 30 for EAEU workers), medical exam, health insurance, patent (about ₽10,000/month in Moscow from 1 January 2026, up from ₽8,900 in 2025) with the two-month notification rule, language test, a ground for RVP (quota / marriage / child), RVP, VNZh, citizenship. State duties follow the law in force from 26 July 2026 (RVP ₽15,000, VNZh ₽30,000, citizenship ₽50,000; exemptions for some groups are not modelled) and cannot be filed without the money. Expired papers lead to police checks, fines and legal strikes; three strikes mean deportation; a clean record slowly clears strikes. Waiting times that take years in real life are shortened to months and the game says so.
 
 **Systems.**
 - 🗺️ a live city map (16 places) you click to travel; snow, frost and rain make you lose your way; a good phone helps
