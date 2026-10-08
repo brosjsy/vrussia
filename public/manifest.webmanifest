@@ -1,0 +1,15 @@
+{
+  "name": "V Russia — Life Simulator",
+  "short_name": "V Russia",
+  "description": "A free browser life simulator of Russia: papers, work, study, family, culture.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0e1424",
+  "theme_color": "#0e1424",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

@@ -1,4 +1,7 @@
 import { RU } from '../engine';
+
+/** Adds the nine standard workplace incidents for a job. */
+export let workIncidents: (j: Job) => void;
 import type { State, Outcome, Job } from '../engine';
 type Fn = (s: State) => Outcome;
 /* Template-generated scenario families: each (slot × situation) pair is a distinct scenario. */
@@ -49,7 +52,7 @@ type Fn = (s: State) => Outcome;
       ['Go to the polyclinic', s => O(s.status === 'citizen' || s.flags.rvp ? 'Free care under the state health insurance. A sick leave certificate follows.' : 'Without insurance the visit costs ₽3,000.', { money: s.status === 'citizen' || s.flags.rvp ? 0 : -3000, health: 3 })],
       ['Take the boss\'s cash to stay quiet', () => O('₽5,000 and no report. You feel uneasy.', { money: 5000, health: -4, stress: 5 })]]],
     ['inspection', 'Inspection at work', j => `Officers with folders walk into the ${j.name} workplace: "Inspection of labour and migration documents."`, [
-      ['Show your documents calmly', s => RU.problems(s).length ? O(`The inspector notes: ${RU.problems(s)[0]}. A report follows.`, { strike: 1, money: -5000, stress: 15 }) : O('Everything is fine. The boss pats your shoulder.', { rep: 2, stress: 3 })],
+      ['Show your documents calmly', s => RU.problems(s).length ? gamble(0.4, O(`The inspector notes: ${RU.problems(s)[0]}. A warning is issued and you are told to fix it quickly.`, { stress: 14 }), O(`The inspector notes: ${RU.problems(s)[0]}. A report follows.`, { strike: 1, money: -5000, stress: 15 })) : O('Everything is fine. The boss pats your shoulder.', { rep: 2, stress: 3 })],
       ['Hide in the storeroom', s => gamble(0.35, O('They leave without noticing you.', { stress: 10 }), O('They find you. This looks bad.', { strike: 1, money: -5000, stress: 15 }))],
       ['Ask the boss to speak for you', (s) => gamble(0.5, O('The boss handles it.', { rep: 1, stress: 3 }), O('The boss says he has never seen you.', { rep: -3, stress: 10, job: null }))]]],
     ['raise', 'A promotion offer', j => `The manager at the ${j.name} job wants you for a more responsible position.`, [
@@ -71,10 +74,13 @@ type Fn = (s: State) => Outcome;
       ['Listen carefully', () => O('You learn something that will outlast the job.', { know: 4, energy: -6 })],
       ['Say you know already', () => O('He shrugs. You do not.', { know: 0, rep: -1 })]]],
   ];
-  for (const j of jobs) for (const [key, title, text, chs] of inc) {
-    S({ id: `work-${j.id}-${key}`, cat: 'work', req: s => s.job === j.id, title: `${title} (${j.name})`, text: text(j),
-      choices: chs.map(([t, fn]) => ({ t, r: s => fn(s, j) })) });
-  }
+  workIncidents = (j: Job): void => {
+    for (const [key, title, text, chs] of inc) {
+      S({ id: `work-${j.id}-${key}`, cat: 'work', w: key === 'inspection' ? 0.5 : 1, req: s => s.job === j.id, title: `${title} (${j.name})`, text: text(j),
+        choices: chs.map(([t, fn]) => ({ t, r: s => fn(s, j) })) });
+    }
+  };
+  for (const j of jobs) workIncidents(j);
 
   /* =================== POLICE =================== */
   const places = ['Kuntsevskaya metro', 'Paveletsky station', 'Sadovod market', 'Lyublino market', 'Kuznetsky Most', 'Vykhino metro', 'Moscow-City promenade', 'a Khimki construction gate', 'Tsaritsyno park', 'a Zelenograd bus stop', 'Sennaya Square', 'Nevsky Prospekt', 'the Kazan Kremlin embankment', 'Uralmash in Yekaterinburg', 'Gagarinskaya in Novosibirsk', 'Krasnaya Street in Krasnodar', 'Adler station in Sochi', 'the Golden Bridge in Vladivostok', 'central Grozny', 'a Pyaterochka entrance', 'a hostel stairwell', 'a night-club queue', 'a Wildberries pick-up point', 'the long-distance bus station', 'Sheremetyevo Terminal D', 'a dacha village', 'a university gate', 'an MFC queue', 'an election-day polling station', 'a Chertanovo courtyard'];
@@ -92,12 +98,12 @@ type Fn = (s: State) => Outcome;
     { t: 'Calmly hand over your documents', r: s => {
       const p = RU.problems(s);
       if (!p.length) return gamble(0.9 - 0.1 * sev, O('The documents check out. You are on your way within minutes.', { stress: 3 }), O('"Come with us for verification." You lose two hours at the station.', { stress: 9, energy: -10 }));
-      return gamble(0.3 - 0.05 * sev, O(`The officer spots a problem (${p[0]}) but lets you go with a warning.`, { stress: 12 }), O(`A protocol is drawn up: ${p[0]}. Fine and a recorded violation.`, { money: -5000 * sev, strike: 1, stress: 15 }));
+      return gamble(0.45 - 0.05 * sev, O(`The officer spots a problem (${p[0]}) but lets you go with a warning.`, { stress: 12 }), O(`A protocol is drawn up: ${p[0]}. Fine and a recorded violation.`, { money: -5000 * sev, strike: 1, stress: 15 }));
     } },
     { t: 'Ask politely for his name, rank and reason; mention a lawyer or consulate', r: s => {
       const p = RU.problems(s);
       if (!p.length) return gamble(0.85, O('He notes your politeness and steps back. Rights respected.', { rep: 2, stress: 2 }), O('He sighs and checks you slowly anyway.', { stress: 6, energy: -6 }));
-      return gamble(0.45 + s.know / 300, O('Paperwork annoys him more than it annoys you. He lets you go.', { stress: 8, rep: 1 }), O(`He proceeds regardless: ${p[0]}.`, { money: -4000 * sev, strike: 1, stress: 12 }));
+      return gamble(0.45 + s.know / 300 + (s.flags.knowsRights ? 0.15 : 0), O('Paperwork annoys him more than it annoys you. He lets you go.', { stress: 8, rep: 1 }), O(`He proceeds regardless: ${p[0]}.`, { money: -4000 * sev, strike: 1, stress: 12 }));
     } },
     { t: 'Offer money to "settle it here" (illegal — bribery)', r: s => gamble(0.4, O('He pockets the money, unseen. You feel dirty.', { money: -3000 * sev, stress: 10, rep: -2 }), O('"Attempted bribery." The tone has changed.', { money: -15000, strike: 1, stress: 20, rep: -4 })) },
     { t: 'Walk away quickly / run', r: s => gamble(RU.problems(s).length ? 0.2 : 0.4, O('They do not follow. Your heart pounds for an hour.', { stress: 12, energy: -10 }), O('They stop you within thirty metres. Resisting makes it worse.', { money: -5000, strike: 1, stress: 18 })) },
@@ -147,9 +153,13 @@ type Fn = (s: State) => Outcome;
   ];
   docs.forEach((d, i) => issues.forEach(([t, fn, label], j) => S({ id: `paper-${i}-${j}`, cat: 'paper', title: `${d}: ${t}`, text: `You work on the ${d.toLowerCase()}. Problem: ${t.toLowerCase()}.`, choices: [
     { t: label, r: fn }, { t: 'Come back tomorrow', r: () => O('Another day lost.', { stress: 3 }) } ] })));
+  // the "fixer offers a shortcut" scenario: the safe option comes first
+  RU.scenarios.filter(sc => /^paper-\d+-4$/.test(sc.id)).forEach(sc => sc.choices.reverse());
+  // likewise for the "fictitious registration" offer in housing events
+  RU.scenarios.filter(sc => /^home-\d+-6$/.test(sc.id)).forEach(sc => sc.choices.reverse());
 
   /* =================== HOUSING =================== */
-  const cities = ['Moscow', 'Saint Petersburg', 'Kazan', 'Yekaterinburg', 'Novosibirsk', 'Krasnodar', 'Sochi', 'Vladivostok', 'Grozny', 'Nizhny Novgorod', 'Samara', 'Kaliningrad'];
+  const cities = RU.CITIES;
   const houseSits: [string, Fn][] = [
     ['Landlord raises the rent', s => gamble(0.5, O('You negotiate it down by half.', { money: -1000, stress: 4 }), O('He shows you a queue of other tenants.', { money: -3000, stress: 7 }))],
     ['Hostel bunk next to a snorer', s => O('You buy earplugs and survive.', { energy: -10, stress: 6, money: -300 })],
@@ -163,7 +173,7 @@ type Fn = (s: State) => Outcome;
   ];
   cities.forEach((c, i) => houseSits.forEach(([t, fn], j) => S({ id: `home-${i}-${j}`, cat: 'home', req: s => s.city === c, title: `${c}: ${t}`, text: `Life in ${c}. ${t}.`, choices: [
     { t: 'Deal with it', r: fn }, { t: 'Ignore it and sleep', r: () => O('You sleep, but the problem stays.', { energy: 8, stress: 4 }) } ] })));
-  cities.forEach((c, i) => S({ id: `move-${i}`, cat: 'home', req: s => s.city !== c && s.money > 8000, w: 0.4, title: `Move to ${c}?`, text: `A friend says there is a better job market in ${c}. Moving costs ₽6,000 and new registration.`, choices: [
+  cities.forEach((c, i) => S({ id: `move-${i}`, cat: 'home', req: s => s.city !== c && s.money > 8000, w: 0.06, title: `Move to ${c}?`, text: `A friend says there is a better job market in ${c}. Moving costs ₽6,000 and new registration.`, choices: [
     { t: 'Move', r: s => O(`You pack your bags and take the train to ${c}.`, { city: c, money: -6000, setDocs: { reg: 0 }, stress: 8 }) },
     { t: 'Stay', r: () => O('You stay put.', {}) } ] }));
 
@@ -211,3 +221,6 @@ type Fn = (s: State) => Outcome;
   ];
   relatives.forEach((r, i) => famSits.forEach(([t, fn], j) => S({ id: `fam-${i}-${j}`, cat: 'family', title: `${r[0].toUpperCase() + r.slice(1)} ${t}`, text: `Phone call: ${r} ${t}.`, choices: [
     { t: 'Respond', r: fn }, { t: 'Let it ring', r: () => O('You call back tomorrow.', { stress: 3 }) } ] })));
+
+// the "fictitious registration" offer in housing events: the safe option comes first
+RU.scenarios.filter(sc => /^home-\d+-6$/.test(sc.id)).forEach(sc => sc.choices.reverse());

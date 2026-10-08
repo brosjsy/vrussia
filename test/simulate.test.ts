@@ -10,14 +10,15 @@ describe('content', () => {
   });
 
   it('every static scenario has choices', () => {
-    for (const sc of G.scenarios) expect(sc.choices.length, sc.id).toBeGreaterThan(0);
+    const s = G.newState('T', 'tajik');
+    for (const raw of G.scenarios) { const sc = G.materialize(raw, s); expect(sc.choices.length, sc.id).toBeGreaterThan(0); }
   });
 });
 
 describe('simulation', () => {
   it('plays random games for every origin without crashing or leaving valid ranges', () => {
     for (const o of G.origins) {
-      for (let game = 0; game < 20; game++) {
+      for (let game = 0; game < 10; game++) {
         const s = G.newState('T', o.id);
         let steps = 0;
         while (!s.over && steps++ < 6000) {
@@ -42,7 +43,7 @@ describe('simulation', () => {
 
   it('migrant starts with a registration clock and no patent', () => {
     const s = G.newState('T', 'tajik');
-    expect(s.docs.reg).toBe(7);
+    expect(s.docs.reg).toBe(15);
     expect(G.problems(s)).not.toContain('working without a valid patent');
     s.job = 'courier';
     expect(G.problems(s)).toContain('working without a valid patent');

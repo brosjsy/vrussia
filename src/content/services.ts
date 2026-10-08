@@ -59,14 +59,26 @@ S({ id: 'phone_cracked', cat: 'life', w: 0.8, req: (s: State) => s.phone >= 1, t
 /* =================== DRIVING SCHOOL + CAR DEALER =================== */
 S({
   id: 'driving_school', cat: 'car', req: (s: State) => !s.flags.license && !s.flags.enrolled, w: 6, title: 'Driving school',
-  text: 'A banner says: "Licence in two months, 100% pass rate". A course costs about ₽35,000 and includes theory, 56 hours of driving and an exam at the traffic police.',
+  text: 'A banner says: "Licence in two months, 100% pass rate". A course costs about ₽35,000 in the game (real prices are often ₽30,000 to ₽80,000) and includes theory lessons, practical driving lessons (the national programme changed in March 2026) and an exam at the traffic police: first theory, then practical driving.',
   choices: [
     F('Enroll (₽35,000)', s => s.money < 35000 ? O('You do not have enough money yet.', { stress: 4 }) : isForeigner(s) && !s.flags.rvp && s.docs.reg <= 0 ? O('The school asks for valid registration. You do not have it.', { stress: 6 }) : O('You sign the contract. First theory class on Monday.', { money: -35000, flag: 'enrolled', mark: 'enrolled', know: 2 })),
     C('Ask about prices and leave', 'You take a leaflet and a lollipop.', {}),
   ],
 });
 S({
-  id: 'driving_exam', cat: 'car', req: (s: State) => !!s.flags.enrolled && !s.flags.license && s.day >= (s.marks.enrolled ?? 0) + 14, w: 12, once: true, title: 'Traffic police exam',
+  id: 'driving_exchange', cat: 'car', who: ['foreigner'], req: (s: State) => !s.flags.license, w: 8, title: 'Your licence from home',
+  text: 'You have a valid driving licence from your home country. A friend says that a foreigner with a valid licence can get a Russian one by passing only the theory exam at the traffic police, with a medical certificate, instead of a full driving school (a simplified summary; check the current rules).',
+  choices: [
+    F('Prepare and sit the theory exam (₽5,500 with the medical certificate)', (s: State) => {
+      if (s.money < 5500) return O('You cannot afford the fees and the medical certificate yet.', { stress: 4 });
+      if (isForeigner(s) && !s.flags.rvp && s.docs.reg <= 0) return O('The traffic police need valid registration for your application. You do not have it.', { stress: 6 });
+      return gamble(Math.min(0.9, 0.35 + s.know / 150), O('You pass the theory exam. A Russian licence is issued instead of your foreign one.', { money: -5500, flag: 'license', stress: -12, rep: 3, know: 2 }), O('You miss the pass mark on the theory test. You may try again.', { money: -2500, stress: 8, know: 1 }));
+    }),
+    C('Keep driving school for later', 'You put the licence in your wallet and move on.', {}),
+  ],
+});
+S({
+  id: 'driving_exam', cat: 'car', req: (s: State) => !!s.flags.enrolled && !s.flags.license && s.day >= (s.marks.enrolled ?? 0) + 14, w: 40, title: 'Traffic police exam',
   text: 'Theory test on a touch screen, then the practical exam on a closed track and in town.',
   choices: [
     F('Take the exam', s => gamble(0.5 + s.know / 200, O('You pass. A plastic card with your photo and a very large smile.', { flag: 'license', stress: -15, rep: 3 }), O('You lose points on the parallel parking. Retake next time.', { stress: 10, money: -2000 }))),
@@ -141,12 +153,16 @@ dynScene('estate_register', 'estate', s => ({
     C('Skip it for now', 'You will deal with it later.', { stress: 3 }),
   ],
 }));
+const matCap = (s: State): number => Number(s.tmp.matCap || 0);
+/** Splits a payment into cash and maternity capital (the capital is spent first). */
+const splitPay = (s: State, price: number): { cash: number; cap: number } => { const cap = Math.min(matCap(s), price); return { cash: price - cap, cap }; };
+const spendCap = (cap: number): Effects['run'] => st => { st.tmp.matCap = Math.max(0, Number(st.tmp.matCap || 0) - cap); };
 dynScene('estate_buy', 'estate', s => ({
-  title: 'Properties for sale', text: `You have ${money(s.money)}. A mortgage needs a bank account, steady income, status (citizen / RVP / VNZh) and a good reputation.`,
+  title: 'Properties for sale', text: `You have ${money(s.money)}${matCap(s) ? ` and a maternity capital certificate of ${money(matCap(s))}, which can pay for housing` : ''}. A mortgage needs a bank account, steady income, status (citizen / RVP / VNZh) and a good reputation.`,
   choices: [
-    F('House in a village, ₽600,000 cash', st => st.money < 600000 ? O('You do not have enough.', { stress: 4 }) : O('A small wooden house with an orchard and a view of the field. You are a homeowner.', { money: -600000, setRent: 0, stress: -20, rep: 8, run: x => { x.housing = 'village'; } })),
-    F('Studio in a regional city: down ₽480,000, ₽9,000/week mortgage', st => st.money < 480000 ? O('You need ₽480,000 for the down payment.', { stress: 4 }) : !eligibleCredit(st) ? O('The bank declines: not enough income, status or reputation.', { stress: 8 }) : O('Rosreestr stamps the deal. Keys in your pocket.', { money: -480000, setRent: 0, rep: 8, stress: -12, run: x => { x.housing = 'flat'; debtFx(1920000, 9000)!(x); } })),
-    F('Moscow studio: down ₽1,800,000, ₽35,000/week mortgage', st => st.money < 1800000 ? O('You need ₽1,800,000 for the down payment.', { stress: 4 }) : !eligibleCredit(st) ? O('The bank declines: not enough income, status or reputation.', { stress: 8 }) : O('Twenty-seven square metres in the capital and a mountain of debt. You are home.', { money: -1800000, setRent: 0, rep: 12, stress: -12, run: x => { x.housing = 'flat'; debtFx(7200000, 35000)!(x); } })),
+    F('House in a village, ₽600,000', st => { const p = splitPay(st, 600000); return st.money < p.cash ? O(`You need ${money(p.cash)} in cash.`, { stress: 4 }) : O('A small wooden house with an orchard and a view of the field. You are a homeowner.', { money: -p.cash, setRent: 0, stress: -20, rep: 8, run: x => { x.housing = 'village'; spendCap(p.cap)!(x); } }); }),
+    F('Studio in a regional city: down ₽480,000, ₽9,000/week mortgage', st => { const p = splitPay(st, 480000); return st.money < p.cash ? O(`You need ${money(p.cash)} in cash for the down payment.`, { stress: 4 }) : !eligibleCredit(st) ? O('The bank declines: not enough income, status or reputation.', { stress: 8 }) : O('Rosreestr stamps the deal. Keys in your pocket.', { money: -p.cash, setRent: 0, rep: 8, stress: -12, run: x => { x.housing = 'flat'; spendCap(p.cap)!(x); debtFx(1920000, 9000)!(x); } }); }),
+    F('Moscow studio: down ₽1,800,000, ₽35,000/week mortgage', st => { const p = splitPay(st, 1800000); return st.money < p.cash ? O(`You need ${money(p.cash)} in cash for the down payment.`, { stress: 4 }) : !eligibleCredit(st) ? O('The bank declines: not enough income, status or reputation.', { stress: 8 }) : O('Twenty-seven square metres in the capital and a mountain of debt. You are home.', { money: -p.cash, setRent: 0, rep: 12, stress: -12, run: x => { x.housing = 'flat'; spendCap(p.cap)!(x); debtFx(7200000, 35000)!(x); } }); }),
     C('Keep saving', 'The agent wishes you luck.', {}),
   ],
 }));
@@ -161,14 +177,12 @@ dynScene('hosp_admit', 'hospital', s => ({
     F('Refuse and walk home', st => gamble(0.4, O('You rest and feel a bit better.', { health: 8, stress: 6 }), O('You collapse again at home. This time the ambulance takes you.', { health: -5, queue: 'hosp_ward', mark: 'hospital' }))),
   ],
 }));
+const hospCovered = (st: State): boolean => st.status === 'citizen' || !!st.flags.rvp || !!st.flags.insured;
 dynScene('hosp_ward', 'hospital', s => ({
-  title: 'Admitted to the ward', text: 'A doctor reads your chart. A nurse shows you a bed in a room of six. The window looks out on a snowy courtyard.',
+  title: 'Admitted to the ward',
+  text: `A doctor reads your chart. A nurse shows you a bed in a room of six. The window looks out on a snowy courtyard. ${hospCovered(s) ? 'Your insurance policy covers the stay.' : 'Emergency care is free for everyone, whatever their papers. Once you are out of immediate danger, further treatment is paid unless you have insurance.'}`,
   choices: [
-    F('Follow the treatment on the state insurance / pay what is required', st => {
-      const cost = (st.status === 'citizen' || st.flags.rvp || st.flags.insured) ? 0 : 25000;
-      if (st.money < cost) return O('Without insurance the hospital asks for a deposit you cannot pay. They treat you anyway, but the bill follows.', { money: -cost, stress: 12, queue: 'hosp_injection' });
-      return O(cost ? 'You pay the bill at the cashier after discharge.' : 'Your OMS policy covers the stay.', { money: -cost, queue: 'hosp_injection' });
-    }),
+    C('Accept the emergency treatment', hospCovered(s) ? 'Your policy covers the stay.' : 'The emergency stage is free of charge. You will be asked what you want to do once you are out of danger.', { queue: 'hosp_injection' }),
     F('Pay for a private room (₽15,000)', st => st.money < 15000 ? O('You cannot afford it.', { stress: 6, queue: 'hosp_injection' }) : O('A room for two, a TV and better food.', { money: -15000, stress: -8, queue: 'hosp_injection' })),
   ],
 }));
@@ -181,11 +195,23 @@ dynScene('hosp_injection', 'hospital', s => ({
   ],
 }));
 dynScene('hosp_discharge', 'hospital', s => ({
-  title: 'Discharge', text: 'After a week of soup, tea, chess with a roommate and a sick-leave certificate, the doctor signs your discharge.',
-  choices: [F('Walk out into the fresh air', st => {
-    absentDays(st, 6);
-    return O('You walk out lighter, with a prescription and a new respect for the nurses.', { health: 45, stress: -15, energy: 30, friends: 1 });
-  })],
+  title: 'Discharge',
+  text: hospCovered(s)
+    ? 'After a week of soup, tea, chess with a roommate and a sick-leave certificate, the doctor signs your discharge.'
+    : 'You are out of immediate danger. The doctor explains that further treatment as an inpatient is paid (about ₽12,000 for the rest of the stay in the game), or you may leave now with a prescription and a follow-up appointment.',
+  choices: hospCovered(s)
+    ? [F('Walk out into the fresh air', st => {
+      absentDays(st, 6);
+      return O('You walk out lighter, with a prescription and a new respect for the nurses.', { health: 45, stress: -15, energy: 30, friends: 1 });
+    })]
+    : [
+      F('Stay for the paid treatment (₽12,000)', st => {
+        if (st.money < 12000) { absentDays(st, 3); return O('You cannot pay for the rest of the stay. You leave once you are stable, with a prescription and a bill you will have to settle.', { health: 25, stress: 8, energy: 15, run: x => { x.tmp.debt = Number(x.tmp.debt || 0) + 12000; x.tmp.debtPay = Number(x.tmp.debtPay || 0) + 2000; } }); }
+        absentDays(st, 6);
+        return O('You finish the treatment, pay at the cashier and walk out much better.', { money: -12000, health: 45, stress: -15, energy: 30, friends: 1 });
+      }),
+      F('Leave now with a prescription', st => { absentDays(st, 3); return O('You go home earlier than the doctor would like, with pills and a follow-up appointment.', { health: 25, stress: -6, energy: 15 }); }),
+    ],
 }));
 S({
   id: 'hospital_visit_family', cat: 'hospital', req: (s: State) => !!s.partner || s.kids > 0, w: 3, title: 'A relative is in hospital',
@@ -207,7 +233,7 @@ S({ id: 'nurse_injection', cat: 'work', req: (s: State) => s.job === 'nurse', w:
   ] });
 
 /* =================== PETS: STRAYS, ADS, ADOPTION =================== */
-S({ id: 'stray_encounter', cat: 'pets', w: 4, title: 'A stray dog in the courtyard', text: 'A thin dog with matted fur watches you from behind a bin. It shivers. Snow is falling.',
+S({ id: 'stray_encounter', cat: 'pets', w: 2, title: 'A stray dog in the courtyard', text: 'A thin dog with matted fur watches you from behind a bin. It shivers. Snow is falling.',
   choices: [
     C('Give it food and water', 'The dog wolfs the sausage and follows you to the door, then stops.', { money: -200, stress: -6, merit: 2 }),
     C('Call the animal rescue number', 'A volunteer takes the details and promises to come in the evening.', { merit: 3, stress: -2 }),
@@ -386,7 +412,7 @@ const fests: [string, string, Effects][] = [
 ];
 CITIES.forEach((c, i) => fests.forEach(([t, text, fx], j) => S({
   id: `cityfest-${i}-${j}`, cat: 'culture', req: (s: State) => s.city === c, w: 1.1, title: `${c}: ${t.toLowerCase()} at the city festival`,
-  text: `The city festival in ${c} brings ${cityFlavor[c]}. ${text}`,
+  text: `The city festival in ${c} brings ${cityFlavor[c] ?? 'music, food stalls and a lot of local pride'}. ${text}`,
   choices: [C(t === 'Fireworks at night' ? 'Stay for the finale' : 'Join in', text, fx), C('Stay in tonight', 'You hear the noise from your window and wonder what you missed.', { stress: 1 })],
 })));
 

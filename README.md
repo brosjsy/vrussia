@@ -1,77 +1,71 @@
 # V Russia — Life Simulator
 
-A free, browser-based life sim (inspired by *Lagos Life*) set in Russia. Pick a life, then survive two years
-(730 days) of bureaucracy, work, study, police checks, rent day and holidays.
+A free, browser-based life simulation set in Russia, in the spirit of the viral *Lagos Life*.
+Pick a life — a Moscow "nepo baby", a regional kid, a Tajik, Uzbek or Kyrgyz labour migrant, a foreign student, a Dagestani student —
+and live two years (730 days) of work, study, paperwork, family, culture and everyday surprises.
 
-## Stack
+**Over 4,000 scenarios**, 14 online services you fill in step by step, a live city map, weather, banking, flights, businesses, storylines with memory, and a path from newcomer to citizen.
 
-TypeScript 5 · Vite 5 · Vitest. The engine (`src/engine.ts`) is DOM-free and fully typed; scenarios live in
-`src/content/*.ts`; the UI is `src/ui.ts`.
+## Quick start
 
-```
+```bash
 npm install
-npm run dev        # local dev server
-npm run typecheck  # tsc --noEmit
-npm test           # headless simulation of random playthroughs for every origin
-npm run build      # production build into dist/
+npm run dev          # local server (usually http://localhost:5173)
 ```
 
-Progress autosaves to `localStorage`. Pushing to `main` builds and deploys to GitHub Pages via
-`.github/workflows/deploy.yml` (enable Settings → Pages → Source: GitHub Actions).
+It is a static site: `npm run build` produces `dist/`, which can be hosted anywhere. Pushing to `main` deploys to GitHub Pages
+through `.github/workflows/deploy.yml` (set Settings → Pages → Source: GitHub Actions). The game is also an installable offline app (PWA).
 
-## Characters
-
-| Origin | Status | Key challenge |
-|---|---|---|
-| Moscow Baby | citizen | money, boredom, "dad knows a guy" |
-| Regional Kid | citizen | budget place at university |
-| Tajik / Uzbek Migrant | migrant | registration → medical → patent → work |
-| Kyrgyz (EAEU) Worker | EAEU | no patent, but registration still counts |
-| Foreign Student | student | visa extensions, work permission, dorm |
-
-## Systems
-
-- 3 time slots per day, 7 actions (work, eat, go out, paperwork, study, home, call family)
-- Stats: energy, health, stress, reputation, knowledge, money
-- Document clocks: registration, patent, visa — expiry makes police/inspection events far harsher
-- 3 legal strikes = deportation (foreigners). Health 0, debt below −₽30,000 also end the game
-- Goals: university admission, ₽500k, language test → RVP → citizenship, zero strikes
-- Calendar events: Sept 1, New Year, Navruz, Victory Day, ЕГЭ (June 20), admission lists (July 25)...
-
-## Life systems (v2)
-
-- **Immigration ladder:** registration → medical → patent → language test → RVP ground (quota / marriage to a citizen / Russian child) → RVP → VNZh → citizenship
-- **Banking:** Sber, VTB, T-Bank accounts, card blocks, SBP, microloans, remittance corridors (Tajikistan, Uzbekistan, Kyrgyzstan, Nigeria...)
-- **Map:** 🗺️ Travel action with a city map; snow, frost and rain make you lose your way; maps app vs. asking locals vs. taxi
-- **Weather & clothing:** underdressed in frost costs health; shops sell coats, boots, ushanka...
-- **People:** dating, partner, ZAGS wedding, pregnancy, birth, kindergarten queue; parents, siblings, friends
-- **Health:** polyclinic vs. private; voluntary insurance for foreigners
-- Starting city picker (12 cities) and 6+ origins incl. Dagestani student
-
-- **Culture & community:** quizzes on history, literature, science and landmarks; traditions (Maslenitsa, Sabantuy, Navruz, Sagaalgan, Eid, Easter); volunteering; Russian phrases; the in-game community «Patriot» Award for people who do not stand aside
-- **Live visuals:** animated city scene (time of day, weather, skyline per city, your avatar walking) and a clickable map card that moves your avatar
-
-- **Flights:** a full airline-site flow (search, flight, passenger details, extras, payment, bank SMS code, e-ticket), then departure day: airport transport, check-in (name must match the passport), passport control, the trip, and the return entry check
-- **Buying things:** phone shop (new, used, instalment), driving school + exam, car dealership (used or credit), estate agency (rent, village house, mortgage), loans repaid weekly
-- **Hospital:** collapse, ambulance, ward, injection, discharge; relatives in hospital; blood donation; first aid
-- **Pets:** stray dogs, volunteer adoption channel, meeting the dog, the volunteer's questions, adoption, pet life events
-- **Family decisions:** where to live, money vs family, children, in-laws, traditions, names, school, caring for parents, citizenship together
-- **City festivals** for all 12 cities, plus 16 daily errands
-
-## Scenarios (2,000+)
-
-About 50 hand-written set pieces (`src/content/core.ts`) plus template families in `src/content/generated.ts`:
-
-| Family | Count |
+| Command | What it does |
 |---|---|
-| Police / raids (30 places × 8 situations) | 240 |
-| Work incidents (25 jobs × 9) | 225 |
-| University admission (20 universities × 8) | 160 |
-| Food (20 dishes × 8) | 160 |
-| Paperwork (15 documents × 8) | 120 |
-| Housing (12 cities × 9 + moves) | 120 |
-| Social (12 people × 8) | 96 |
-| ЕГЭ prep (11 subjects × 6) | 66 |
-| Family (6 relatives × 8) | 48 |
+| `npm run dev` | development server |
+| `npm run build` | production build into `dist/` |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm test` | fast test suite (about a minute) |
+| `npm run test:full` | everything, including the slow tests |
+| `npm run test:exhaustive` | plays every choice of every scenario against many states |
+| `npm run balance` | bot playthroughs, writes `docs/BALANCE.md` (set `BALANCE_DIFF=easy` or `hard` for the other levels) |
 
-Add more by pushing to `RU.scenarios` with `RU.S({id, cat, who, req, title, text, choices})`.
+See also: [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) (a 5-minute walkthrough for a presentation) and
+[`docs/ITERATION_REPORT.md`](docs/ITERATION_REPORT.md) (what was built and fixed, round by round).
+
+## How it works
+
+Each day has three parts (morning, afternoon, evening); every action uses one. Rent is paid on Saturdays. Keyboard: **1–9** choose, **Enter** continues, **Esc** closes pop-ups.
+
+**Characters.** Citizens, labour migrants (patent route), EAEU workers (no patent), foreign students — each with different rules, money and risks.
+
+**Papers.** Registration (7 days for most nationalities, 15 for Tajik and Uzbek citizens, 30 for EAEU workers), medical exam, health insurance, patent (₽10,000/month in Moscow, 2026) with the two-month notification rule, language test, a ground for RVP (quota / marriage / child), RVP, VNZh, citizenship. Expired papers lead to police checks, fines and legal strikes; three strikes mean deportation; a clean record slowly clears strikes. Waiting times that take years in real life are shortened to months and the game says so.
+
+**Systems.**
+- 🗺️ a live city map (16 places) you click to travel; snow, frost and rain make you lose your way; a good phone helps
+- 💻 **14 online services** on one form engine: job application, doctor, marketplace, flat rental, bank account, university portal, marriage application, kindergarten queue, train tickets, residence/citizenship portal, register a business, health insurance, pay fines, mobile identification
+- ✈️ a full flight booking site (search → fare → passenger → extras → payment → SMS code → e-ticket), then the airport day and the border
+- 🏪 build a company: 7 kinds of business, self-employed or individual entrepreneur, weekly accounts, hiring, inspections, expansion
+- 🎓 admission → exam sessions → GPA → scholarship or expulsion
+- 🏦 Sber, VTB, T-Bank, remittances, loans and mortgages; phone, car (driving school, dealer), flats
+- 🏥 hospital, 🐕 stray dogs and adoption, 💞 dating, marriage, children, family decisions
+- 🏛️ culture, history, traditions, volunteering, the in-game community «Patriot» Award
+- 👥 13 recurring characters whose storylines remember your choices
+- 🎚️ three difficulty levels (Easy, Normal, Realistic) that change starting money, how often police checks come, living costs and how fast violations expire
+- 🌐 English / Russian interface toggle (menus and labels; story texts are still English)
+- 🏆 33 achievements, a first-month checklist, goals, a journal, export/import of saves
+
+## Content
+
+About 4,000 scenarios: a mix of hand-written set pieces and template families (for example 37 cities × 12 local scenarios, 60 dishes × 4 situations,
+55 jobs with 9–11 workplace incidents each, ~100 culture quizzes, 40 proverbs). Add more with `S({ id, cat, who, req, title, text, choices })` in `src/content/`.
+
+```
+src/engine.ts          game state, rules, time, scoring (no DOM; runs in Node tests)
+src/content/*.ts       scenarios, grouped by theme; packs/ holds the large data tables
+src/forms.ts           reusable "fill in the website" engine; src/flows.ts has the services
+src/booking-ui.ts      the airline website; src/flights.ts the airport-day scenes
+src/ui.ts, scene.ts    interface, animated city scene
+test/                  unit, UI (jsdom), stress and balance tests
+```
+
+## About accuracy
+
+Fiction for a project demo. Rules, prices and procedures are simplified models of real ones (checked against public sources in
+`docs/ITERATION_REPORT.md`) and change often in real life, so please verify before relying on any number.

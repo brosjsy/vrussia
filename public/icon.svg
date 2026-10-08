@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="V Russia">
+  <rect width="512" height="512" rx="96" fill="#0e1424"/>
+  <rect x="96" y="96" width="320" height="64" rx="12" fill="#ffffff"/>
+  <rect x="96" y="176" width="320" height="64" rx="12" fill="#3b6fe0"/>
+  <rect x="96" y="256" width="320" height="64" rx="12" fill="#e0373f"/>
+  <text x="256" y="440" text-anchor="middle" font-family="system-ui, sans-serif" font-size="96" font-weight="800" fill="#ffffff">V RU</text>
+</svg>

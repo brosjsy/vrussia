@@ -166,10 +166,10 @@ type Fn = (s: State) => Outcome;
   })));
   S({ id: 'shop_winter_warning', cat: 'shop', req: s => s.clothes < 40, w: 4, title: 'You are underdressed for winter', text: 'Your reflection in the shop window confirms it: thin jacket, thin shoes. The forecast says −20 °C.',
     choices: [F('Buy a full winter set (₽12,000)', s => s.money < 12000 ? O('You do not have enough. You buy only a hat and mittens.', { money: -1800, clothes: 12 }) : O('Coat, boots, hat. You can finally walk outside.', { money: -12000, clothes: 70, stress: -6 })), C('Wait for the sale', 'The sale is in January. Winter is now.', { stress: 3 })] });
-  S({ id: 'shop_sim', cat: 'shop', w: 1, once: true, title: 'A Russian SIM card', text: 'Your mobile plan needs a Russian number with an identity check. Operators ask for passport and sometimes registration.',
-    choices: [F('Buy a SIM at the operator shop', s => O('Passport scanned, SIM active, internet works. Maps work too.', { money: -400, stress: -3, know: 1 })), C('Use a stranger\'s SIM', 'Cheap but risky; the number is blocked within a week.', { money: -300, stress: 5 })] });
-  S({ id: 'shop_troika', cat: 'shop', w: 1, once: true, title: 'Transport card', text: 'A Troika (or city) transport card costs ₽50 and saves fares on metro, bus and tram.',
-    choices: [C('Buy and top up ₽500', 'Beep: you are a Moscow commuter.', { money: -550, stress: -2 }), C('Pay each trip by phone', 'It works, but costs more.', {})] });
+  S({ id: 'shop_sim', cat: 'shop', w: 6, req: (s: State) => !s.flags.sim, title: 'A Russian SIM card', text: 'Your mobile plan needs a Russian number with an identity check. Operators ask for passport and sometimes registration.',
+    choices: [F('Buy a SIM at the operator shop', s => (s.status !== 'citizen' && !s.flags.simId ? O('The seller asks for a SNILS number, a Gosuslugi account and biometric identification. You are told to complete the identification first (Online services → Mobile identification).', { stress: 5 }) : O('Passport scanned, SIM active, internet works. Maps work too.', { money: -400, stress: -3, know: 1, flag: 'sim' }))), C('Use a stranger\'s SIM', 'Cheap but risky; the number is blocked within a week.', { money: -300, stress: 5 })] });
+  S({ id: 'shop_troika', cat: 'shop', w: 6, req: (s: State) => !s.flags.troika, title: 'Transport card', text: 'A Troika (or city) transport card costs ₽50 and saves fares on metro, bus and tram.',
+    choices: [C('Buy and top up ₽500', 'Beep: you are a Moscow commuter.', { money: -550, stress: -2, flag: 'troika' }), C('Pay each trip by phone', 'It works, but costs more.', {})] });
   S({ id: 'shop_pharmacy', cat: 'shop', w: 1, title: 'Pharmacy', text: 'You need medicine for a persistent cough. The pharmacist offers three brands and strong opinions.',
     choices: [C('Buy the cheap one', 'It works slowly.', { money: -300, health: 2 }), C('Buy the expensive one', 'It works fast.', { money: -900, health: 5 })] });
   S({ id: 'shop_grocery', cat: 'shop', w: 1.5, title: 'Pyaterochka vs. Magnit vs. VkusVill', text: 'You compare prices on buckwheat, kefir and bread. A babushka beside you argues with the cashier about a ₽3 mistake.',
@@ -197,7 +197,7 @@ type Fn = (s: State) => Outcome;
       C('Say you are busy', 'The door remains closed.', { love: -8 })] });
   S({ id: 'love_proposal', cat: 'love', once: true, req: s => s.partner && s.partner.love >= 65 && !s.flags.married && !s.flags.proposed, w: 5, title: 'Propose?', text: 'You have been together for months. A ring costs ₽30,000 or a promise.',
     choices: [
-      F('Propose', s => gamble(s.partner.love / 100, O('"Yes!" The whole café applauds.', { flag: 'proposed', love: 10, stress: -15, money: -4000 }), O('"Not yet." The silence stretches.', { love: -6, stress: 12 }))),
+      F('Propose', s => gamble((s.partner?.love ?? 0) / 100, O('"Yes!" The whole café applauds.', { flag: 'proposed', love: 10, stress: -15, money: -4000 }), O('"Not yet." The silence stretches.', { love: -6, stress: 12 }))),
       C('Wait', 'Not yet.', {})] });
   S({ id: 'love_wedding', cat: 'love', once: true, req: s => s.flags.proposed && !s.flags.married, w: 8, title: 'ZAGS wedding', text: 'The civil registry office wants an application a month in advance. A small ceremony costs ₽15,000; a big one with toastmaster ₽250,000.',
     choices: [
@@ -214,8 +214,11 @@ type Fn = (s: State) => Outcome;
     choices: [
       F('Welcome the baby', s => {
         const cit = s.status === 'citizen' || (s.partner && s.partner.kind === 'citizen' && s.flags.married);
-        return O(cit ? 'A healthy baby! The birth certificate, SNILS and a one-time payment follow. Your child is a Russian citizen.' : 'A healthy baby! You collect the paperwork for the birth certificate and the child\'s status.', { kids: 1, unflag: 'pregnant', flag: cit ? ['childCitizen', 'baby'] : 'baby', money: cit ? 30000 : -5000, stress: -10, energy: -30, love: 10 });
+        const first = s.kids === 0;
+        return O(cit ? `A healthy baby! The birth certificate and SNILS follow, and your child is a Russian citizen.${first ? ' The state issues a maternity capital certificate of about ₽730,000 (a game approximation of the 2026 amount), which can pay for housing, education or a pension.' : ''}` : 'A healthy baby! You collect the paperwork for the birth certificate and the child\'s status.', { kids: 1, unflag: 'pregnant', flag: cit ? ['childCitizen', 'baby'] : 'baby', money: cit ? 0 : -5000, stress: -10, energy: -30, love: 10, run: st => { if (cit && first && !st.flags.matCapIssued) { st.flags.matCapIssued = true; st.tmp.matCap = 730000; } } });
       })] });
+  S({ id: 'matcap_info', cat: 'love', req: (s: State) => Number(s.tmp.matCap || 0) > 0, w: 5, title: 'What to do with maternity capital', text: 'Your maternity capital certificate sits in the app. A neighbour who has a mortgage tells you it can go towards a down payment, to repair or build a home, to pay for education, or to a mother\'s pension. It cannot simply be taken out as cash.',
+    choices: [C('Plan to use it for a home (Real estate agency)', 'You note it down: the agency can apply it to a purchase.', { know: 2, stress: -4 }), C('Read the rules for education and pension use', 'The options are many; the paperwork is longer than you hoped.', { know: 3 })] });
   S({ id: 'baby_registration', cat: 'paper', req: s => s.kids > 0, once: true, w: 4, title: 'Newborn paperwork', text: 'Birth certificate at ZAGS, child registration, SNILS and a polyclinic attachment.',
     choices: [F('Do it all in one trip', s => gamble(0.7, O('Done. You celebrate with a pastry.', { energy: -10, stress: -6 }), O('One document is missing; second visit.', { energy: -14, stress: 8 })))] });
   S({ id: 'baby_kindergarten', cat: 'love', req: s => s.kids > 0 && s.day > 200, once: true, w: 3, title: 'Kindergarten queue', text: 'Gosuslugi says you are 214th in the queue for a place. Private kindergartens ask ₽45,000 a month.',
@@ -267,13 +270,13 @@ type Fn = (s: State) => Outcome;
   /* =================== HEALTH =================== */
   const ail = ['flu', 'toothache', 'back pain from heavy work', 'stomach ache', 'migraine', 'a twisted ankle', 'an allergy', 'insomnia', 'a skin rash', 'a bad cough'];
   ail.forEach((a, i) => S({
-    id: `health-${i}`, cat: 'health', title: `You have ${a}`, text: `${cap(a)} has been bothering you all week.`, w: 1.2,
+    id: `health-${i}`, cat: 'health', title: `You have ${a}`, text: `${cap(a)} has been bothering you all week.`, w: 0.6,
     choices: [
       { t: 'Public polyclinic (free with insurance)', r: s => (s.status === 'citizen' || s.flags.rvp || s.flags.insured) ? O('The doctor writes a prescription after a 90-minute wait.', { health: 6, energy: -8 }) : O('Without OMS insurance they ask ₽2,500 for the visit.', { health: 6, money: -2500, energy: -8 }) },
       { t: 'Private clinic (₽5,000)', r: s => s.money < 5000 ? O('You do not have enough.', { stress: 4 }) : O('Fast, polite, expensive.', { health: 8, money: -5000 }) },
       { t: 'Home remedies and tea', r: () => O('Honey, lemon and patience.', { health: 2, energy: -6 }) }],
   }));
-  S({ id: 'health_insurance', cat: 'health', once: true, who: ['foreigner'], w: 3, title: 'Voluntary health insurance (DMS)', text: 'Foreigners need a health insurance policy. A basic one is ₽5,000 for three months.',
+  S({ id: 'health_insurance', cat: 'health', req: (s: State) => !s.flags.insured && !s.flags.rvp, who: ['foreigner'], w: 3, title: 'Voluntary health insurance (DMS)', text: 'Foreigners need a health insurance policy. A basic one is ₽5,000 for three months.',
     choices: [F('Buy a policy', s => s.money < 5000 ? O('Not enough money.', { stress: 4 }) : O('A paper policy and a hotline number. You feel safer.', { money: -5000, flag: 'insured', stress: -5 })), C('Skip it', 'Luck is not insurance.', {})] });
 
   /* =================== REGION FLAVOUR =================== */

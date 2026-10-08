@@ -154,7 +154,7 @@ flightScene('fl_return', (s, b) => ({
 flightScene('fl_home', () => ({
   title: 'Home again',
   text: 'Your own bed, your own key and a stack of unread messages.',
-  choices: [{ t: 'Unpack', r: () => O('You are back in the rhythm of the city.', { energy: -5, stress: -4, run: st => { if (st.booking) st.booking.done = true; st.booking = null; st.loc = 'home'; } }) }],
+  choices: [{ t: 'Unpack', r: () => O('You are back in the rhythm of the city.', { energy: -5, stress: -4, run: st => { if (st.booking) st.booking.done = true; st.flags.flew = true; st.booking = null; st.loc = 'home'; } }) }],
 }));
 
 /* ---------- ticket office at the airport opens the website ---------- */
