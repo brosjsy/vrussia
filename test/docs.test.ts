@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import * as G from '../src/engine';
 import { flows } from '../src/forms';
 import '../src/content';
@@ -52,5 +52,14 @@ describe('the docs only mention commands that exist', () => {
   it('the README quotes the same immigration state duties as the game', () => {
     const readme = readFileSync('README.md', 'utf8');
     for (const v of Object.values(G.FEE)) expect(readme).toContain('₽' + v.toLocaleString('en-US'));
+  });
+
+  it('every source path named in the README architecture block exists, and docs/DATABASE.md exists', () => {
+    const block = (readme.match(/```[\s\S]*?```/g) || []).find(b => b.includes('src/engine.ts')) || '';
+    const paths = (block.match(/\bsrc\/[A-Za-z0-9_\-./]+/g) || []).filter(p => !p.includes('*'));
+    expect(paths.length).toBeGreaterThan(3);
+    for (const p of paths) expect(existsSync(p.replace(/[.,]$/, '')), p).toBe(true);
+    expect(existsSync('docs/DATABASE.md')).toBe(true);
+    expect(readme).toContain('docs/DATABASE.md');
   });
 });

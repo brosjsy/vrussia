@@ -254,9 +254,17 @@ describe('registration deadlines at arrival (RBC explainer, 2025)', () => {
     const intro = (G.get('intro_migrant', s) as G.Scenario).text;
     expect(intro).toContain('15 days'); expect(intro).toContain('Tajikistan and Uzbekistan');
     const reg = (G.get('reg_first', s) as G.Scenario).text;
-    for (const part of ['7 days', '15 days', '30']) expect(reg).toContain(part);
+    for (const part of ['7 working days', '15 days', '30']) expect(reg).toContain(part);
   });
   it('the character cards promise 15 days, in both languages', () => {
     expect(G.origins.find(o => o.id === 'tajik')!.blurb).toContain('15 days');
+  });
+});
+
+describe('the transport card scene does not state an unverified price', () => {
+  it('mentions a deposit and no fixed card price', () => {
+    const sc = G.scenarios.find(x => x.id === 'shop_troika') as G.Scenario;
+    expect(sc.text).toContain('deposit');
+    expect(sc.text).not.toMatch(/₽\s?\d/);
   });
 });

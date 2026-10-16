@@ -1,0 +1,6 @@
+Somebody (we hope you) asked to reset the password of your {{brand_name}} account.
+
+Open this link to choose a new password (it works once and for {{minutes}} minutes):
+{{link}}
+
+If you did not ask for this, ignore this e-mail: your password stays as it is.

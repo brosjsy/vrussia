@@ -1,0 +1,6 @@
+Somebody tried to make a new {{brand_name}} account with this e-mail address. You already have one, so nothing was made.
+
+If it was you, log in instead. If you forgot your password, you can reset it here:
+{{link}}
+
+If it was not you, ignore this e-mail; your account is unchanged.

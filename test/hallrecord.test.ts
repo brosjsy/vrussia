@@ -8,6 +8,8 @@ describe('finishing a game', () => {
     HTMLCanvasElement.prototype.getContext = (() => null) as never;
     window.confirm = () => true;
     localStorage.removeItem('vrussia_runs');
+    const copied: string[] = [];
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText: async (x: string) => { copied.push(x); } }, configurable: true });
     const { boot } = await import('../src/ui');
     boot();
     (document.getElementById('nameInput') as HTMLInputElement).value = 'Finisher';
@@ -21,8 +23,15 @@ describe('finishing a game', () => {
       else if (actions.length) actions[Math.floor(Math.random() * actions.length)].click();
       else if (choices.length) choices[Math.floor(Math.random() * choices.length)].click();
       else { const b = document.querySelector<HTMLButtonElement>('#stage button'); if (b) b.click(); }
+      // let the page breathe now and then, as a browser does between a player's clicks: without it the page's change watchers pile up records in memory
+      if (i % 50 === 49) await new Promise(r => setTimeout(r, 0));
     }
     expect(document.getElementById('end')!.hidden).toBe(false);
+    document.getElementById('shareBtn')!.click();
+    await new Promise(r => setTimeout(r, 0));
+    expect(copied.length).toBe(1);
+    expect(copied[0]).toContain('Finisher');
+    expect(document.getElementById('shareMsg')!.textContent).toBeTruthy();
     const saved = JSON.parse(localStorage.getItem('vrussia_runs') || '{}');
     expect(saved.rows.length).toBe(1);
     expect(saved.rows[0].name).toBe('Finisher');

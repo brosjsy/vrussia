@@ -2,3 +2,10 @@ node_modules/
 dist/
 *.log
 .claude/
+.env
+.env.*
+!.env.example
+
+# the server: secrets and local backups never go into git
+server/secrets/
+server/backups/

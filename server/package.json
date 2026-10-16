@@ -1,0 +1,42 @@
+{
+  "name": "vrussia-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The V Russia online server: accounts, sessions, e-mail and the online parts of the game (PostgreSQL + Node.js + TypeScript)",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/src/main.js",
+    "dev": "tsx watch src/main.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "migrate": "node dist/src/migrate-cli.js up",
+    "migrate:dev": "tsx src/migrate-cli.ts up",
+    "smoke": "npm run build && node scripts/smoke.mjs",
+    "migrate:status": "node dist/src/migrate-cli.js status"
+  },
+  "dependencies": {
+    "@fastify/cookie": "11.1.2",
+    "@fastify/helmet": "13.1.1",
+    "@fastify/rate-limit": "11.2.0",
+    "@node-rs/argon2": "2.2.1",
+    "fastify": "5.12.5",
+    "nodemailer": "10.0.10",
+    "pg": "8.23.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "@electric-sql/pglite-socket": "0.2.11",
+    "@types/node": "24.13.6",
+    "@types/nodemailer": "8.0.2",
+    "@types/pg": "8.23.1",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vite": "8.3.1",
+    "vitest": "5.0.1"
+  }
+}

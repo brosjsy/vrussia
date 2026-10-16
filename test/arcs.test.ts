@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import * as G from '../src/engine';
 import '../src/content';
 
-const ARCS = ['timur', 'valya', 'aigul', 'petrov', 'rustam', 'sergey', 'olga', 'ginger', 'vladimir', 'zarina', 'professor', 'connections', 'mum'];
+const ARCS = ['timur', 'valya', 'aigul', 'petrov', 'rustam', 'sergey', 'olga', 'ginger', 'vladimir', 'zarina', 'professor', 'connections', 'mum', 'valentina'];
 
 function ready(origin: string): G.State {
   const s = G.newState('T', origin); s.queue = []; s.day = 60; s.know = 40; s.money = 50000;
@@ -165,5 +165,22 @@ describe('seasonal storyline steps', () => {
     expect(month(summer)).toBe(6); expect(month(december)).toBe(12);
     expect(at(summer)).not.toContain(stepId('mum', 2));
     expect(at(december)).toContain(stepId('mum', 2));
+  });
+});
+
+describe('Valentina Petrovna remembers whether you were kind', () => {
+  const play = (kind: boolean): G.State => {
+    const s = ready('moscow');
+    for (let i = 0; i < 4; i++) { G.choose(s, G.get(stepId('valentina', i), s) as G.Scenario, kind ? 0 : 1); s.day += 15; }
+    return s;
+  };
+  it('the final scene differs, and the kind player gets a warmer ending', () => {
+    const kind = play(true), cool = play(false);
+    expect(kind.flags.val_kind).toBe(true);
+    expect(cool.flags.val_kind).toBeFalsy();
+    const a = G.get(stepId('valentina', 4), kind) as G.Scenario, b = G.get(stepId('valentina', 4), cool) as G.Scenario;
+    expect(a.text).not.toBe(b.text);
+    const before = kind.friends; G.choose(kind, a, 0);
+    expect(kind.friends).toBe(before + 2);
   });
 });

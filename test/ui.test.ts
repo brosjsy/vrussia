@@ -9,7 +9,7 @@ describe('whole page', () => {
     HTMLCanvasElement.prototype.getContext = (() => null) as never;
     window.confirm = () => true;
     const { boot } = await import('../src/ui');
-    boot();
+    boot(); await (await import('../src/ui')).uiReady();
     expect(document.querySelectorAll('.ocard').length).toBeGreaterThanOrEqual(7);
     expect(document.getElementById('tagCount')!.textContent).toMatch(/scenarios/);
     (document.getElementById('nameInput') as HTMLInputElement).value = 'Test';

@@ -98,7 +98,7 @@ S({
 dynScene('car_used', 'car', s => ({
   title: 'Used cars', text: `You have ${money(s.money)}. A used car in good condition is the realistic choice.`,
   choices: [
-    F('2009 hatchback, ₽250,000', st => st.money < 250000 ? O('You cannot afford it.', { stress: 4 }) : gamble(0.7, O('A reliable little car. You become a driver.', { money: -250000, rep: 2, run: x => { x.car = { model: '2009 hatchback', value: 220000 }; } }), O('A week later the gearbox fails: ₽60,000 of repairs.', { money: -310000, stress: 12, run: x => { x.car = { model: '2009 hatchback', value: 150000 }; } }))),
+    F('2009 hatchback, ₽250,000', st => st.money < 250000 ? O('You cannot afford it.', { stress: 4 }) : gamble(0.7, O('A reliable little car. You become a driver.', { money: -250000, rep: 2, run: x => { x.car = { model: '2009 hatchback', value: 220000 }; } }), (repairs => O(repairs >= 60000 ? 'A week later the gearbox fails: ₽60,000 of repairs.' : 'A week later the gearbox fails. You can pay only part of the repair and a friend with a garage does the rest for tea.', { money: -(250000 + repairs), stress: 12, run: x => { x.car = { model: '2009 hatchback', value: 150000 }; } }))(Math.min(60000, Math.max(0, st.money - 250000))))),
     F('2016 sedan, ₽520,000 (mechanic checks it: +₽3,000)', st => st.money < 523000 ? O('You cannot afford it.', { stress: 4 }) : O('The mechanic finds nothing serious. A good purchase.', { money: -523000, rep: 4, stress: -6, run: x => { x.car = { model: '2016 sedan', value: 480000 }; } })),
     C('Think about it', 'You leave with a card and a business-like handshake.', {}),
   ],
@@ -118,7 +118,7 @@ const carEvents: [string, string, Choice[]][] = [
   ['Traffic police stop', 'A patrol officer waves a striped baton: "Documents, please."', [F('Show licence, registration and insurance', s => (isForeigner(s) && problems(s).length) ? O(`The officer notices: ${problems(s)[0]}. Fine and a warning.`, { money: -5000, strike: 1, stress: 12 }) : O('Everything is in order. He salutes.', { stress: 2 })), C('Politely ask for his name and reason', 'He hands the documents back after a short silence.', { rep: 1 })]],
   ['Parking fine', 'A parking inspector sticks a ticket on your windscreen.', [C('Pay with a discount (₽1,500)', 'Paid in the Gosuslugi app within five days.', { money: -1500 }), C('Ignore it', 'The fine doubles later.', { money: -4000, stress: 6 })]],
   ['Dead battery', 'It is −18 °C and your car does not start.', [C('Ask a neighbour for a jump start', 'A man in felt boots helps you. Everyone has done this.', { stress: 4, rep: 2 }), C('Call a service (₽3,000)', 'Quick, expensive.', { money: -3000 })]],
-  ['Winter tyres', 'The first snow is falling and your tyres are bald.', [C('Buy winter tyres (₽24,000)', 'You drive safely all winter.', { money: -24000, health: 1 }), C('Risk it', 'You slide into a snowbank.', { money: -8000, stress: 10 })]],
+  ['Winter tyres', 'The first snow is falling and your tyres are bald.', [F('Buy winter tyres (₽24,000)', s => (s.money < 24000 ? O('You cannot afford new tyres yet. You drive carefully and hope.', { stress: 4 }) : O('You drive safely all winter.', { money: -24000, health: 1 }))), C('Risk it', 'You slide into a snowbank.', { money: -8000, stress: 10 })]],
   ['Car sharing / taxi side job', 'A friend says you can earn money driving at weekends.', [C('Try a weekend of taxi rides', 'You earn ₽6,000 and learn every pothole.', { money: 6000, energy: -18 }), C('Keep the car for yourself', 'Quiet weekends.', {})]],
   ['Hitchhiker in the snow', 'A woman with groceries waves at the road in a blizzard.', [C('Give her a lift', 'She gives you a jar of pickles and her life story.', { rep: 3, merit: 3 }), C('Drive on', 'You feel guilty for two kilometres.', { stress: 3 })]],
   ['Minor accident', 'A scratch and a dent: another driver reversed into you.', [C('Fill in the Europrotocol', 'Ten minutes of forms, no police needed.', { stress: 6, energy: -6 }), C('Call the traffic police', 'You wait two hours in the cold.', { stress: 10, energy: -10 })]],
@@ -316,7 +316,9 @@ petEvents.forEach(([t, text, choices], i) => S({ id: `pet-ev-${i}`, cat: 'pets',
 
 /* =================== FAMILY DECISIONS =================== */
 const decide = (id: string, title: string, text: string, options: [string, string, Effects][], req?: (s: State) => unknown): void => {
-  S({ id: `fd-${id}`, cat: 'family_decision', req: (s: State) => !!s.partner && (!req || req(s)), w: 2.2, title, text, choices: options.map(([t, msg, fx]) => C(t, msg, fx)) });
+  S({ id: `fd-${id}`, cat: 'family_decision', req: (s: State) => !!s.partner && (!req || req(s)), w: 2.2, title, text, choices: options.map(([t, msg, fx]): Choice => (fx.money && fx.money < 0
+      ? F(t, (s: State) => (s.money < -(fx.money as number) ? O('You cannot afford that right now, so you talk it through and decide to wait.', { stress: 3 }) : O(msg, fx)))
+      : C(t, msg, fx))) });
 };
 decide('where', 'Where should we live?', 'Your partner wants to move closer to their parents. You prefer the city with better jobs.', [
   ['Stay in the city', 'You promise to visit often. They agree, with a sigh.', { love: -3, money: 2000, stress: 2 }],

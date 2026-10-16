@@ -39,13 +39,14 @@ type Fn = (s: State) => Outcome;
     choices: [
       F('Fly home', s => {
         if (s.strikes >= 2) return O('At the border they check the system and refuse entry for violations. Your Russian life ends at the airport.', { strike: 2, stress: 25 });
+        if (s.money < 25000) return O('You cannot afford the flight right now. You send your love and watch the photos instead.', { stress: 6, famLove: -1 });
         return O('The wedding is loud, warm and sleepless. Return entry is smooth.', { money: -25000, stress: -20, famLove: 8 });
       }),
       C('Send a gift and stay', 'You watch the wedding on a video call.', { money: -3000, stress: 6, famLove: 2 })] });
   S({ id: 'imm_funeral', cat: 'family', who: ['foreigner'], once: true, req: s => s.day > 100, w: 0.8, title: 'A death in the family',
     text: 'Your grandfather has passed away. The family asks you to come home.',
     choices: [
-      F('Go to the funeral', s => O('You stand with the family. The return trip costs money and time.', { money: -22000, stress: 14, famLove: 10, energy: -20 })),
+      F('Go to the funeral', s => (s.money < 22000 ? O('You cannot afford the trip home. The family says they understand, and the grief arrives in a phone call instead.', { stress: 16, famLove: -2 }) : O('You stand with the family. The return trip costs money and time.', { money: -22000, stress: 14, famLove: 10, energy: -20 }))),
       C('Stay for work reasons', 'The guilt walks with you for weeks.', { stress: 16, famLove: -6 })] });
   S({ id: 'imm_employer_notice', cat: 'paper', who: ['foreigner'], req: s => s.job && s.status !== 'student', w: 1.5, title: 'Employer must notify authorities',
     text: 'Your employer must notify the migration service about hiring you. A careless employer forgets; a fair one files in three days.',
@@ -109,7 +110,7 @@ type Fn = (s: State) => Outcome;
       F('Take ₽15,000', s => O('Money in hand. A week later the debt is ₽21,000 and growing.', { money: 15000, stress: 12, flag: 'microloan' })),
       C('Refuse', 'You close the app.', { stress: -2 })] });
   S({ id: 'bank_repay_loan', cat: 'bank', req: s => s.flags.microloan && s.money > 15000, w: 5, once: true, title: 'Repay the microloan', text: 'The collectors have your number memorised.',
-    choices: [F('Pay ₽21,000', s => O('Clean slate.', { money: -21000, unflag: 'microloan', stress: -14 })), C('Pay later', 'The debt keeps growing.', { stress: 8, money: -3000 })] });
+    choices: [F('Pay ₽21,000', s => (s.money < 21000 ? O('You do not have the full ₽21,000 yet.', { stress: 3 }) : O('Clean slate.', { money: -21000, unflag: 'microloan', stress: -14 }))), C('Pay later', 'The debt keeps growing.', { stress: 8, money: -3000 })] });
   S({ id: 'bank_atm_eats_card', cat: 'bank', w: 1, req: s => Object.values(s.bank).some(Boolean), title: 'ATM eats your card', text: 'The ATM beeps and keeps your card. It is Friday evening.',
     choices: [C('Call the hotline', 'A new card by Tuesday.', { stress: 6, money: -150 }), C('Wait by the ATM', 'A technician arrives and returns it. Lucky.', { stress: 3, energy: -6 })] });
   S({ id: 'bank_salary_card', cat: 'bank', req: s => s.job && Object.values(s.bank).some(Boolean), w: 1.5, title: 'Salary to card', text: 'Your employer offers to pay wages to a bank card, with an official payslip.',
@@ -168,7 +169,7 @@ type Fn = (s: State) => Outcome;
     choices: [F('Buy a full winter set (₽12,000)', s => s.money < 12000 ? O('You do not have enough. You buy only a hat and mittens.', { money: -1800, clothes: 12 }) : O('Coat, boots, hat. You can finally walk outside.', { money: -12000, clothes: 70, stress: -6 })), C('Wait for the sale', 'The sale is in January. Winter is now.', { stress: 3 })] });
   S({ id: 'shop_sim', cat: 'shop', w: 6, req: (s: State) => !s.flags.sim, title: 'A Russian SIM card', text: 'Your mobile plan needs a Russian number with an identity check. Operators ask for passport and sometimes registration.',
     choices: [F('Buy a SIM at the operator shop', s => (s.status !== 'citizen' && !s.flags.simId ? O('The seller asks for a SNILS number, a Gosuslugi account and biometric identification. You are told to complete the identification first (Online services → Mobile identification).', { stress: 5 }) : O('Passport scanned, SIM active, internet works. Maps work too.', { money: -400, stress: -3, know: 1, flag: 'sim' }))), C('Use a stranger\'s SIM', 'Cheap but risky; the number is blocked within a week.', { money: -300, stress: 5 })] });
-  S({ id: 'shop_troika', cat: 'shop', w: 6, req: (s: State) => !s.flags.troika, title: 'Transport card', text: 'A Troika (or city) transport card costs ₽50 and saves fares on metro, bus and tram.',
+  S({ id: 'shop_troika', cat: 'shop', w: 6, req: (s: State) => !s.flags.troika, title: 'Transport card', text: 'A Troika (or city) transport card comes with a small refundable deposit and makes metro, bus and tram trips cheaper than single tickets.',
     choices: [C('Buy and top up ₽500', 'Beep: you are a Moscow commuter.', { money: -550, stress: -2, flag: 'troika' }), C('Pay each trip by phone', 'It works, but costs more.', {})] });
   S({ id: 'shop_pharmacy', cat: 'shop', w: 1, title: 'Pharmacy', text: 'You need medicine for a persistent cough. The pharmacist offers three brands and strong opinions.',
     choices: [C('Buy the cheap one', 'It works slowly.', { money: -300, health: 2 }), C('Buy the expensive one', 'It works fast.', { money: -900, health: 5 })] });

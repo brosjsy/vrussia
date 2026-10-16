@@ -1,6 +1,6 @@
 import * as G from './engine';
 import type { State, Note } from './engine';
-import { flows, validateStep } from './forms';
+import { flows, validateStep, codeFor, submitFlow } from './forms';
 import type { Flow, Field, Data } from './forms';
 
 const esc = (t: string): string => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
@@ -26,7 +26,7 @@ export function openFlow(s: State, host: HTMLElement, flow: Flow, onClose: (done
   const render = (): void => {
     const st = flow.steps[step];
     const fields = st.fields(s, data);
-    if (fields.some(f => f.type === 'code') && !data._code) data._code = String(Math.floor(1000 + Math.random() * 9000));
+    codeFor(fields, data);
     const body = fields.map(f => fieldHtml(f, data)).join('');
     host.innerHTML = `<div class="cat">${esc(flow.site)}</div><div class="site"><div class="siteBar"><b>${flow.icon} ${esc(flow.title)}</b><span>${esc(st.title)} · step ${step + 1}/${flow.steps.length}</span></div>
       <div class="siteBody">${error ? `<div class="err">${esc(error)}</div>` : ''}${body}</div>
@@ -54,11 +54,8 @@ export function openFlow(s: State, host: HTMLElement, flow: Flow, onClose: (done
   };
 
   const submit = (): void => {
-    const res = flow.finish(s, data);
-    const notes: Note[] = G.apply(s, res.fx);
-    s.log.unshift({ day: s.day, text: `${flow.title}: ${res.msg}` });
-    G.checkEnd(s);
-    const dayNotes = s.over ? [] : G.advance(s);
+    const { msg, notes, dayNotes } = submitFlow(s, flow, data);       // the rules of sending a form (forms.ts)
+    const res = { msg };
     host.innerHTML = `<div class="cat">${esc(flow.site)}</div><div class="site"><div class="siteBar"><b>${flow.icon} ${esc(flow.title)}</b><span>Result</span></div>
       <div class="siteBody"><p>${esc(res.msg)}</p>${notes.length ? '<div class="notes">' + notes.map(n => `<span class="note ${n.v < 0 && n.k !== 'stress' ? 'neg' : 'pos'}">${esc(n.label)} ${n.v ? (n.v > 0 ? '+' : '') + (n.k === 'money' ? G.money(n.v) : n.v) : ''}</span>`).join('') + '</div>' : ''}
       ${dayNotes.map(t => `<p class="sub">${esc(t)}</p>`).join('')}</div>

@@ -1,6 +1,6 @@
 /* Flights: destinations, pricing, the booking record and the airport-day scenes.
    The interactive booking website itself lives in booking-ui.ts. */
-import { dyn, S, O, gamble, rnd, problems, absentDays, isForeigner } from './engine';
+import { dyn, S, O, gamble, rnd, problems, absentDays, isForeigner, apply, advance, dateOf } from './engine';
 import type { State, Booking, Scenario, Outcome } from './engine';
 
 export interface Dest { id: string; name: string; country: string; intl: boolean; price: number; hours: number }
@@ -25,6 +25,31 @@ export const destById = (id: string): Dest => DESTS.find(d => d.id === id) as De
 export const leadMultiplier = (lead: number): number => (lead < 3 ? 1.9 : lead < 7 ? 1.5 : lead < 14 ? 1.25 : lead < 30 ? 1 : 0.9);
 
 export const EXTRAS = { baggage: 2500, meal: 700, insurance: 1200, seat: 500, agentFee: 600 };
+
+export const FARE_TIMES: [string, number][] = [['Early flight 06:40', 1], ['Afternoon flight 13:15', 1.12], ['Night flight 23:50 (cheapest)', 0.88]];
+/** What the player fills in on the airline website. */
+export interface Order { dest: string; lead: number; stay: number; fare: number; first: string; last: string; passport: string; baggage: boolean; meal: boolean; insurance: boolean; seat: boolean; pay: string }
+export const fareOf = (o: Pick<Order, 'dest' | 'lead' | 'fare'>): number => Math.round(destById(o.dest).price * leadMultiplier(o.lead) * (FARE_TIMES[o.fare]?.[1] ?? 1));
+export const extrasOf = (o: Pick<Order, 'baggage' | 'meal' | 'insurance' | 'seat'>): number => (o.baggage ? EXTRAS.baggage : 0) + (o.meal ? EXTRAS.meal : 0) + (o.insurance ? EXTRAS.insurance : 0) + (o.seat ? EXTRAS.seat : 0);
+export const totalOf = (o: Order): number => fareOf(o) + extrasOf(o) + (o.pay === 'agent' ? EXTRAS.agentFee : 0);
+/** Why this order cannot be paid (null when it can). The name on the ticket is NOT checked here: the airport checks it, as in life. */
+export function cannotBook(s: State, o: Order): string | null {
+  if (!DESTS.some(d => d.id === o.dest)) return 'Choose a destination.';
+  if (s.booking && !s.booking.done) return 'You already have a booking.';
+  if (o.pay !== 'agent' && !s.bank[o.pay]) return 'You have no card of that bank.';
+  if (s.money < totalOf(o)) return 'Not enough money for this ticket.';
+  return null;
+}
+/** Pays and records the booking (the page shows the e-ticket). */
+export function book(s: State, o: Order): { ok: boolean; msg: string; pnr?: string; cost?: number } {
+  const why = cannotBook(s, o); if (why) return { ok: false, msg: why };
+  const d = destById(o.dest), pnr = Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join(''), cost = totalOf(o), dep = s.day + o.lead;
+  apply(s, { money: -cost, run: st => { st.booking = { dest: o.dest, intl: d.intl, dep, stay: o.stay, price: cost, pnr, passenger: `${o.first} ${o.last}`.toUpperCase(), passport: o.passport, baggage: o.baggage, done: false }; } });
+  const when = new Date(dateOf(s).getTime() + o.lead * 864e5).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+  s.log.unshift({ day: s.day, text: `Booked a flight to ${d.name} for ${when} (${pnr}), ${cost.toLocaleString('en-US')} roubles.` });
+  advance(s);
+  return { ok: true, msg: `Booked: ${d.name}, ${pnr}.`, pnr, cost };
+}
 
 /** Your passport first name must equal your character name; the website does not check it for you. */
 export const nameMatches = (s: State, first: string): boolean => first.trim().toLowerCase() === s.name.trim().toLowerCase();

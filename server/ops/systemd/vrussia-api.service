@@ -1,0 +1,35 @@
+# The server as a systemd service (when not using Docker). Install to /etc/systemd/system/, then:
+#   sudo systemctl daemon-reload && sudo systemctl enable --now vrussia-api
+[Unit]
+Description=V Russia API server
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=vrussia
+Group=vrussia
+WorkingDirectory=/opt/vrussia/server
+EnvironmentFile=/etc/vrussia/server.env
+ExecStart=/usr/bin/node dist/src/main.js
+Restart=on-failure
+RestartSec=3
+# sandboxing: the process can read its own files and nothing else of the system, and cannot gain privileges
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallArchitectures=native
+MemoryMax=768M
+
+[Install]
+WantedBy=multi-user.target

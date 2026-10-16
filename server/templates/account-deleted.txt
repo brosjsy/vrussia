@@ -1,0 +1,2 @@
+Your {{brand_name}} account and everything stored with it on our server were deleted on {{when}} (UTC), as you asked.
+Games saved on your own device are not affected.

@@ -15,14 +15,21 @@
 
 <section id="title" class="screen">
   <div class="flagbar"><i></i><i></i><i></i></div>
-  <div class="titlebar"><h1>V&nbsp;Russia</h1><button class="ghost langBtn" id="langBtn" data-i18n="langBtn" aria-label="Language / Язык">RU</button></div>
+  <div class="titlebar"><h1>V&nbsp;Russia</h1><button class="ghost langBtn" id="onlineBtn" data-i18n="olBtn">🌐 Online</button><button class="ghost langBtn" id="textBtn" data-i18n-aria="textSize" aria-label="Text size">Aa</button><button class="ghost langBtn" id="langBtn" data-i18n="langBtn" aria-label="Language / Язык">RU</button></div>
   <p class="tag" data-i18n="tag">A free browser life simulator of Russia: <b id="tagCount">4,000+ scenarios</b> across culture, history, traditions, study, work and everyday life — for citizens and newcomers alike.</p>
   <p class="sub" id="langNote" data-i18n="note"></p>
-  <label class="field"><span data-i18n="name">Your name</span> <input id="nameInput" maxlength="20" placeholder="e.g. Rustam, Aisha, Ivan" data-i18n-ph="namePh"></label>
+  <label class="field"><span data-i18n="name">Your name</span> <input id="nameInput" maxlength="20" placeholder="e.g. Rustam, Aisha, Ivan" data-i18n-ph="namePh"></label> <button type="button" class="ghost randName" id="randNameBtn" data-i18n="crRandomName">Random Russian name</button>
   <label class="field"><span data-i18n="startCity">Starting city (optional — migrants default to Moscow)</span>
     <select id="citySel"><option value="" data-i18n="cityDefault">Default for your character</option></select></label>
   <label class="field"><span data-i18n="difficulty">Difficulty</span>
     <select id="diffSel"><option value="easy" data-i18n="diff.easy">Easy: more money, fewer checks</option><option value="normal" data-i18n="diff.normal" selected>Normal</option><option value="hard" data-i18n="diff.hard">Realistic: less money, more checks</option></select></label>
+  <section id="creator" class="creator" aria-labelledby="creatorTitle">
+    <h2 id="creatorTitle" data-i18n="creatorTitle">Create your character</h2>
+    <div class="creatorGrid">
+      <div id="creatorPreview" class="creatorPreview" aria-live="polite"></div>
+      <div class="creatorControls" id="creatorControls"></div>
+    </div>
+  </section>
   <h2><span data-i18n="chooseLife">Choose your life</span> <button class="ghost" id="randomBtn" data-i18n="random">🎲 Random</button></h2>
   <div id="origins" class="origins"></div>
   <div class="row">
@@ -37,25 +44,35 @@
 
 <section id="game" class="screen" hidden>
   <header class="top">
-    <div><b id="who"></b><div class="sub" id="where"></div></div>
-    <div class="right"><div id="date"></div><div class="money" id="moneyBox"></div></div>
+    <div class="whoRow"><span id="whoPic" class="whoPic"></span><div><b id="who"></b><div class="sub" id="where"></div></div></div>
+    <div class="right"><div id="date"></div><div class="moneyRow"><span class="pill" id="moodPill"></span><span class="pill" id="achPill" title="Achievements"></span><span class="pill onlinePill" id="onlinePill" hidden></span><button class="ghost soundBtn" id="adsBtn" aria-label="Adverts board" title="Adverts board">📌</button><button class="ghost soundBtn" id="onlineBtn2" aria-label="Online" title="Online">🌐</button><button class="ghost soundBtn" id="soundBtn" aria-pressed="true" aria-label="Sound" title="Sound">🔊</button><div class="money" id="moneyBox"></div><button class="plus" id="plusBtn" aria-label="Bank and shops" title="Bank and shops">+</button><button class="ghost soundBtn drawerBtn" id="drawerBtn" aria-label="Menu" title="Menu" aria-expanded="false">☰</button></div></div>
   </header>
   <div id="hud" class="hud" role="group" aria-label="Your condition"></div>
+  <button class="ghost cleanBtn" id="cleanBtn" aria-pressed="false" data-i18n="clean">⤢ Clean screen</button>
   <div class="grid">
     <aside class="panel">
       <button class="ghost" id="profileBtn" data-i18n="profile">👤 My profile &amp; awards</button>
-      <h3 data-i18n="cityMap">City map</h3><div id="miniMap" class="mapbox live"></div>
       <div id="stats"></div>
       <h3 data-i18n="documents">Documents</h3><div id="docs" class="chips"></div>
       <div id="checklistBox"><h3 data-i18n="checklist">First-month checklist</h3><ul id="checklist"></ul></div>
       <h3 data-i18n="goals">Goals</h3><ul id="goals"></ul>
       <button class="ghost" id="helpBtn" data-i18n="help">❓ How to play</button>
       <button class="ghost" id="logBtn" data-i18n="journal">📜 Journal</button>
+      <button class="ghost" id="textBtn2" data-i18n-aria="textSize" aria-label="Text size">Aa</button>
       <button class="ghost" id="langBtn2" data-i18n="langBtn" aria-label="Language / Язык">RU</button>
+      <button class="ghost" id="settingsBtn" data-i18n="stTitle2Btn">⚙️ Settings</button>
       <button class="ghost" id="menuBtn" data-i18n="newGame">⟲ New game</button>
     </aside>
     <main>
-      <canvas id="scene" class="scene" aria-label="Animated city scene"></canvas>
+      <section id="cityView" class="cityView" aria-label="City">
+        <div id="layers" class="layers" role="group" aria-label="Map layers"></div>
+        <div id="city" class="city"></div>
+        <div id="realmap" class="realmap" hidden></div>
+        <div id="world3d" class="world3d" hidden></div>
+        <div id="quests" class="quests"></div>
+        <button id="ticker" class="ticker" aria-live="polite" title="Next headline"></button>
+        <div id="placeCard" class="placeCard"></div>
+      </section>
       <div id="stage" class="card"></div>
       <div id="actions" class="actions"></div>
     </main>
@@ -63,6 +80,13 @@
 </section>
 
 <section id="end" class="screen" hidden></section>
+<button class="keysBtn" id="keysBtn" aria-label="Keyboard shortcuts" title="Keyboard shortcuts" hidden>⌨</button>
+<nav id="dock" class="dock" aria-label="Main menu" hidden>
+  <button id="dockHome" data-dock="home"><span aria-hidden="true">🏠</span><b data-i18n="dockHome">Home</b></button>
+  <button id="dockShop" data-dock="shop"><span aria-hidden="true">🛍️</span><b data-i18n="dockShop">Shop</b></button>
+  <button id="dockMap" data-dock="map"><span aria-hidden="true">🗺️</span><b data-i18n="dockMap">Map</b></button>
+  <button id="dockPhone" data-dock="phone"><span aria-hidden="true">📱</span><b data-i18n="dockPhone">Phone</b></button>
+</nav>
 <div id="toasts" class="toasts" aria-live="polite"></div>
 <div id="modal" class="modal" hidden role="dialog" aria-modal="true" aria-label="Details" data-i18n-aria="dialogLabel"><div class="sheet"><button id="closeModal" class="ghost" data-i18n="close">Close</button><div id="modalBody"></div></div></div>
 

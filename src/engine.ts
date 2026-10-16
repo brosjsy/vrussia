@@ -1,4 +1,9 @@
 /* V Russia — game engine. DOM-free: runs in the browser and in Node tests. */
+import { decayNeeds, needsOnAction } from './needs';
+import { boostOf, recordShift } from './career';
+import { payOffice } from './election';
+import { tickBuild } from './build';
+import { coldPress } from './warmth';
 
 export type Status = 'citizen' | 'migrant' | 'eaeu' | 'student';
 export type Weather = 'snow' | 'frost' | 'rain' | 'heat' | 'clear';
@@ -42,6 +47,10 @@ export interface Origin {
   id: string; label: string; icon: string; status: Status; home: string; city: string;
   money: number; allow: number; rent: number; know: number; rep: number; blurb: string; docs: Partial<Docs>;
 }
+export interface ChatMsg { from: 'me' | 'them'; text: string; day: number }
+export interface Tx { day: number; label: string; amount: number }
+export interface CallRec { day: number; who: string; dir: 'out' | 'in' | 'missed' }
+export interface PhoneData { number: string; chats: Record<string, ChatMsg[]>; calls: CallRec[]; tx: Tx[]; bonus: Record<string, number>; dating?: import('./dating').Datable }
 export interface Place { id: string; n: string; x: number; y: number }
 export interface Note { k: string; v: number; label: string }
 export interface LogEntry { day: number; text: string }
@@ -57,6 +66,10 @@ export interface State {
   skip?: number;
   phone: number; car: Car | null; pet: Pet | null; housing: string; booking: Booking | null;
   tmp: Record<string, string | number>;
+  /** The phone: number, chats, calls and the money history. Created on first use; saves from before it simply do not have it. */
+  ph?: PhoneData;
+  /** Looks and belongings. All optional: older saves have none of it and get the defaults. */
+  look?: import('./avatar').Look; worn?: import('./avatar').Worn; inv?: Record<string, number>; dream?: string;
   biz: Biz | null;
   ach: string[];
   diff: Difficulty;
@@ -121,7 +134,7 @@ export const PLACES: Place[] = [
   { id: 'hospital', n: 'City hospital', x: 46, y: 72 }, { id: 'shelter', n: 'Animal shelter', x: 90, y: 12 },
 ];
 export const placeById = (id: string): Place => PLACES.find(p => p.id === id) as Place;
-const PLACE_CATS: Record<string, string[]> = { mfc: ['paper'], guvm: ['paper'], uni: ['edu'], market: ['shop'], clinic: ['health'], bank: ['bank'], work: ['work'], center: ['social', 'police', 'life', 'culture'], station: ['police', 'life'], home: ['home'],
+export const PLACE_CATS: Record<string, string[]> = { mfc: ['paper'], guvm: ['paper'], uni: ['edu'], market: ['shop'], clinic: ['health'], bank: ['bank'], work: ['work'], center: ['social', 'police', 'life', 'culture'], station: ['police', 'life'], home: ['home'],
   mall: ['phone', 'shop'], airport: ['air'], dealer: ['car'], agency: ['estate'], hospital: ['hospital', 'health'], shelter: ['pets'] };
 const SERVICE_PLACES = ['mall', 'airport', 'dealer', 'agency', 'hospital', 'shelter'];
 
@@ -355,10 +368,10 @@ export function perform(s: State, actionId: string): Performed {
   if (actionId === 'work') {
     if (!s.job) return { sc: dyn.job_search(s), notes: [], pre: '' };
     const j = jobById(s.job);
-    const pay = Math.round(j.pay * (1 + s.know / 200) * (0.85 + Math.random() * 0.3));
+    const pay = Math.round(j.pay * (1 + s.know / 200) * boostOf(s) * (0.85 + Math.random() * 0.3));
     base = { money: pay, energy: -(j.energy || 20), stress: j.stress || 5 };
     s.earned += pay;
-    pre = `Shift as ${j.name}.`;
+    pre = `Shift as ${j.name}.`; const promo = recordShift(s); if (promo) pre += ' ' + promo;
   } else if (actionId === 'food') { base = { money: -rnd(150, 400), energy: 22, health: 1 }; pre = 'You find something to eat.'; }
   else if (actionId === 'out') { base = { energy: -5, stress: -3 }; pre = 'You step outside.'; }
   else if (actionId === 'paper') { base = { energy: -8, stress: 4 }; pre = 'Documents day.'; }
@@ -372,6 +385,7 @@ export function perform(s: State, actionId: string): Performed {
   else if (actionId === 'money') { base = { energy: -4 }; pre = 'Errands.'; }
   else if (actionId === 'people') { base = { energy: -4, stress: -3 }; pre = 'You make time for people.'; }
   const notes = apply(s, base);
+  needsOnAction(s, actionId);
   const sc = draw(s, a.cats) || draw(s, ['social']);
   return { sc, notes, pre };
 }
@@ -393,7 +407,9 @@ export function softenRefusal(res: Outcome): Outcome {
 export function choose(s: State, sc: Scenario, i: number): Chosen {
   const c = sc.choices[i];
   const res = softenRefusal(c.r ? c.r(s) : O(c.msg || '', c.fx));
+  const m0 = s.money;
   const notes = apply(s, res.fx);
+  recTx(s, sc.title, s.money - m0);
   if (!sc.dynamic) s.seen[sc.id] = (s.seen[sc.id] || 0) + 1;
   s.log.unshift({ day: s.day, text: `${sc.title}: ${res.msg}` });
   if (s.log.length > 60) s.log.length = 60;
@@ -401,8 +417,80 @@ export function choose(s: State, sc: Scenario, i: number): Chosen {
   let dayNotes: string[] = [];
   let advanceNow = !sc.free;
   if (sc.id === 'trip_method') advanceNow = !arrivalHook(s);
-  if (advanceNow && !s.over) dayNotes = advance(s);
+  const find = s.over ? null : collectDaily(s);   // before the day can roll over
+  if (find) dayNotes.push(find);
+  const m1 = s.money;
+  if (advanceNow && !s.over) dayNotes.push(...advance(s));
+  recTx(s, 'Daily life: costs and income', s.money - m1);
   return { msg: res.msg, notes, dayNotes, ui: res.fx.ui, unlocked: checkAchievements(s) };
+}
+
+/* ---------- the phone: number, chats, calls and money history ---------- */
+const hashStr = (t: string): number => { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619) >>> 0; return h; };
+
+/** A Russian mobile number such as +7 912 345-67-89, the same for the same text. */
+export function numberFrom(seed: string): string {
+  const h = hashStr(seed); const d = (n: number, w: number): string => String(n % 10 ** w).padStart(w, '0');
+  return `+7 9${d(h, 2)} ${d(h >>> 7, 3)}-${d(h >>> 13, 2)}-${d(h >>> 19, 2)}`;
+}
+export const TX_MAX = 40, CHAT_MAX = 30, CALL_MAX = 20;
+
+export function phoneOf(s: State): PhoneData {
+  if (!s.ph) s.ph = { number: numberFrom(`${s.name}|${s.o}`), chats: {}, calls: [], tx: [], bonus: {} };
+  return s.ph;
+}
+/** Remembers a change of money (not zero) with a short label. Newest first, limited length. */
+export function recTx(s: State, label: string, amount: number): void {
+  if (!amount) return;
+  const p = phoneOf(s);
+  p.tx.unshift({ day: s.day, label: label.slice(0, 60), amount: Math.round(amount) });
+  if (p.tx.length > TX_MAX) p.tx.length = TX_MAX;
+}
+export function addChat(s: State, contactId: string, from: 'me' | 'them', text: string): void {
+  const p = phoneOf(s);
+  const list = p.chats[contactId] || (p.chats[contactId] = []);
+  list.push({ from, text: text.slice(0, 160), day: s.day });
+  if (list.length > CHAT_MAX) list.splice(0, list.length - CHAT_MAX);
+}
+export function addCall(s: State, who: string, dir: CallRec['dir']): void {
+  const p = phoneOf(s);
+  p.calls.unshift({ day: s.day, who, dir });
+  if (p.calls.length > CALL_MAX) p.calls.length = CALL_MAX;
+}
+/** True once per game day for each key (used for small daily bonuses such as the first chat with Mum). */
+export function firstToday(s: State, key: string): boolean {
+  const p = phoneOf(s);
+  if (p.bonus[key] === s.day) return false;
+  p.bonus[key] = s.day;
+  return true;
+}
+
+/* ---------- the daily find: one hidden matryoshka doll per day ---------- */
+export const DAILY_PRIZE_EVERY = 5;
+export const DAILY_FIND_PAY = 300;
+export const DAILY_BIG_PRIZE = 3000;
+
+/** Today's hiding place. It is the same for everyone on the same game day, never your home, and never the workplace if you have no job. */
+export function dailySpot(s: State): string {
+  const pool = PLACES.filter(p => p.id !== 'home' && !(p.id === 'work' && !s.job)).map(p => p.id);
+  return pool[(Math.imul(s.day + 1, 2654435761) >>> 0) % pool.length];
+}
+export const dailyFound = (s: State): number => Number(s.tmp.finds || 0);
+export const dailyDone = (s: State): boolean => s.tmp.findDay === s.day;
+/** Finds still needed for the next big prize. */
+export const dailyToPrize = (s: State): number => DAILY_PRIZE_EVERY - (dailyFound(s) % DAILY_PRIZE_EVERY);
+
+/** If the player stands where today's doll is hidden and has not found one today, they find it. Returns a message, or null. */
+export function collectDaily(s: State): string | null {
+  if (dailyDone(s) || s.loc !== dailySpot(s)) return null;
+  s.tmp.findDay = s.day;
+  s.tmp.finds = dailyFound(s) + 1;
+  const big = dailyFound(s) % DAILY_PRIZE_EVERY === 0;
+  const pay = DAILY_FIND_PAY + (big ? DAILY_BIG_PRIZE : 0);
+  s.money += pay; recTx(s, 'Matryoshka find', pay);
+  const msg = `🧸 You find today's hidden matryoshka at ${placeById(s.loc).n}: +${money(pay)}${big ? ' (a prize for every fifth find!)' : ''}. Found so far: ${dailyFound(s)}.`;
+  s.log.unshift({ day: s.day, text: msg });
+  return msg;
 }
 
 /** Start a trip to a place chosen directly on the map. */
@@ -431,6 +519,8 @@ export const CAL: { m: number; d: number; id: string }[] = [
 
 export function advance(s: State): string[] {
   const out: string[] = [];
+  out.push(...decayNeeds(s));
+  const cold = coldPress(s); if (cold) out.push(cold);
   s.slot++;
   if (s.skip && s.skip > 0) { s.skip--; s.slot = 3; out.push('You lose the rest of the day.'); }
   if (s.slot >= 3) { s.slot = 0; out.push(...endDay(s)); }
@@ -441,6 +531,8 @@ export function advance(s: State): string[] {
 export function endDay(s: State): string[] {
   const out: string[] = [];
   s.day++;
+  const allowance = payOffice(s); if (allowance) out.push(`Your deputy's allowance: ${money(allowance)}.`);
+  const built = tickBuild(s); if (built) out.push(built);
   const d = dateOf(s);
   const names: Record<string, string> = { reg: 'Registration', patent: 'Patent', visa: 'Visa' };
   (['reg', 'patent', 'visa'] as (keyof Docs)[]).forEach(k => {
@@ -485,6 +577,13 @@ export function endDay(s: State): string[] {
   CAL.forEach(c => { if (c.m === d.getMonth() + 1 && c.d === d.getDate()) s.queue.push(c.id); });
   if (d.getDate() === 1 && s.job === null && s.status !== 'citizen') out.push('New month: remember to check your documents.');
   return out;
+}
+
+/** Danger zone shown to the player: stress of 75 or more costs health every day (3 a day from 90), and low health calls for rest. */
+export function vitalsLevel(s: State): 'burnout' | 'weak' | null {
+  if (s.stress >= 75) return 'burnout';
+  if (s.health <= 30) return 'weak';
+  return null;
 }
 
 export function checkEnd(s: State): void {
@@ -591,13 +690,13 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'student', icon: '🎓', title: 'Student', text: 'Win a place at a university.', done: s => !!s.flags.admitted },
   { id: 'entrepreneur', icon: '🏪', title: 'Entrepreneur', text: 'Register a business.', done: s => !!s.flags.bizOpened },
   { id: 'profitable', icon: '💰', title: 'Profitable', text: 'Earn ₽100,000 in business profit.', done: s => !!s.biz && s.biz.profit >= 100000 },
-  { id: 'driver', icon: '🪪', title: 'Driver', text: 'Pass the driving exam.', done: s => !!s.flags.license },
+  { id: 'driver', icon: '🆔', title: 'Driver', text: 'Pass the driving exam.', done: s => !!s.flags.license },
   { id: 'carowner', icon: '🚗', title: 'Car owner', text: 'Buy a car.', done: s => !!s.car },
   { id: 'homeowner', icon: '🏠', title: 'Homeowner', text: 'Buy a home.', done: s => s.housing !== 'rented' },
   { id: 'dog', icon: '🐕', title: 'Rescuer', text: 'Adopt an abandoned dog.', done: s => !!s.pet },
   { id: 'married', icon: '💍', title: 'Married', text: 'Marry at ZAGS.', done: s => !!s.flags.married },
   { id: 'parent', icon: '👶', title: 'Parent', text: 'Welcome a child.', done: s => s.kids > 0 },
-  { id: 'friends', icon: '🫂', title: 'Friend circle', text: 'Make five friends.', done: s => s.friends >= 5 },
+  { id: 'friends', icon: '🤝', title: 'Friend circle', text: 'Make five friends.', done: s => s.friends >= 5 },
   { id: 'patriot', icon: '🏅', title: 'Does not stand aside', text: 'Receive the community «Patriot» Award.', done: s => !!s.flags.award },
   { id: 'flew', icon: '✈️', title: 'Frequent flyer', text: 'Complete a round trip by plane.', done: s => !!s.flags.flew },
   { id: 'millionaire', icon: '🤑', title: 'Millionaire', text: 'Hold ₽1,000,000.', done: s => s.money >= 1_000_000 },
@@ -612,6 +711,13 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'studied2y', icon: '📚', title: 'Two years of study', text: 'Pass four exam sessions.', done: s => !!s.flags.studied2y },
   { id: 'settled', icon: '🧳', title: 'Settled in', text: 'Complete the first-month checklist.', done: s => checklistFor(s).every(c => c.done) },
   { id: 'move', icon: '🚆', title: 'New city', text: 'Move to another city.', done: s => s.city !== (origins.find(o => o.id === s.o)?.city ?? s.city) },
+  // added with the phases of round 120: they read the optional parts of the state that the newer modules keep (cooking, venues, study, budget, events)
+  { id: 'chef', icon: '🍲', title: 'Home chef', text: 'Reach cooking skill 45 (enough for borscht).', done: s => ((s as unknown as { kitchen?: { skill?: number } }).kitchen?.skill ?? 0) >= 45 },
+  { id: 'tourist', icon: '📷', title: 'Tourist at home', text: 'Take a photo at all four landmarks.', done: s => ((s as unknown as { photos?: string[] }).photos?.length ?? 0) >= 4 },
+  { id: 'graduate', icon: '🎓', title: 'Certified', text: 'Pass a university course.', done: s => ((s as unknown as { study?: { certs?: string[] } }).study?.certs?.length ?? 0) >= 1 },
+  { id: 'russianb1', icon: '🗣️', title: 'Speaks Russian', text: 'Pass Russian B1.', done: s => !!(s as unknown as { study?: { certs?: string[] } }).study?.certs?.includes('ru-b1') },
+  { id: 'saver', icon: '🐷', title: 'Goal reached', text: 'Reach a savings goal in the bank app.', done: s => { const v = (s as unknown as { savings?: { goal?: number; saved?: number } }).savings; return !!v?.goal && (v.saved ?? 0) >= v.goal; } },
+  { id: 'festive', icon: '🎉', title: 'In the spirit', text: 'Finish every task of a holiday event.', done: s => Object.values((s as unknown as { events?: { claimed?: Record<string, number[]> } }).events?.claimed ?? {}).some(c => c.length >= 3) },
 ];
 
 /** Marks newly earned achievements on the state and returns them. */

@@ -2,7 +2,7 @@
    Nothing real is collected: all fields are fictional game data. */
 import * as G from './engine';
 import type { State } from './engine';
-import { DESTS, destById, leadMultiplier, EXTRAS, warnings, passportFor } from './flights';
+import { DESTS, destById, EXTRAS, warnings, passportFor, FARE_TIMES, fareOf, extrasOf, totalOf, book, leadMultiplier } from './flights';
 
 const esc = (t: string): string => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
 
@@ -13,7 +13,7 @@ interface Form {
 }
 const LEADS = [2, 5, 10, 14, 21, 30, 45, 60];
 const STAYS = [3, 7, 14, 21];
-const FARES: [string, number][] = [['Early flight 06:40', 1], ['Afternoon flight 13:15', 1.12], ['Night flight 23:50 (cheapest)', 0.88]];
+const FARES = FARE_TIMES;
 const BANKS: Record<string, string> = { sber: 'Sber card', vtb: 'VTB card', tbank: 'T-Bank card' };
 
 export function openBooking(s: State, host: HTMLElement, onClose: (booked: boolean) => void): void {
@@ -22,9 +22,9 @@ export function openBooking(s: State, host: HTMLElement, onClose: (booked: boole
     baggage: false, meal: false, insurance: false, seat: false, pay: '', code: '', sms: '', tries: 0, error: '',
   };
   const dateLabel = (lead: number): string => new Date(G.dateOf(s).getTime() + lead * 864e5).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-  const base = (): number => Math.round(destById(f.dest).price * leadMultiplier(f.lead) * FARES[f.fare][1]);
-  const extras = (): number => (f.baggage ? EXTRAS.baggage : 0) + (f.meal ? EXTRAS.meal : 0) + (f.insurance ? EXTRAS.insurance : 0) + (f.seat ? EXTRAS.seat : 0);
-  const total = (): number => base() + extras() + (f.pay === 'agent' ? EXTRAS.agentFee : 0);
+  const base = (): number => fareOf(f);
+  const extras = (): number => extrasOf(f);
+  const total = (): number => totalOf(f);             // the prices and the booking itself are the game's rules (flights.ts)
   const banks = Object.keys(s.bank).filter(k => s.bank[k]);
 
   const frame = (title: string, body: string, buttons: string): void => {
@@ -126,14 +126,9 @@ export function openBooking(s: State, host: HTMLElement, onClose: (booked: boole
 
   const finish = (): void => {
     const d = destById(f.dest);
-    const pnr = Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
-    const cost = total();
-    const dep = s.day + f.lead;
-    G.apply(s, { money: -cost, run: st => {
-      st.booking = { dest: f.dest, intl: d.intl, dep, stay: f.stay, price: cost, pnr, passenger: `${f.first} ${f.last}`.toUpperCase(), passport: f.passport, baggage: f.baggage, done: false };
-    } });
-    s.log.unshift({ day: s.day, text: `Booked a flight to ${d.name} for ${dateLabel(f.lead)} (${pnr}), ${G.money(cost)}.` });
-    G.advance(s);
+    const r = book(s, f);
+    if (!r.ok) { f.error = r.msg; f.step = 5; return step5(); }
+    const pnr = r.pnr as string, cost = r.cost as number;
     f.step = 7;
     host.innerHTML = `<div class="cat">Airline website</div><div class="site"><div class="siteBar"><b>✈️ SkyRoute</b><span>Booking confirmed</span></div>
       <div class="siteBody ticket"><h3>🎫 E-ticket · ${pnr}</h3>

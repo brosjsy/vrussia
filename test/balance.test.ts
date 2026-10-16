@@ -11,6 +11,7 @@ const DIFF = (process.env.BALANCE_DIFF ?? 'normal') as G.Difficulty;
 function act(s: G.State, p: Policy): string {
   if (s.energy < 25) return 'home';
   if (s.energy < 45 && s.money > 400) return 'food';
+  if (p === 'cautious' && G.vitalsLevel(s) === 'burnout') return 'home';   // a careful player rests when the screen warns about burnout
   if (p === 'cautious') {
     if (G.problems(s).length) return Math.random() < 0.8 ? 'paper' : 'home';
     // a careful newcomer finishes the legal route before looking for work

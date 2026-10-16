@@ -1,0 +1,6 @@
+Welcome to {{brand_name}}!
+
+Open this link to confirm that this e-mail address is yours (it works once and for {{hours}} hours):
+{{link}}
+
+If you did not make an account, ignore this e-mail; nothing happens.

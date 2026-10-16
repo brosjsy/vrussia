@@ -1,0 +1,7 @@
+{{brand_name}}
+==============
+
+{{content}}
+
+--
+{{footer}}

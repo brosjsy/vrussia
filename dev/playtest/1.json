@@ -1,0 +1,984 @@
+{
+ "seed": 1,
+ "crashes": [],
+ "nobody": [
+  {
+   "f": "go out: rink",
+   "w": "closed now, not in this city, or too expensive (53)"
+  }
+ ],
+ "serverErrors": [],
+ "problems": [],
+ "rows": [
+  {
+   "f": "account: change password",
+   "area": "Account",
+   "okP": 1,
+   "ps": 1,
+   "tot": 1,
+   "ok": 1,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: choose name",
+   "area": "Account",
+   "okP": 20,
+   "ps": 20,
+   "tot": 20,
+   "ok": 20,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: confirm e-mail",
+   "area": "Account",
+   "okP": 20,
+   "ps": 20,
+   "tot": 20,
+   "ok": 20,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: delete",
+   "area": "Account",
+   "okP": 1,
+   "ps": 1,
+   "tot": 1,
+   "ok": 1,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: forgot password",
+   "area": "Account",
+   "okP": 1,
+   "ps": 1,
+   "tot": 1,
+   "ok": 1,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: log in",
+   "area": "Account",
+   "okP": 20,
+   "ps": 20,
+   "tot": 20,
+   "ok": 20,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: log in after reset",
+   "area": "Account",
+   "okP": 1,
+   "ps": 1,
+   "tot": 1,
+   "ok": 1,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: log in again",
+   "area": "Account",
+   "okP": 5,
+   "ps": 5,
+   "tot": 5,
+   "ok": 5,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: log out",
+   "area": "Account",
+   "okP": 5,
+   "ps": 5,
+   "tot": 5,
+   "ok": 5,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: log out other devices",
+   "area": "Account",
+   "okP": 1,
+   "ps": 1,
+   "tot": 1,
+   "ok": 1,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: reset password",
+   "area": "Account",
+   "okP": 1,
+   "ps": 1,
+   "tot": 1,
+   "ok": 1,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: sign up",
+   "area": "Account",
+   "okP": 20,
+   "ps": 20,
+   "tot": 20,
+   "ok": 20,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "holiday pass",
+   "area": "City",
+   "okP": 1,
+   "ps": 1,
+   "tot": 1,
+   "ok": 1,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "run for governor",
+   "area": "City",
+   "okP": 20,
+   "ps": 20,
+   "tot": 52,
+   "ok": 48,
+   "err": 0,
+   "w": "Not enough money for the campaign fee. (4)"
+  },
+  {
+   "f": "vote for governor",
+   "area": "City",
+   "okP": 4,
+   "ps": 20,
+   "tot": 52,
+   "ok": 4,
+   "err": 0,
+   "w": "You vote in person: go to the polling station in the MFC hal (48)"
+  },
+  {
+   "f": "buy groceries",
+   "area": "Food",
+   "okP": 20,
+   "ps": 20,
+   "tot": 46,
+   "ok": 45,
+   "err": 0,
+   "w": "Not enough money for a bag of groceries. (1)"
+  },
+  {
+   "f": "cook a meal",
+   "area": "Food",
+   "okP": 20,
+   "ps": 20,
+   "tot": 46,
+   "ok": 45,
+   "err": 0,
+   "w": "Needs 1 portions of groceries (you have 0). (1)"
+  },
+  {
+   "f": "build own house",
+   "area": "Home",
+   "okP": 3,
+   "ps": 20,
+   "tot": 53,
+   "ok": 5,
+   "err": 0,
+   "w": "Only citizens can buy land and build here. Get citizenship f (31); Not enough money for this stage. (17)"
+  },
+  {
+   "f": "buy and place furniture",
+   "area": "Home",
+   "okP": 20,
+   "ps": 20,
+   "tot": 53,
+   "ok": 51,
+   "err": 0,
+   "w": "cannot afford any piece (1); bought, but no free spot in the flat (1)"
+  },
+  {
+   "f": "pay bills",
+   "area": "Home",
+   "okP": 15,
+   "ps": 15,
+   "tot": 31,
+   "ok": 31,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "renovate: floor",
+   "area": "Home",
+   "okP": 16,
+   "ps": 20,
+   "tot": 52,
+   "ok": 30,
+   "err": 0,
+   "w": "It is already like that. (12); Not enough money. (10)"
+  },
+  {
+   "f": "renovate: walls",
+   "area": "Home",
+   "okP": 20,
+   "ps": 20,
+   "tot": 53,
+   "ok": 40,
+   "err": 0,
+   "w": "It is already like that. (11); Not enough money. (2)"
+  },
+  {
+   "f": "rent a better flat",
+   "area": "Home",
+   "okP": 16,
+   "ps": 20,
+   "tot": 53,
+   "ok": 27,
+   "err": 0,
+   "w": "The landlord wants a job and four weeks of rent in the bank. (13); The deposit is two weeks of rent: 18000 roubles. (4); You already live here. (4)"
+  },
+  {
+   "f": "home activity: chair · gossip",
+   "area": "Home life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 48,
+   "ok": 46,
+   "err": 0,
+   "w": "Not enough money. (2)"
+  },
+  {
+   "f": "home activity: plant · water",
+   "area": "Home life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 48,
+   "ok": 46,
+   "err": 0,
+   "w": "Not enough money. (2)"
+  },
+  {
+   "f": "home activity: table · breakfast",
+   "area": "Home life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 48,
+   "ok": 46,
+   "err": 0,
+   "w": "Not enough money. (2)"
+  },
+  {
+   "f": "home activity: tv · news",
+   "area": "Home life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 49,
+   "ok": 47,
+   "err": 0,
+   "w": "Not enough money. (2)"
+  },
+  {
+   "f": "home activity: window · look",
+   "area": "Home life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 49,
+   "ok": 48,
+   "err": 0,
+   "w": "Not enough money. (1)"
+  },
+  {
+   "f": "sit and rest",
+   "area": "Home life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 47,
+   "ok": 47,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "tea / samovar",
+   "area": "Home life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 47,
+   "ok": 47,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "watch TV",
+   "area": "Home life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 47,
+   "ok": 47,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "shift: barista",
+   "area": "Jobs",
+   "okP": 20,
+   "ps": 20,
+   "tot": 51,
+   "ok": 49,
+   "err": 0,
+   "w": "You are too tired for a shift. (2)"
+  },
+  {
+   "f": "shift: courier",
+   "area": "Jobs",
+   "okP": 20,
+   "ps": 20,
+   "tot": 51,
+   "ok": 50,
+   "err": 0,
+   "w": "You are too tired for a shift. (1)"
+  },
+  {
+   "f": "action: biz",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 45,
+   "ok": 45,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: culture",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 44,
+   "ok": 44,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: edu",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 45,
+   "ok": 45,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: family",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 45,
+   "ok": 45,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: food",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 45,
+   "ok": 45,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: home",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 44,
+   "ok": 44,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: money",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 44,
+   "ok": 44,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: out",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 45,
+   "ok": 45,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: paper",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 45,
+   "ok": 45,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: people",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 45,
+   "ok": 45,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: pets",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 45,
+   "ok": 45,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: travel",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 44,
+   "ok": 44,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: work",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 45,
+   "ok": 45,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "put money aside",
+   "area": "Money",
+   "okP": 20,
+   "ps": 20,
+   "tot": 52,
+   "ok": 49,
+   "err": 0,
+   "w": "You do not have that much. (3)"
+  },
+  {
+   "f": "savings goal",
+   "area": "Money",
+   "okP": 20,
+   "ps": 20,
+   "tot": 22,
+   "ok": 22,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "shower",
+   "area": "Needs",
+   "okP": 20,
+   "ps": 20,
+   "tot": 46,
+   "ok": 46,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "toilet",
+   "area": "Needs",
+   "okP": 20,
+   "ps": 20,
+   "tot": 45,
+   "ok": 45,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "automatic save",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 398,
+   "ok": 398,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "block a player",
+   "area": "Online",
+   "okP": 7,
+   "ps": 7,
+   "tot": 9,
+   "ok": 9,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "chat at a place",
+   "area": "Online",
+   "okP": 18,
+   "ps": 18,
+   "tot": 46,
+   "ok": 46,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "chat: a rude word is refused",
+   "area": "Online",
+   "okP": 18,
+   "ps": 18,
+   "tot": 46,
+   "ok": 46,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "city vote online",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 20,
+   "ok": 20,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "find a player by name",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 48,
+   "ok": 48,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "follow a player",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 49,
+   "ok": 49,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "friends list",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 49,
+   "ok": 49,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "leaderboard",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 45,
+   "ok": 45,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "leaderboard: send my score",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 22,
+   "ok": 22,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "like a home (once a week)",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 46,
+   "ok": 21,
+   "err": 0,
+   "w": "You have already voted this week. (13); This player has not shown their home yet. (12)"
+  },
+  {
+   "f": "list of private talks",
+   "area": "Online",
+   "okP": 18,
+   "ps": 18,
+   "tot": 45,
+   "ok": 45,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "load my save",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 44,
+   "ok": 44,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "news and counters",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 45,
+   "ok": 45,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "post an advert",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 48,
+   "ok": 48,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "presence in the city",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 1990,
+   "ok": 1990,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "private message",
+   "area": "Online",
+   "okP": 18,
+   "ps": 18,
+   "tot": 45,
+   "ok": 45,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "read adverts",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 48,
+   "ok": 48,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "report a message",
+   "area": "Online",
+   "okP": 11,
+   "ps": 11,
+   "tot": 24,
+   "ok": 24,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "show my home",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 47,
+   "ok": 47,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "visit a home + guest book",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 37,
+   "ok": 37,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "who is online",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 45,
+   "ok": 45,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "phone: call someone",
+   "area": "Phone",
+   "okP": 20,
+   "ps": 20,
+   "tot": 53,
+   "ok": 53,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "phone: dating app",
+   "area": "Phone",
+   "okP": 20,
+   "ps": 20,
+   "tot": 53,
+   "ok": 50,
+   "err": 0,
+   "w": "Write at least 3 messages first. (3)"
+  },
+  {
+   "f": "phone: memory game",
+   "area": "Phone",
+   "okP": 20,
+   "ps": 20,
+   "tot": 53,
+   "ok": 53,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "phone: send money",
+   "area": "Phone",
+   "okP": 1,
+   "ps": 20,
+   "tot": 53,
+   "ok": 2,
+   "err": 0,
+   "w": "You need a bank account first (Online services, Open a bank  (48); You have no Russian SIM card yet. Buy one at an operator sho (3)"
+  },
+  {
+   "f": "phone: strange messages",
+   "area": "Phone",
+   "okP": 20,
+   "ps": 20,
+   "tot": 52,
+   "ok": 52,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "phone: word game",
+   "area": "Phone",
+   "okP": 20,
+   "ps": 20,
+   "tot": 52,
+   "ok": 52,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "go out: banya",
+   "area": "Places",
+   "okP": 20,
+   "ps": 20,
+   "tot": 51,
+   "ok": 50,
+   "err": 0,
+   "w": "closed now, not in this city, or too expensive (1)"
+  },
+  {
+   "f": "go out: cafe",
+   "area": "Places",
+   "okP": 20,
+   "ps": 20,
+   "tot": 52,
+   "ok": 51,
+   "err": 0,
+   "w": "closed now, not in this city, or too expensive (1)"
+  },
+  {
+   "f": "go out: cathedral",
+   "area": "Places",
+   "okP": 20,
+   "ps": 20,
+   "tot": 53,
+   "ok": 52,
+   "err": 0,
+   "w": "closed now, not in this city, or too expensive (1)"
+  },
+  {
+   "f": "go out: cinema",
+   "area": "Places",
+   "okP": 20,
+   "ps": 20,
+   "tot": 52,
+   "ok": 52,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "go out: embankment",
+   "area": "Places",
+   "okP": 20,
+   "ps": 20,
+   "tot": 53,
+   "ok": 52,
+   "err": 0,
+   "w": "closed now, not in this city, or too expensive (1)"
+  },
+  {
+   "f": "go out: gym",
+   "area": "Places",
+   "okP": 20,
+   "ps": 20,
+   "tot": 53,
+   "ok": 52,
+   "err": 0,
+   "w": "closed now, not in this city, or too expensive (1)"
+  },
+  {
+   "f": "go out: library",
+   "area": "Places",
+   "okP": 20,
+   "ps": 20,
+   "tot": 52,
+   "ok": 51,
+   "err": 0,
+   "w": "closed now, not in this city, or too expensive (1)"
+  },
+  {
+   "f": "go out: park",
+   "area": "Places",
+   "okP": 20,
+   "ps": 20,
+   "tot": 52,
+   "ok": 51,
+   "err": 0,
+   "w": "closed now, not in this city, or too expensive (1)"
+  },
+  {
+   "f": "go out: rink",
+   "area": "Places",
+   "okP": 0,
+   "ps": 20,
+   "tot": 53,
+   "ok": 0,
+   "err": 0,
+   "w": "closed now, not in this city, or too expensive (53)"
+  },
+  {
+   "f": "go out: stadium",
+   "area": "Places",
+   "okP": 20,
+   "ps": 20,
+   "tot": 52,
+   "ok": 51,
+   "err": 0,
+   "w": "closed now, not in this city, or too expensive (1)"
+  },
+  {
+   "f": "go out: tower",
+   "area": "Places",
+   "okP": 20,
+   "ps": 20,
+   "tot": 53,
+   "ok": 52,
+   "err": 0,
+   "w": "closed now, not in this city, or too expensive (1)"
+  },
+  {
+   "f": "buy a gift",
+   "area": "Shop",
+   "okP": 20,
+   "ps": 20,
+   "tot": 53,
+   "ok": 53,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "buy clothes",
+   "area": "Shop",
+   "okP": 20,
+   "ps": 20,
+   "tot": 52,
+   "ok": 49,
+   "err": 0,
+   "w": "You need ₽24,000; you have ₽8,141. (1); You need ₽5,200; you have −₽1,550. (1); You need ₽9,500; you have ₽8,955. (1)"
+  },
+  {
+   "f": "wear something",
+   "area": "Shop",
+   "okP": 20,
+   "ps": 20,
+   "tot": 50,
+   "ok": 50,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "enrol in a course",
+   "area": "Study",
+   "okP": 20,
+   "ps": 20,
+   "tot": 23,
+   "ok": 22,
+   "err": 0,
+   "w": "The fee is 3000 roubles. (1)"
+  },
+  {
+   "f": "exam",
+   "area": "Study",
+   "okP": 7,
+   "ps": 9,
+   "tot": 9,
+   "ok": 7,
+   "err": 0,
+   "w": "Failed this time. Do two more pieces of homework and try aga (2)"
+  },
+  {
+   "f": "homework",
+   "area": "Study",
+   "okP": 20,
+   "ps": 20,
+   "tot": 48,
+   "ok": 48,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "lecture",
+   "area": "Study",
+   "okP": 20,
+   "ps": 20,
+   "tot": 48,
+   "ok": 48,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "metro or bus to a place",
+   "area": "Travel",
+   "okP": 20,
+   "ps": 20,
+   "tot": 45,
+   "ok": 45,
+   "err": 0,
+   "w": ""
+  }
+ ]
+}
