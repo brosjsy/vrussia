@@ -45,9 +45,9 @@ export function explain(raw: string): string {
     [/username taken|profiles_username_key/, 'That name is taken. Choose another.'], [/bad username/, 'A name has 3 to 20 small letters, digits or underscores.'],
     [/invalid login credentials/, 'Wrong e-mail or password.'], [/already registered|already been registered/, 'This e-mail already has an account. Log in instead.'],
     [/email not confirmed/, 'Confirm your e-mail first: open the link we sent you.'], [/password should be at least|weak password/, 'The password is too short.'],
-    [/slow down/, 'You are writing too fast. Wait a little.'], [/adults/, 'Chat is only for players who are 18 or older.'], [/blocked/, 'You cannot write to this player.'],
+    [/slow down/, 'You are writing too fast. Wait a little.'], [/adults/, 'Chat is only for players who are 18 or older.'], [/blocked/, 'This player does not accept messages from you.'],
     [/language/, 'Please keep it polite: that word is not allowed.'], [/your own home/, 'That is your own home.'], [/no such home/, 'This player has not shown their home yet.'], [/too many notes/, 'Enough notes for today.'],
-    [/too many ads/, 'You have enough ads up for now. Take one down or wait.'], [/daily limit/, 'That is enough messages for today.'],
+    [/contact details/, 'No phone numbers or messenger names: players answer through the private chat of the game.'], [/bad price/, 'The price cannot be below zero.'], [/too many ads/, 'You have enough ads up for now. Take one down or wait.'], [/daily limit/, 'That is enough messages for today.'],
     [/already voted/, 'You have already voted this week.'], [/too many scores/, 'Too many results today. Try again tomorrow.'], [/score not possible/, 'This result could not be accepted.'],
     [/not signed in|jwt|permission denied|401/, 'Log in first.'], [/bad length/, 'A message has 1 to 280 characters.'], [/rate limit|429/, 'Too many requests. Wait a minute.'],
   ];
@@ -239,7 +239,7 @@ export class Cloud {
 }
 
 /** What the Online screen and the automatic save need from an online client: the game's own server (ApiCloud, api-client.ts) or Supabase (Cloud). */
-export type OnlineClient = { [K in keyof Cloud]: Cloud[K] } & Partial<Pick<ApiCloud, 'restore' | 'verifyEmail' | 'resendVerification' | 'forgot' | 'resetPassword' | 'changePassword' | 'endOtherSessions' | 'myAds' | 'myHomeVote' | 'challenges' | 'claimChallenge' | 'joinCity' | 'coops' | 'coopInvite' | 'coopAnswer' | 'coopDone' | 'setOrigin'>>;
+export type OnlineClient = { [K in keyof Cloud]: Cloud[K] } & Partial<Pick<ApiCloud, 'restore' | 'verifyEmail' | 'resendVerification' | 'forgot' | 'resetPassword' | 'changePassword' | 'endOtherSessions' | 'myAds' | 'myHomeVote' | 'challenges' | 'claimChallenge' | 'joinCity' | 'coops' | 'coopInvite' | 'coopAnswer' | 'coopDone' | 'blocks' | 'unblock' | 'setOrigin' | 'adverts' | 'myAdverts' | 'mountAdvert' | 'removeAdvert' | 'reportAdvert' | 'cookToday' | 'sendCookScore'>>;
 
 let shared: OnlineClient | null | undefined;
 /** The one connection of the page: the game's own server when built with VITE_API_URL, else Supabase (being retired), else null (offline). */

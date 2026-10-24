@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import * as G from '../src/engine';
 import '../src/content';
 import { FURNITURE, FURN_CATS, furnById, inCat, furnOf, buyFurn, placeFurn, pickUp, canPlace, homeInterior, repairFurn, totalStars, sizeOf, gridOf, centreOf } from '../src/furniture';
-import { interiorFor, findPath, doorOf, SPECIAL } from '../src/interiors';
+import { interiorFor, findPath, doorOf, SPECIAL, useSpot } from '../src/interiors';
 
 const fresh = (): G.State => { const s = G.newState('T', 'moscow'); s.money = 1_000_000; return s; };
 /** The first free cell for an item (scanning the flat), or null. */
@@ -76,7 +76,7 @@ describe('placing', () => {
   it('wall pieces hang on the back wall, cover no floor and cannot overlap each other', () => {
     const s = fresh(); buyFurn(s, 'rug-wall'); buyFurn(s, 'ac-wall'); const a = furnById('rug-wall')!, b = furnById('ac-wall')!;
     expect(canPlace(s, a, 0, 99, 0).ok).toBe(true);                                       // the row does not matter on a wall
-    expect(canPlace(s, a, -1, 0, 0).ok).toBe(false); expect(canPlace(s, a, 12, 0, 0).ok).toBe(false);
+    expect(canPlace(s, a, -1, 0, 0).ok).toBe(false); expect(canPlace(s, a, gridOf(interiorFor('home', s)!).cols - 1, 0, 0).ok).toBe(false);
     expect(placeFurn(s, 'rug-wall', 4, 0, 0).ok).toBe(true); expect(canPlace(s, b, 5, 0, 0).ok).toBe(false); expect(canPlace(s, b, 7, 0, 0).ok).toBe(true);
     const mine = homeInterior(s).props.find(p => p.uid !== undefined)!; expect(mine.wallItem).toBe(true); expect(mine.z).toBeLessThan(-4.5);
     const bed = interiorFor('home', s)!.props.find(p => p.kind === 'bed')!; void bed;
@@ -88,7 +88,7 @@ describe('placing', () => {
     for (let j = 0; j < 11; j++) for (let i = 0; i < 14; i++) if (placeFurn(s, 'stool', i, j, 0).ok) placed++;
     expect(placed).toBeGreaterThan(5);
     const home = homeInterior(s), door = doorOf(home), start = { x: door.x, z: door.z - 1 };
-    for (const p of home.props.filter(q => q.action && !q.action.startsWith('act:'))) { const goal = { x: p.x, z: Math.min(door.z, p.z + 1.6) }; expect(findPath(home, start, goal).length, `${p.kind} ${p.action}`).toBeGreaterThan(0); }
+    for (const p of home.props.filter(q => q.action && !q.action.startsWith('act:'))) { const goal = useSpot(home, p); expect(findPath(home, start, goal).length, `${p.kind} ${p.action}`).toBeGreaterThan(0); }
     expect(home0.props.length).toBeLessThan(home.props.length);
   });
 });

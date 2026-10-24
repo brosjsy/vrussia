@@ -2,6 +2,7 @@
    Pure drawing helpers and text builders live here; the wiring (what happens on a click) stays in ui.ts.
    Layout idea only: no artwork, text or code of any other game is used. */
 import * as G from './engine';
+import { placeL, checkL, firstMonthL, huntL } from './i18n-words';
 import type { State } from './engine';
 import { dreamOf } from './dreams';
 import { bodyInSvg } from './figure';
@@ -67,11 +68,11 @@ export function cityMarkup(s: State): string {
   const places = [...G.PLACES].sort((a, b) => iso(a.x, a.y).y - iso(b.x, b.y).y).map(p => {
     const look = PLACE_LOOK[p.id] || { icon: '📍', color: '#3b6fe0', h: 8, flavour: '' };
     const q = iso(p.x, p.y);
-    return `<g class="place" data-place="${p.id}" role="button" tabindex="0" aria-label="${p.n}"><title>${p.n}</title>
+    return `<g class="place" data-place="${p.id}" role="button" tabindex="0" aria-label="${placeL(p.n)}"><title>${placeL(p.n)}</title>
       <ellipse cx="${q.x.toFixed(1)}" cy="${(q.y + 1).toFixed(1)}" rx="8" ry="4" fill="#00000022"/>
       ${building(p.x, p.y, look.h, look.color)}
       <g class="badge" id="pl-${p.id}"><circle cx="${q.x.toFixed(1)}" cy="${(q.y - look.h - 7).toFixed(1)}" r="4.6"/><text x="${q.x.toFixed(1)}" y="${(q.y - look.h - 4.9).toFixed(1)}" text-anchor="middle" class="em">${look.icon}</text></g>
-      <text class="plabel" x="${q.x.toFixed(1)}" y="${(q.y + 8).toFixed(1)}" text-anchor="middle">${p.n}</text></g>`;
+      <text class="plabel" x="${q.x.toFixed(1)}" y="${(q.y + 8).toFixed(1)}" text-anchor="middle">${placeL(p.n)}</text></g>`;
   }).join('');
   return `<svg viewBox="0 0 200 125" role="img" aria-label="Interactive isometric city map" preserveAspectRatio="xMidYMid meet">
     <defs><linearGradient id="gGround" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9fd18b"/><stop offset="1" stop-color="#7fbf7a"/></linearGradient>
@@ -172,6 +173,8 @@ const HOLIDAYS: Record<string, string> = {
   cal_russiaday: 'Russia Day (12 June)', cal_ege: 'Exam season', cal_admission: 'University admission campaign',
 };
 
+/** A holiday's name: from the list above, else the title of its calendar scene (round 150: "cal_constitution" was shown as it is). */
+const holidayName = (id: string): string => HOLIDAYS[id] || G.scenarios.find(x => x.id === id)?.title || id.replace(/^cal_/, '').replace(/_/g, ' ');
 /** Short "this week" lines for the ticker. There is always at least one. Facts here were checked earlier in the project (see docs/ITERATION_REPORT.md). */
 export function newsItems(s: State): string[] {
   const out: string[] = [];
@@ -179,7 +182,7 @@ export function newsItems(s: State): string[] {
   for (const c of G.CAL) {
     for (let d = 0; d <= 10; d++) {
       const t = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d);
-      if (t.getMonth() + 1 === c.m && t.getDate() === c.d) { out.push(d === 0 ? `Today: ${HOLIDAYS[c.id] || c.id}` : `In ${d} day${d > 1 ? 's' : ''}: ${HOLIDAYS[c.id] || c.id}`); break; }
+      if (t.getMonth() + 1 === c.m && t.getDate() === c.d) { const name = holidayName(c.id); out.push(d === 0 ? `Today: ${name}` : `In ${d} day${d > 1 ? 's' : ''}: ${name}`); break; }
     }
   }
   if (s.status !== 'citizen') {
@@ -203,11 +206,11 @@ export function quests(s: State): Quest[] {
   const dr = dreamOf(s);
   if (dr && !dr.done(s)) todo.push({ icon: dr.icon, title: dr.goal, sub: `Your dream: ${dr.label}` });
   const list = G.checklistFor(s), listDone = list.filter(c => c.done).length, goalsDone = G.goals.filter(g => g.done(s)).length;
-  for (const c of list) if (!c.done) todo.push({ icon: '📋', title: c.item.label, sub: `First month · ${listDone}/${list.length}`, progress: list.length ? listDone / list.length : 0 });
+  for (const c of list) if (!c.done) todo.push({ icon: '📋', title: checkL(c.item.label), sub: `${firstMonthL()} · ${listDone}/${list.length}`, progress: list.length ? listDone / list.length : 0 });
   for (const g of G.goals) if (!g.done(s)) todo.push({ icon: '🎯', title: g.label, sub: `Goal · ${goalsDone}/${G.goals.length}`, progress: goalsDone / G.goals.length });
   const daily: Quest = G.dailyDone(s)
     ? { icon: '🧸', title: 'Matryoshka found today', sub: `${G.dailyFound(s)} found · big prize in ${G.dailyToPrize(s)} more`, progress: 1 - G.dailyToPrize(s) / G.DAILY_PRIZE_EVERY }
-    : { icon: '🧸', title: `Daily hunt: look at ${G.placeById(G.dailySpot(s)).n}`, sub: `${G.dailyFound(s)} found · ${G.money(G.DAILY_BIG_PRIZE)} after ${G.dailyToPrize(s)} more`, progress: 1 - G.dailyToPrize(s) / G.DAILY_PRIZE_EVERY };
+    : { icon: '🧸', ...huntL(G.placeById(G.dailySpot(s)).n, G.dailyFound(s), G.money(G.DAILY_BIG_PRIZE), G.dailyToPrize(s)), progress: 1 - G.dailyToPrize(s) / G.DAILY_PRIZE_EVERY };
   // the first to-do, the daily hunt, then one more to-do
   return [todo[0], daily, todo[1]].filter((x): x is Quest => !!x);
 }

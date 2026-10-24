@@ -7,6 +7,8 @@ import { toWorld, HUB, WORLD } from './world-logic';
 import { network, along, streetSegments, STREET_HALF, RING_R, RING_WALK } from './street';
 import type { Edge } from './street';
 import type { V2 } from './world-logic';
+import { seriesFor, SERIES_LOOK } from './russia';
+import type { Series } from './russia';
 
 export type Side = 'n' | 'e' | 's' | 'w';
 export interface Water { kind: 'river' | 'sea' | 'lake'; name: string; sides: Side[] }
@@ -80,7 +82,8 @@ export function bridgeFor(city: string): { x: number; z: number; w: number; d: n
 
 /* ---------- ordinary buildings and parks ---------- */
 export type FillerKind = 'house' | 'tower' | 'shop';
-export interface Filler { kind: FillerKind; x: number; z: number; w: number; d: number; h: number; color: string }
+/** An ordinary building. `series` is the Russian kind of house it is (round 151: khrushchyovka, panel block, stalinka, new tower, old house, wooden house...); shops have none. */
+export interface Filler { kind: FillerKind; x: number; z: number; w: number; d: number; h: number; color: string; series?: Series }
 export interface Park { x: number; z: number; w: number; d: number; pitch: boolean }
 
 const hashOf = (t: string): number => { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619) >>> 0; return h; };
@@ -120,10 +123,16 @@ function fillersOf(city: string): Filler[] {
     if (out.some(o => Math.hypot(o.x - x, o.z - z) < (Math.max(o.w, o.d) + Math.max(w, d)) / 2 + 3)) continue;
     // keep a strip beside the water free for the bank
     if ((wet.has('e') && x > edge - 6) || (wet.has('w') && x < -edge + 6) || (wet.has('n') && z < -edge + 6) || (wet.has('s') && z > edge - 6)) continue;
-    out.push({ kind, x, z, w, d, h, color: kind === 'tower' ? TOWERS[Math.floor(r() * TOWERS.length)] : WALLS[Math.floor(r() * WALLS.length)] });
+    const f: Filler = { kind, x, z, w, d, h, color: kind === 'tower' ? TOWERS[Math.floor(r() * TOWERS.length)] : WALLS[Math.floor(r() * WALLS.length)] };
+    if (kind !== 'shop') { const series = seriesFor(city, hashSeries(city, out.length), kind === 'tower'), look = SERIES_LOOK[series], fl = look.floors[0] + Math.floor(hashSeries(city + 'f', out.length) * (look.floors[1] - look.floors[0] + 1));
+      f.series = series; f.h = Math.max(kind === 'tower' ? 14 : 3.5, Math.min(34, fl * look.storey)); f.color = look.walls[out.length % look.walls.length]; }
+    out.push(f);
   }
   return out;
 }
+
+/** A number from 0 to 1 for the i-th house of a city (kept apart from the layout's own random numbers, so the layout stays as it was). */
+const hashSeries = (city: string, i: number): number => { let h = 2166136261; const t = `series|${city}|${i}`; for (let k = 0; k < t.length; k++) h = Math.imul(h ^ t.charCodeAt(k), 16777619) >>> 0; return h / 4294967296; };
 
 /** A park may touch a road but not a building: its margin is smaller than the one for houses. */
 export const PARK_MARGIN = -2.5;

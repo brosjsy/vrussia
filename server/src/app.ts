@@ -25,7 +25,7 @@ export interface AppDeps { cfg: Config; db: Db; mail: EmailSender; templates?: T
 
 const UNSAFE = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 /** Postgres errors raised on purpose by the game's functions: their words are safe to pass on; anything else is a plain "server error". */
-const KNOWN = /^(bad username|username taken|no profile|too many scores today|score not possible|chat is for adults|bad length|language|slow down|daily limit|not your talk|bad room|blocked|no such message|already voted|bad counter|too many ads today|too many ads|no such ad|too many follows|your own home|no such home|too many notes|no such challenge|already claimed|not done yet|join first|friends only|too many invitations|already invited|no such invitation)$/;
+const KNOWN = /^(bad username|username taken|no profile|too many scores today|score not possible|chat is for adults|bad length|language|slow down|daily limit|not your talk|bad room|blocked|no such message|already voted|bad counter|too many ads today|contact details|bad price|too many ads|no such ad|too many follows|your own home|no such home|too many notes|no such challenge|already claimed|not done yet|join first|friends only|too many invitations|already invited|no such invitation|too many adverts|too many adverts today|place taken|no such advert)$/;
 
 /** Counts attempts per key in a sliding window (logging in per e-mail). Kept in memory: with several servers, put a shared store in front. */
 export class Throttle {
@@ -109,7 +109,7 @@ export async function buildApp(d: AppDeps): Promise<FastifyInstance> {
     setCookie(reply, r.token);
     return me(r.user);
   });
-  app.post('/api/auth/logout', async (req, reply) => { if (req.user) await auth.logout(req.user.sessionId); clearCookie(reply); return done; });
+  app.post('/api/auth/logout', async (req, reply) => { if (req.user) { await auth.logout(req.user.sessionId); await d.db.query('delete from app.presence where player_id = $1', [req.user.userId]); } clearCookie(reply); return done; });   // a player who logs out is no longer online (round 150)
   app.get('/api/auth/me', async req => me(need(req)));
   app.post('/api/auth/password', strict, async req => { const b = body(req); await auth.changePassword(need(req), b.current, b.next, meta(req)); return done; });
   app.get('/api/auth/sessions', async req => auth.sessions(need(req)));

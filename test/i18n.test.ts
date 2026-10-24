@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import * as G from '../src/engine';
 import '../src/content';
@@ -64,7 +64,7 @@ describe('the language button', () => {
     expect(text('langBtn')).toBe('EN');
     expect(document.getElementById('nameInput')!.getAttribute('placeholder')).toContain('Рустам');
     expect(document.getElementById('origins')!.textContent).toContain('Мигрант из Таджикистана');
-    expect(document.getElementById('tagCount')!.textContent).toContain('ситуаций');
+    expect(document.querySelector('#title .tag')!.textContent).toContain('Начни с имени');
     expect(store.vrussia_lang).toBe('ru');
     expect(document.getElementById('langNote')!.textContent).toContain('на английском');
 
@@ -78,7 +78,7 @@ describe('the language button', () => {
     expect(document.getElementById('stats')!.textContent).toContain('Энергия');
 
     // the how-to-play guide and the journal follow the language, with the same number of points
-    document.getElementById('helpBtn')!.click();
+    document.getElementById('helpBtn')!.click(); await vi.waitFor(() => expect(document.getElementById('modalBody')!.textContent).toMatch(/How to play|Как играть/), { timeout: 8000 });      // the guide loads when it is opened
     expect(document.getElementById('modalBody')!.textContent).toContain('Как играть');
     const ruPoints = document.querySelectorAll('#modalBody li').length;
     document.getElementById('closeModal')!.click();
@@ -87,7 +87,7 @@ describe('the language button', () => {
     document.getElementById('closeModal')!.click();
 
     document.getElementById('langBtn2')!.click();
-    document.getElementById('helpBtn')!.click();
+    document.getElementById('helpBtn')!.click(); await vi.waitFor(() => expect(document.getElementById('modalBody')!.textContent).toMatch(/How to play|Как играть/), { timeout: 8000 });      // the guide loads when it is opened
     expect(document.getElementById('modalBody')!.textContent).toContain('How to play');
     expect(document.querySelectorAll('#modalBody li').length).toBe(ruPoints);
     document.getElementById('closeModal')!.click();

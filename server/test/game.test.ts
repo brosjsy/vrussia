@@ -48,6 +48,12 @@ describe('leaderboard and presence', () => {
     await call(c, 'POST', '/api/follows', { user: B.id }, A.cookie);
     expect(((await call(c, 'GET', '/api/friends', undefined, B.cookie)).json as unknown as { mutual: boolean }[])[0].mutual).toBe(true);
     expect((await call(c, 'POST', '/api/follows', { user: B.id }, B.cookie)).json.error).toBe('invalid input');
+    // a player who logs out is not counted as online any more (round 150)
+    const G = await player(c, 'gone');
+    await call(c, 'POST', '/api/presence', { city: 'Kazan', place: 'park' }, G.cookie);
+    expect((await call(c, 'GET', '/api/presence/count')).json.count).toBe(2);
+    await call(c, 'POST', '/api/auth/logout', {}, G.cookie);
+    expect((await call(c, 'GET', '/api/presence/count')).json.count).toBe(1);
   });
 });
 
@@ -78,6 +84,10 @@ describe('chat', () => {
     expect(seen.some(m => m.username === 'boris')).toBe(false);
     const [lo, hi] = [B.id, K.id].sort();
     expect((await call(c, 'POST', '/api/messages', { room: `direct:${lo}:${hi}`, body: 'hello?' }, B.cookie)).json.error).toBe('blocked');
+    expect((await call(c, 'GET', '/api/blocks', undefined, K.cookie)).json).toEqual([{ id: B.id, username: 'boris' }]);     // the blocker sees whom they blocked
+    expect((await call(c, 'DELETE', `/api/blocks/${B.id}`, undefined, K.cookie)).status).toBe(200);
+    expect((await call(c, 'POST', '/api/messages', { room: `direct:${lo}:${hi}`, body: 'hello again' }, B.cookie)).status).toBe(200);
+    await call(c, 'POST', '/api/blocks', { user: B.id }, K.cookie);
     const msg = seen.find(m => m.username === 'alina')!;
     for (const who of [B, K]) expect((await call(c, 'POST', '/api/reports', { message: msg.id, reason: 'rude to me' }, who.cookie)).status).toBe(200);
     expect(((await call(c, 'GET', `/api/messages?room=${room}`, undefined, B.cookie)).json as unknown as { id: number }[]).some(m => m.id === msg.id)).toBe(true);
@@ -90,6 +100,12 @@ describe('chat', () => {
 describe('adverts, homes, the guest book, votes', () => {
   it('ads: three at a time; only the owner takes one down; three reports hide it', async () => {
     const ids: number[] = [];
+    // no phone numbers or messengers (found in manual testing, round 150); a price below zero is refused, not turned into a positive one
+    expect((await call(c, 'POST', '/api/ads', { city: 'Moscow', kind: 'sell', title: 'Sofa, call +7 (912) 345-67-89' }, B.cookie)).json.error).toBe('contact details');
+    expect((await call(c, 'POST', '/api/ads', { city: 'Moscow', kind: 'sell', title: 'Good sofa', body: 'write me on telegram' }, B.cookie)).json.error).toBe('contact details');
+    expect((await call(c, 'POST', '/api/ads', { city: 'Moscow', kind: 'sell', title: 'Good sofa', price: -500 }, B.cookie)).status).toBe(400);
+    const big = await call(c, 'POST', '/api/ads', { city: 'Kazan', kind: 'room', title: 'Big flat 7 rooms', price: 9500000 }, B.cookie); expect(big.status).toBe(200);    // a big price is not a phone number
+    await call(c, 'DELETE', `/api/ads/${big.json.id}`, undefined, B.cookie);
     for (let i = 0; i < 3; i++) ids.push(Number((await call(c, 'POST', '/api/ads', { city: 'Moscow', kind: 'sell', title: 'Old sofa ' + i, price: 100 }, A.cookie)).json.id));
     expect((await call(c, 'POST', '/api/ads', { city: 'Moscow', kind: 'sell', title: 'One too many' }, A.cookie)).json.error).toMatch(/too many ads/);
     expect((await call(c, 'DELETE', `/api/ads/${ids[0]}`, undefined, B.cookie)).json.ok).toBe(false);

@@ -4,6 +4,7 @@
    furniture or looks changed. The game itself always saves on this device first, so nothing is lost when the server cannot be reached.
    Loaded only when the online part is switched on. */
 import type { State } from './engine';
+import './i18n-account';
 import type { OnlineClient as Cloud, HomeDesign } from './cloud';
 
 export interface SyncDeps {
@@ -26,6 +27,7 @@ export function startSync(d: SyncDeps): Sync {
   const flush = async (_why = 'timer'): Promise<boolean> => {
     if (stopped || busy || !d.cloud.session()?.username) return false;
     const s = d.state(); if (!s) return false;
+    if (s.owner !== d.cloud.session()?.userId) return false;          // never upload one account's game over another account's save (found in manual testing, round 150)
     const p = fingerprint(s); if (p === lastPrint && !st.pending) return false;
     busy = true;
     try {

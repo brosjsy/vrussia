@@ -13,12 +13,15 @@ export function beforeAction(s: State, id: string): void {
   if (id === 'people' || id === 'family') bump(s, 'social');
 }
 
+/** Rules that live in modules loaded on demand (law.ts) add themselves here and run at the end of every turn with the others. */
+export const turnHooks: ((s: State) => string[])[] = [];
+
 export interface TurnNews { notes: string[]; achievements: Achievement[]; dream: string | null }
 /** At the end of each turn: the city-centre visit counted once a day, bills, the dream, achievements. */
 export function afterTurn(s: State): TurnNews {
   const book = bookOf(s) as ReturnType<typeof bookOf> & { centreDay?: number };
   if (s.loc === 'center' && book.centreDay !== s.day) { book.centreDay = s.day; bump(s, 'centre'); }
-  const notes = [...tickBills(s), ...tickChores(s)];
+  const notes = [...tickBills(s), ...tickChores(s), ...turnHooks.flatMap(h => h(s))];
   let dream: string | null = null;
   const dr = dreamOf(s);
   if (dr && !s.flags.dreamDone && dr.done(s)) {

@@ -60,7 +60,7 @@ describe('automatic saving to the server', () => {
     return { win: { addEventListener: on, removeEventListener: off, setInterval: (f: () => void) => { interval = f; return 1; }, clearInterval: () => { interval = null; } } as never, doc: { addEventListener: on, removeEventListener: off, get visibilityState() { return vis.v; } } as never, fire: e => (handlers[e] ?? []).forEach(f => f()), tick: () => interval?.(), vis };
   };
   it('saves every 30 seconds only when the game changed, when the tab is hidden, and publishes the home', async () => {
-    let s = game(); const { c, reqs } = await signedIn(); const w = fakeWin(); let t = 0;
+    let s = game(); const { c, reqs } = await signedIn(); s.owner = c.session()!.userId; const w = fakeWin(); let t = 0;
     const sy = startSync({ cloud: c, state: () => s, home: () => ({ city: s.city, dwelling: 'family', design: { placed: [] }, stars: 2 }), now: () => t, win: w.win, doc: w.doc });
     expect(EVERY_MS).toBe(30_000);
     w.tick(); await settle(); expect(reqs.filter(r => r.url.includes('saves?')).length).toBe(1); expect(reqs.some(r => r.url.includes('publish_home'))).toBe(true);
@@ -73,12 +73,20 @@ describe('automatic saving to the server', () => {
   it('without a connection the game goes on and the save goes up when the browser is online again; nothing is sent when signed out', async () => {
     let down = true; const s = game();
     const sv = server([['grant_type=password', { json: TOKEN }], ['profiles?select=username,adult', { json: [{ username: 'anna', adult: true }] }], ['saves?', () => (down ? { down: true } : { status: 201 })]]);
-    const c = new Cloud(CFG, { fetch: sv.fetch, kv: null, now: () => 1_000_000 }); await c.signIn('a@b.ru', 'secret-password');
+    const c = new Cloud(CFG, { fetch: sv.fetch, kv: null, now: () => 1_000_000 }); await c.signIn('a@b.ru', 'secret-password'); s.owner = c.session()!.userId;
     const w = fakeWin(); const statuses: boolean[] = [];
     const sy = startSync({ cloud: c, state: () => s, win: w.win, doc: w.doc, onStatus: st => statuses.push(st.pending) });
     w.tick(); await settle(); expect(sy.status().pending).toBe(true); expect(sy.status().error).toContain('connection');
     down = false; w.fire('online'); await settle(); expect(sy.status().pending).toBe(false); expect(statuses).toEqual([true, false]);
     await c.signOut(); const n = sv.reqs.length; w.tick(); await settle(); expect(sv.reqs.length).toBe(n);
+  });
+  it('never uploads a game that belongs to another account, nor a game with no owner (found in manual testing, round 150)', async () => {
+    const s = game(); const { c, reqs } = await signedIn(); const w = fakeWin();
+    const sy = startSync({ cloud: c, state: () => s, win: w.win, doc: w.doc });
+    s.owner = 'someone-else'; w.tick(); await settle(); s.owner = undefined; w.tick(); await settle();
+    expect(reqs.filter(r => r.url.includes('saves?')).length).toBe(0);
+    s.owner = c.session()!.userId; w.tick(); await settle(); expect(reqs.filter(r => r.url.includes('saves?')).length).toBe(1);
+    sy.stop();
   });
 });
 

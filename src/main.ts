@@ -1,4 +1,13 @@
+import '@fontsource/fredoka/latin-600.css';
+import '@fontsource/fredoka/latin-700.css';
+import '@fontsource/nunito/latin-400.css';
+import '@fontsource/nunito/cyrillic-400.css';
+import '@fontsource/nunito/latin-700.css';
+import '@fontsource/nunito/cyrillic-700.css';
+import '@fontsource/nunito/latin-800.css';
+import '@fontsource/nunito/cyrillic-800.css';
 import './style.css';
+import './theme-kit.css';
 import { boot } from './ui';
 
 boot();

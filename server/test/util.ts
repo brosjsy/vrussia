@@ -9,7 +9,7 @@ import type { TestDb } from './harness.js';
 export const ORIGIN = 'https://game.example.org';
 export const testConfig = (over: Record<string, string> = {}): Config => loadConfig({
   NODE_ENV: 'test', PUBLIC_URL: 'https://api.example.org', APP_URL: 'https://game.example.org/play/', CORS_ORIGINS: ORIGIN,
-  DATABASE_URL: 'postgres://unused/for/tests', DATABASE_SSL: 'off', EMAIL_TRANSPORT: 'memory', EMAIL_FROM: 'V Russia <no-reply@example.org>',
+  DATABASE_URL: 'postgres://unused/for/tests', DATABASE_SSL: 'off', EMAIL_TRANSPORT: 'memory', EMAIL_FROM: 'В России <no-reply@example.org>',
   LOG_LEVEL: 'silent', RATE_PER_MIN: '100000', RATE_AUTH_PER_MIN: '100000', LOGIN_PER_EMAIL: '100000', ...over,   // the limits themselves: test/security.test.ts
 });
 

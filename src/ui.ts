@@ -1,4 +1,6 @@
 import * as G from './engine';
+import { BRAND } from './brand';
+import { L, LG, eyeL, cityName, placeL, flavourL, decreeL, checkL, sceneRu, homeRu, catRu, loadRussian } from './i18n-words';
 import type { State, Scenario, Note } from './engine';
 import { countStats } from './content';
 import { AWARD_TEXT } from './content/culture';
@@ -29,7 +31,6 @@ import { play, soundOn, setSound, soundForNotes } from './sound';
 import { ambientChat, chatReply, cleanMessage, LAYERS, inLayer } from './social';
 import type { ChatLine } from './social';
 import { crowdFor, cityMarkup, updateCity, newsItems, quests, placeActions, moodOf, PLACE_LOOK } from './city';
-import { openBooking } from './booking-ui';
 import { openOnlineMenu, openFlow } from './forms-ui';
 import { flows } from './forms';
 import { shareText, copyText } from './share';
@@ -38,7 +39,7 @@ import { hallOfFame, recordRun, clearHall, lifetime } from './store';
 import { governorOf, decreeFor } from './election';
 import { warmthMeter, temperatureOf, coldWord, seasonOf } from './warmth';
 const SEASON_ICON: Record<string, [string, string]> = { winter: ['❄️', '❄️'], summer: ['☀️', '☀️'], offseason: ['🌱', '🍂'] };
-import { t, lang, setLang, applyStatic, actionText, originText, locale, HELP_RU, endingText } from './i18n';
+import { t, lang, setLang, applyStatic, actionText, originText, locale, endingText } from './i18n';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string): T => document.getElementById(id) as T;
 const esc = (t: string): string => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
@@ -50,7 +51,7 @@ let selected = G.origins[0].id;
 /* ---------- title screen ---------- */
 function renderOrigins(): void {
   $('origins').innerHTML = G.origins.map(o => `<button class="ocard ${o.id === selected ? 'sel' : ''}" data-o="${o.id}">
-    <b>${o.icon} ${originText(o).label}</b><p>${originText(o).blurb}</p><div class="m">${t('startsIn')}: ${o.city} · ${G.money(o.money)}</div></button>`).join('');
+    <b>${o.icon} ${originText(o).label}</b><p>${originText(o).blurb}</p><div class="m">${t('startsIn')}: ${cityName(o.city)} · ${G.money(o.money)}</div></button>`).join('');
   document.querySelectorAll<HTMLButtonElement>('.ocard').forEach(b => { b.onclick = () => { selected = b.dataset.o as string; if (!lookTouched && GROUP_OF_ORIGIN[selected]) { draftLook = applyGroup(draftLook, GROUP_OF_ORIGIN[selected]); renderCreator(); } renderOrigins(); }; });
 }
 
@@ -74,7 +75,7 @@ function refreshLanguage(): void {
   renderOrigins(); renderAward(); renderHall(); renderCreator();
   if (!$('game').hidden) { header(); renderLayers(); renderW3Quests(); if (idle) renderIdle(); }
 }
-function toggleLanguage(): void { setLang(lang() === 'ru' ? 'en' : 'ru'); refreshLanguage(); }
+function toggleLanguage(): void { setLang(lang() === 'ru' ? 'en' : 'ru'); refreshLanguage(); if (lang() === 'ru') void loadRussian().then(fresh => { if (fresh) refreshLanguage(); }); }
 
 function show(id: 'title' | 'game' | 'end'): void {
   (['title', 'game', 'end'] as const).forEach(x => { $(x).hidden = x !== id; });
@@ -194,7 +195,7 @@ async function openCivic(): Promise<void> {
 /** The adverts board: today's small ads, the replies to the player's own ads, and a form to put one up. */
 async function openAds(): Promise<void> {
   const ui = await import('./ads-ui');
-  const draw = (): void => { $('modalBody').innerHTML = ui.adsHtml(s); ui.wireAds($('modalBody'), s, { notify, again: () => { G.save(s); header(); draw(); } }); };
+  const draw = (): void => { $('modalBody').innerHTML = ui.adsHtml(s); ui.wireAds($('modalBody'), s, { notify, again: () => { G.save(s); header(); draw(); }, saved: () => { G.save(s); header(); } }); };
   draw(); G.save(s); $('modal').classList.remove('phoneMode'); $('modal').hidden = false;
 }
 /** The metro (or bus) map: a station for every place and every place to go; going to a place starts the usual trip, a visit is a part of the day. */
@@ -245,7 +246,7 @@ function drawPhotoBar(): void {
     if (a === 'exit') return closePhotoMode();
     if (a === 'rotate') return worldCtl?.rotateView(1);
     const shot = worldCtl?.snapshot(); if (!shot || !photo) { notify(t('photoFail')); return; }
-    const caption = `V Russia · ${s.city} · ${G.dateOf(s).toLocaleDateString(locale(), { day: 'numeric', month: 'short', year: 'numeric' })}`;
+    const caption = `${BRAND} · ${s.city} · ${G.dateOf(s).toLocaleDateString(locale(), { day: 'numeric', month: 'short', year: 'numeric' })}`;
     const url = (await composePhoto(shot, photo.filter, photo.sticker, caption)) ?? shot;
     downloadPhoto(url, `v-russia-${s.day + 1}.png`); notify(t('photoSaved'));
   })(); });
@@ -354,6 +355,7 @@ function applyView(v: View): void {
 }
 function showRealMapView(on: boolean): void { applyView(on ? 'real' : 'iso'); }
 
+let w3City = '';
 function close3d(): void {
   stopWalk?.(); stopWalk = null; worldCtl?.destroy(); worldCtl = null;
   $('world3d').innerHTML = '';
@@ -370,7 +372,8 @@ async function open3d(remember = true): Promise<void> {
   try {
     const m = await import('./world3d');
     if (view !== '3d') return;                                    // the player went elsewhere while it loaded
-    const handle = await m.mountWorld3d({ host: $('world3d'), s, onPlace: travelTo, onNpc: talkToNpc, onFail: fail3d, onAction: roomAction, onHover: showHover, onFurnish: furnished, onPickUp: pickedUp, onFurnishFail: (why) => notify(`${t('fuNoFit')}: ${why}`), onSaver: () => { notify(t('saverOn')); renderW3Quests(); } });
+    const handle = await m.mountWorld3d({ host: $('world3d'), s, onPlace: travelTo, onNpc: talkToNpc, onFail: fail3d, onAction: roomAction, onHover: showHover, onFurnish: furnished, onPickUp: pickedUp, onFurnishFail: (why) => notify(`${t('fuNoFit')}: ${why}`), onSaver: () => { notify(t('saverOn')); renderW3Quests(); }, onLandmark: id => { void import('./landmarks').then(lm => notify(lm.landmarkText(id, lang() === 'ru'))); } });
+    w3City = s.city;
     if (view !== '3d') { handle.destroy(); $('world3d').innerHTML = ''; return; }
     worldCtl = handle; applySettings(); realHouses = false; overview3d = false; buildKey = ''; syncBuild(); void autoRealHouses();
     handle.setLayer('names', names3d); handle.setLayer('boards', boards3d); handle.setLayer('traffic', traffic3d); renderW3Quests();
@@ -444,9 +447,10 @@ function renderOverlays(): void {
   const here = G.placeById(s.loc);
   const look = PLACE_LOOK[s.loc];
   const mood = moodOf(s);
-  if (chatPlace !== s.loc) { chatPlace = s.loc; chat = ambientChat(s.loc); }
+  if (chatPlace !== s.loc) { chatPlace = s.loc; chat = ambientChat(s.loc); placePulled = 0; }
+  pullPlaceChat();
   const typed = (document.getElementById('chatInput') as HTMLInputElement | null)?.value ?? '';
-  $('placeCard').innerHTML = `<div class="pcHead"><span class="pcIcon" aria-hidden="true">${look ? look.icon : '📍'}</span><div><b>${esc(here.n)}</b><small>${esc(look ? look.flavour : '')}</small></div><span class="mood" title="${esc(mood.label)}">${mood.icon} ${esc(mood.label)}</span>${s.loc !== 'home' ? `<button class="ghost" id="pcHome" title="${t('goHome')}" aria-label="${t('goHome')}">🏠</button>` : ''}</div>
+  $('placeCard').innerHTML = `<div class="pcHead"><span class="pcIcon" aria-hidden="true">${look ? look.icon : '📍'}</span><div><b>${esc(placeL(here.n))}</b><small>${esc(look ? flavourL(s.loc, look.flavour) : '')}</small></div><span class="mood" title="${esc(t('mood.' + mood.label))}">${mood.icon} ${esc(t('mood.' + mood.label))}</span>${s.loc !== 'home' ? `<button class="ghost" id="pcHome" title="${t('goHome')}" aria-label="${t('goHome')}">🏠</button>` : ''}</div>
     <ul class="chat" aria-label="Chat" aria-live="polite">${chat.slice(-3).map(c => `<li><b>${esc(c.from)}</b> ${esc(c.text)}</li>`).join('')}</ul>
     <form class="chatForm" id="chatForm"><input id="chatInput" maxlength="80" autocomplete="off" placeholder="${t('chatPh')}" aria-label="${t('chatPh')}"><button class="primary" type="submit">${t('chatSend')}</button></form>
     <div class="pcChips">${placeActions(s).map(a => `<button data-a="${a.id}">${a.icon} ${esc(actionText(a).label)}</button>`).join('')}</div>`;
@@ -460,7 +464,9 @@ function renderOverlays(): void {
     const text = cleanMessage(input.value);
     if (!text) return;
     input.value = '';   // clear first: the screen below is redrawn and would otherwise keep the typed text
-    chat.push({ from: 'You', text }, chatReply(s.loc, text));
+    chat.push({ from: 'You', text });
+    // logged in with a public name: the message goes to the players at this place (the server room of the place); offline, a neighbour answers
+    void placeChat(text).then(on => { if (!on) { chat.push(chatReply(s.loc, text)); renderOverlays(); } });
     if (s.tmp.chatDay !== s.day) {   // the first message of the day is a small kindness to yourself
       s.tmp.chatDay = s.day;
       G.apply(s, { stress: -2, ...(Math.random() < 0.25 ? { friends: 1 } : {}) });
@@ -539,7 +545,7 @@ function renderW3Quests(): void {
   }
   // this week's elected governor and their policy, as a banner over the city
   let gov = host.querySelector<HTMLElement>('.w3Gov'); if (!gov) { gov = document.createElement('button'); gov.className = 'w3Gov'; gov.setAttribute('type', 'button'); gov.onclick = () => void openCivic(); host.appendChild(gov); }
-  { const g = governorOf(s), dec = decreeFor(s); gov.textContent = `🏛️ ${g ? g.name + ': ' : ''}${dec.text}`; }
+  { const g = governorOf(s), dec = decreeFor(s); gov.textContent = `🏛️ ${g ? g.name + ': ' : ''}${decreeL(dec.text)}`; }
   let folded = false; try { folded = localStorage.getItem('vrussia_quests_folded') === '1'; } catch { /* storage may be blocked */ }
   box.classList.toggle('folded', folded);
   box.innerHTML = `<button type="button" class="w3Fold" aria-expanded="${!folded}">${folded ? '⌄ ' + esc(t('questsShow')) : '⌃ ' + esc(t('questsHide'))}</button>` + (folded ? '' : quests(s).slice(0, 2).map(q => `<div class="w3q"><span aria-hidden="true">${q.icon}</span><div><b>${esc(q.title)}</b><small>${esc(q.sub)}</small>${q.progress !== undefined ? `<i class="qbar"><em style="width:${Math.round(Math.max(0, Math.min(1, q.progress)) * 100)}%"></em></i>` : ''}</div></div>`).join('')) + (realHouses ? `<div class="w3q osm"><span aria-hidden="true">🏘️</span><div><small>${esc(t('osmCredit'))}</small></div></div>` : '') + (traffic3d && worldCtl.traffic().jam ? `<div class="w3q jam"><span aria-hidden="true">🚗</span><div><b>${esc(t('goSlow'))}</b></div></div>` : '') + (worldCtl.saver() ? `<div class="w3q saver"><span aria-hidden="true">🔋</span><div><b>${esc(t('saverTitle'))}</b></div></div>` : '');
@@ -605,24 +611,15 @@ function updateMap(): void {
   syncBuild();
   renderW3Quests();
   realCtl?.update(s);
+  if (worldCtl && w3City && w3City !== s.city) { close3d(); void open3d(false); }       // another city: draw it anew (round 151)
   worldCtl?.update(s);
   updateCity(s);
   renderOverlays();
   applyLayer();
 }
 
-const HELP = `<h3>How to play</h3><ul class="help">
-  <li><b>Time.</b> Each day has three parts: morning, afternoon, evening. Every action uses one part. Rent is paid on Saturday.</li>
-  <li><b>Actions.</b> Work, eat, go out, do paperwork, study, call family, visit the bank or shops, meet people, run your business, look after a pet. Use the numbers <b>1–9</b> on your keyboard, and <b>Enter</b> to continue.</li>
-  <li><b>Map.</b> Click a place on the map to travel there. Snow and frost make you lose your way; a good phone and a known route help.</li>
-  <li><b>Online services.</b> The 💻 button opens websites you fill in step by step: jobs, doctor, flats, bank accounts, train tickets, the university portal and more. The ✈️ button books flights.</li>
-  <li><b>Papers (if you are a newcomer).</b> Keep your registration, patent or visa valid. Expired papers lead to police checks, fines and legal strikes. Three strikes mean deportation. A clean record slowly clears strikes.</li>
-  <li><b>Goals.</b> Study, build a career or a company, get residence (RVP, then VNZh) and citizenship, start a family, adopt a dog, earn the community «Patriot» Award, and collect achievements.</li>
-  <li><b>Money.</b> Wages, rent, living costs, loans and taxes are simplified. Everything is a game model, not legal or financial advice.</li>
-  <li><b>Saving.</b> The game saves by itself. You can export and import a save file from the title screen.</li>
-</ul>`;
 
-const helpHtml = (): string => (lang() === 'ru' ? HELP_RU : HELP);
+const showHelp = (): void => void import('./help').then(h => { $('modalBody').innerHTML = lang() === 'ru' ? h.HELP_RU : h.HELP; $('modal').hidden = false; });
 
 /** The job ladder: the rank, the pay of the rank, and how many more shifts bring the next one. */
 function careerHtml(): string {
@@ -649,7 +646,8 @@ function header(): void {
   const d = G.dateOf(s);
   $('whoPic').innerHTML = bustHtml(s.look, s.worn, s.name);
   $('who').textContent = `${s.icon} ${s.name} — ${s.label}`;
-  $('where').textContent = `${s.city} · ${s.job ? `${G.jobById(s.job).name} (${careerView(s).rank})` : t('unemployed')} · ${s.status}`;
+  $('where').textContent = `${s.city} · ${s.job ? `${G.jobById(s.job).name} (${careerView(s).rank})` : svTitle(s) || t('unemployed')} · ${s.status}`;
+  document.body.classList.toggle('night', s.slot === 2);                 // the evening: the design's night chrome (theme-kit.css)
   $('date').textContent = `${SEASON_ICON[seasonOf(G.dateOf(s).getMonth() + 1)][G.dateOf(s).getMonth() + 1 >= 9 && G.dateOf(s).getMonth() + 1 <= 11 ? 1 : 0]} ${d.toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })} · ${t('slot.' + s.slot)} · ${t('weather.' + s.weather)} ${(() => { const c = temperatureOf(s); return `${c > 0 ? '+' : c < 0 ? '−' : ''}${Math.abs(c)}°C`; })()}`;
   const shown = G.money(s.money);
   const mb = $('moneyBox');
@@ -697,7 +695,7 @@ function header(): void {
   const cl = G.checklistFor(s);
   const open = cl.some(c => !c.done);
   $('checklistBox').hidden = !open || s.day > 120;
-  $('checklist').innerHTML = cl.map(c => `<li class="${c.done ? 'done' : ''}">${c.done ? '✔' : '○'} ${c.item.label}</li>`).join('');
+  $('checklist').innerHTML = cl.map(c => `<li class="${c.done ? 'done' : ''}">${c.done ? '✔' : '○'} ${esc(checkL(c.item.label))}</li>`).join('');
   $('goals').innerHTML = G.goals.map(g => `<li class="${g.done(s) ? 'done' : ''}">${g.done(s) ? '✔' : '○'} ${g.label}</li>`).join('');
 }
 
@@ -713,19 +711,19 @@ function renderCreator(): void {
   $('creatorPreview').innerHTML = `<div class="prevBody">${bodyHtml(draftLook, draftWorn, t('crPreview'))}</div>`;
   const NUMERIC = ['skin', 'hairStyle', 'hairColor', 'accent', 'height', 'bottomColor', 'shoeColor', 'eyes', 'build', 'face', 'eyeColor', 'facial', 'brows', 'nose', 'lips'];
   const swatches = (key: string, colors: string[], label: string): string => `<fieldset><legend>${esc(label)}</legend><div class="swatches">${colors.map((c, k) => `<button type="button" class="swatch" data-look="${key}" data-v="${k}" aria-label="${esc(label)} ${k + 1}" aria-pressed="${(draftLook as unknown as Record<string, unknown>)[key] === k}" style="background:${c}"></button>`).join('')}</div></fieldset>`;
-  const choices = (key: string, items: { id: string | number; label: string }[], label: string): string => `<fieldset><legend>${esc(label)}</legend><div class="chipsRow">${items.map(x => `<button type="button" class="chipBtn" data-look="${key}" data-v="${x.id}" aria-pressed="${(draftLook as unknown as Record<string, unknown>)[key] === x.id}">${esc(x.label)}</button>`).join('')}</div></fieldset>`;
+  const choices = (key: string, items: { id: string | number; label: string }[], label: string): string => `<fieldset><legend>${esc(label)}</legend><div class="chipsRow">${items.map(x => `<button type="button" class="chipBtn" data-look="${key}" data-v="${x.id}" aria-pressed="${(draftLook as unknown as Record<string, unknown>)[key] === x.id}">${esc(LG(key, x.label))}</button>`).join('')}</div></fieldset>`;
   const idx = (names: readonly string[]): { id: number; label: string }[] => names.map((n, k) => ({ id: k, label: n }));
-  const presets = `<fieldset><legend>${esc(t('crPreset'))}</legend><div class="chipsRow">${GROUPS.map(g => `<button type="button" class="chipBtn" data-group="${g.id}">${esc(g.label)}</button>`).join('')}</div><p class="hint">${esc(t('crPresetHint'))}</p></fieldset>`;
-  const samples = `<fieldset><legend>${esc(t('crSamples'))}</legend><div class="chipsRow">${SAMPLES.map(x => `<button type="button" class="chipBtn" data-sample="${x.id}" aria-pressed="${draftSample === x.id}">${esc(x.label)}</button>`).join('')}</div></fieldset>`;
+  const presets = `<fieldset><legend>${esc(t('crPreset'))}</legend><div class="chipsRow">${GROUPS.map(g => `<button type="button" class="chipBtn" data-group="${g.id}">${esc(L(g.label))}</button>`).join('')}</div><p class="hint">${esc(t('crPresetHint'))}</p></fieldset>`;
+  const samples = `<fieldset><legend>${esc(t('crSamples'))}</legend><div class="chipsRow">${SAMPLES.map(x => `<button type="button" class="chipBtn" data-sample="${x.id}" aria-pressed="${draftSample === x.id}">${esc(L(x.label))}</button>`).join('')}</div></fieldset>`;
   const skins = `<fieldset><legend>${esc(t('crSkin'))}</legend><div class="swatches">${SKIN_ORDER.map(k => `<button type="button" class="swatch" data-look="skin" data-v="${k}" aria-label="${esc(t('crSkin'))} ${k + 1}" aria-pressed="${draftLook.skin === k}" style="background:${SKINS[k]}"></button>`).join('')}</div></fieldset>`;
-  const eyeCols = `<fieldset><legend>${esc(t('crEyeColour'))}</legend><div class="swatches">${EYE_COLORS.map((c, k) => `<button type="button" class="swatch" data-look="eyeColor" data-v="${k}" aria-label="${esc(EYE_COLOR_NAMES[k])}" aria-pressed="${draftLook.eyeColor === k}" style="background:${c}"></button>`).join('')}</div></fieldset>`;
+  const eyeCols = `<fieldset><legend>${esc(t('crEyeColour'))}</legend><div class="swatches">${EYE_COLORS.map((c, k) => `<button type="button" class="swatch" data-look="eyeColor" data-v="${k}" aria-label="${esc(eyeL(EYE_COLOR_NAMES[k]))}" aria-pressed="${draftLook.eyeColor === k}" style="background:${c}"></button>`).join('')}</div></fieldset>`;
   const face = choices('build', idx(BUILDS), t('crBuild')) + choices('face', idx(FACES), t('crFace')) + eyeCols + choices('brows', idx(BROWS), t('crBrows')) + choices('nose', idx(NOSES), t('crNose')) + choices('lips', idx(LIPS), t('crLips')) + choices('facial', idx(FACIAL), t('crFacial'))
     + `<fieldset><legend>${esc(t('crFreckles'))}</legend><label class="chk"><input type="checkbox" id="crFreckles" ${draftLook.freckles ? 'checked' : ''}> ${esc(t('crFreckles'))}</label> <label class="chk"><input type="checkbox" id="crRosy" ${draftLook.rosy ? 'checked' : ''}> ${esc(t('crRosy'))}</label></fieldset>`;
-  $('creatorControls').innerHTML = samples + presets + skins + face + choices('eyes', idx(EYES), t('crEyes')) + choices('height', idx(HEIGHTS), t('crHeight')) + choices('hairStyle', idx(HAIR_STYLES), t('crHair')) + `<fieldset><legend>${esc(t('crHairColor'))}</legend><div class="swatches">${HAIR_COLORS.map((c, k) => `<button type="button" class="swatch" data-look="hairColor" data-v="${k}" aria-label="${esc(HAIR_COLOR_NAMES[k])}" title="${esc(HAIR_COLOR_NAMES[k])}" aria-pressed="${draftLook.hairColor === k}" style="background:${c}"></button>`).join('')}</div></fieldset>`
+  $('creatorControls').innerHTML = samples + presets + skins + face + choices('eyes', idx(EYES), t('crEyes')) + choices('height', idx(HEIGHTS), t('crHeight')) + choices('hairStyle', idx(HAIR_STYLES), t('crHair')) + `<fieldset><legend>${esc(t('crHairColor'))}</legend><div class="swatches">${HAIR_COLORS.map((c, k) => `<button type="button" class="swatch" data-look="hairColor" data-v="${k}" aria-label="${esc(L(HAIR_COLOR_NAMES[k]))}" title="${esc(L(HAIR_COLOR_NAMES[k]))}" aria-pressed="${draftLook.hairColor === k}" style="background:${c}"></button>`).join('')}</div></fieldset>`
     + choices('style', STYLES, t('crTop')) + swatches('accent', ACCENTS, t('crColour'))
     + choices('bottom', BOTTOMS, t('crBottom')) + swatches('bottomColor', BOTTOM_COLORS, t('crColour'))
     + choices('shoes', SHOES, t('crShoes')) + swatches('shoeColor', SHOE_COLORS, t('crColour'))
-    + `<fieldset><legend>${esc(t('crDream'))}</legend><div class="dreams">${DREAMS.map(d => `<button type="button" class="dream" data-dream="${d.id}" aria-pressed="${draftDream === d.id}"><span aria-hidden="true">${d.icon}</span><b>${esc(d.label)}</b><small>${esc(d.blurb)}</small></button>`).join('')}</div></fieldset>`;
+    + `<fieldset><legend>${esc(t('crDream'))}</legend><div class="dreams">${DREAMS.map(d => `<button type="button" class="dream" data-dream="${d.id}" aria-pressed="${draftDream === d.id}"><span aria-hidden="true">${d.icon}</span><b>${esc(L(d.label))}</b><small>${esc(L(d.blurb))}</small></button>`).join('')}</div></fieldset>`;
   $('creatorControls').querySelectorAll<HTMLButtonElement>('[data-look]').forEach(b => {
     b.onclick = () => {
       const key = b.dataset.look as string, raw = b.dataset.v as string;
@@ -784,6 +782,13 @@ function showDream(label: string | null): void {
   notify(`${label} · ${t('dreamGoal')} ✔`);
 }
 
+/** Starts play; a foreigner who starts at home (prearrival.ts) first prepares the way to Russia. */
+function begin(home: boolean): void {
+  const go = (): void => { turn(); if (preferred3d()) void open3d(false); }, p = (s as { pre?: { done: boolean } }).pre;
+  if (s.status !== 'citizen' && (p ? !p.done : home)) void import('./prearrival-ui').then(m => m.openPre(s, { notify, save: () => G.save(s), arrived: go })); else go();
+}
+/** The state-service job (service.ts) for the header, when the player has one. */
+const svTitle = (x: State): string => { const v = (x as State & { service?: { title?: string; titleRu?: string } }).service; return (lang() === 'ru' ? v?.titleRu : v?.title) ?? ''; };
 function turn(): void {
   beat(); noteLowNeeds();
   const news = afterTurn(s);                       // the rules of the turn (turn.ts): bills, holiday progress, the dream, achievements
@@ -825,8 +830,13 @@ function openShopScreen(): void {
 
 /** The bottom menu. Home and Shop and Map use the normal actions, so they only work when the game is waiting for a choice. */
 function dock(which: string): void {
+  if (which !== 'phone') document.querySelectorAll<HTMLButtonElement>('#dock button').forEach(b => b.classList.toggle('on', b.dataset.dock === which));   // the chosen tab is dark (theme-kit.css)
   if (which === 'phone') return openPhoneScreen();
-  if (which === 'home') { document.getElementById('stage')?.scrollIntoView({ block: 'center' }); return focusFirst(); }
+  if (which === 'home') {
+    // as in the design: at home in the 3D city, Home takes you into your room
+    if (view === '3d' && worldCtl && s?.loc === 'home' && !worldCtl.inside() && worldCtl.enter()) { renderLayers(); return; }
+    document.getElementById('stage')?.scrollIntoView({ block: 'center' }); return focusFirst();
+  }
   if (which === 'shop') return openShopScreen();
   if (view === '3d' && worldCtl && !worldCtl.inside()) { overview3d = !overview3d; worldCtl.setOverview(overview3d); document.getElementById('dockMap')?.setAttribute('aria-pressed', String(overview3d)); return; }
   if (!idle) return;
@@ -860,7 +870,8 @@ function renderIdle(): void {
 function showBooking(): void {
   idle = false;
   $('actions').innerHTML = '';
-  openBooking(s, $('stage'), () => turn());
+  // the booking site is its own download (round 150, to keep the first download under its budget)
+  void import('./booking-ui').then(b => b.openBooking(s, $('stage'), () => turn()));
 }
 
 function act(id: string): void {
@@ -892,13 +903,20 @@ function showScenario(sc: Scenario, notes: Note[], pre: string): void {
   $('actions').innerHTML = '';
   const [ci, cc] = catLook(sc.cat);
   $('stage').style.setProperty('--accent', cc); $('stage').dataset.cat = sc.cat;
-  $('stage').innerHTML = `<div class="cat"><span aria-hidden="true">${ci}</span> ${esc(sc.cat)}</div><h2>${esc(G.fill(sc.title, s))}</h2>${pre ? `<p class="sub">${esc(pre)}</p>` : ''}${noteHtml(notes)}<p>${esc(G.fill(sc.text, s))}</p>
-    <div class="choices">${sc.choices.map((c, i) => `<button data-i="${i}">${esc(G.fill(c.t, s))}</button>`).join('')}</div>`;
+  // the scene in Russian where it has been translated (scenes-ru.ts), otherwise in English
+  // a choice the player cannot pay for cannot be chosen (found in manual testing, round 150: a lawyer for 15,000 ₽ chosen with −12,634 ₽); one choice always stays open
+  const costOf = (c: G.Choice): number => { const m = c.t.match(/\(([\d\s,]+)\s*₽\)/); return Math.max(c.fx?.money && c.fx.money < 0 ? -c.fx.money : 0, m ? Number(m[1].replace(/[\s,]/g, '')) : 0); };
+  let cantPay = sc.choices.map(c => { const k = costOf(c); return k > 0 && s.money < k; }); if (cantPay.every(Boolean)) cantPay = cantPay.map(() => false);
+  const R = sceneRu(sc.id), home = (x: string): string => x.replace(/\{home\}/g, homeRu(s.home));
+  const title = R ? G.fill(home(R.title), s) : G.fill(sc.title, s);
+  $('stage').innerHTML = `<div class="cat"><span aria-hidden="true">${ci}</span> ${esc(catRu(sc.cat))}</div><h2>${esc(title)}</h2>${pre ? `<p class="sub">${esc(pre)}</p>` : ''}${noteHtml(notes)}<p>${esc(R ? G.fill(home(R.text), s) : G.fill(sc.text, s))}</p>
+    <div class="choices">${sc.choices.map((c, i) => { const poor = cantPay[i]; return `<button data-i="${i}"${poor ? ` disabled title="${esc(t('notEnoughMoney'))}"` : ''}>${esc(R?.choices[i] ? G.fill(home(R.choices[i][0]), s) : G.fill(c.t, s))}${poor ? ` <small>— ${esc(t('notEnoughMoney'))}</small>` : ''}</button>`; }).join('')}</div>`;
   $('stage').querySelectorAll<HTMLButtonElement>('.choices button').forEach(b => {
     b.onclick = () => {
       const res = G.choose(s, sc, Number(b.dataset.i));
       header();
-      $('stage').innerHTML = `<div class="cat">${t('result')}</div><h2>${esc(G.fill(sc.title, s))}</h2><p>${esc(res.msg)}</p>${noteHtml(res.notes)}${res.dayNotes.map(t => `<p class="sub">${esc(t)}</p>`).join('')}
+      const after = R?.choices[Number(b.dataset.i)]?.[1];
+      $('stage').innerHTML = `<div class="cat">${t('result')}</div><h2>${esc(title)}</h2><p>${esc(after ? G.fill(home(after), s) : res.msg)}</p>${noteHtml(res.notes)}${res.dayNotes.map(t => `<p class="sub">${esc(t)}</p>`).join('')}
         <div class="choices"><button class="primary" id="nextBtn">${t('next')}</button></div>`;
       $('nextBtn').onclick = res.ui === 'booking' ? showBooking : turn;
       play(soundForNotes(res.notes));
@@ -916,11 +934,43 @@ async function cloudDo(fn: (c: import('./cloud').OnlineClient) => unknown): Prom
   try { const c = (await import('./cloud')).cloud(); if (c) await fn(c); } catch { /* the game goes on offline */ }
 }
 let lastBeat = 0;
+/* The place card's chat with the real players at the same place (round 150: it only ever answered with invented neighbours). */
+let placePulled = 0;
+async function placeChat(send?: string): Promise<boolean> {
+  if (!onlineOn() || !s) return false;
+  try {
+    placePulled = Date.now();
+    const lines = await (await import('./place-chat')).placeChat(s.city, s.loc, send, notify); if (!lines) return false;
+    if (lines.length) { chat.push(...lines); if (!$('game').hidden) renderOverlays(); }
+    return true;
+  } catch { return false; }
+}
+/** Looks for new messages at the place now and then (at most every 15 seconds, only while the game is on screen). */
+function pullPlaceChat(): void { if (Date.now() - placePulled > 15000 && !$('game').hidden) { placePulled = Date.now(); void placeChat(); } }
+if (typeof window !== 'undefined') window.setInterval(pullPlaceChat, 15000);
+// the online count and the player's own presence stay fresh while the game is open, not only when a turn is played (round 150: the count was wrong)
+if (typeof window !== 'undefined') window.setInterval(() => { if (!$('game').hidden) beat(); }, 61000);
 /** Tells the server where the player is, at most once a minute, and only when signed in with a public name. */
 function beat(): void {
   if (!onlineOn() || Date.now() - lastBeat < 60000) return;
   lastBeat = Date.now(); const city = s.city, loc = s.loc;
   void cloudDo(async c => { if (c.session()?.username) await c.heartbeat(city, loc); const n = await c.online(); if (n.ok) { $('onlinePill').hidden = false; $('onlinePill').textContent = `● ${(n.data ?? 0).toLocaleString('en-US')} ${t('olOnline')}`; } });
+}
+/** After a login (or when the page opens with a session): the game on screen must be this account's. If the account has a save on the server and the
+   game here is not its own, its own save is loaded; a game never played logged in is taken by an account that has no save yet; a game of another
+   account is never uploaded (cloud-sync.ts checks the owner). Found in manual testing (round 150): one account's game was saved over another's. */
+async function reconcileAccount(): Promise<void> {
+  try {
+    const cm = await import('./cloud'); const c = cm.cloud(); const me = c?.session()?.userId; if (!c || !me) return;
+    const playing = !$('game').hidden && !!s;
+    if (playing && s.owner === me) { void sync?.flush('login'); return; }
+    const r = await c.load(); const st = r.ok && r.data ? r.data.state : null;
+    if (st && st.version === 7 && typeof st.day === 'number' && st.docs) {
+      if (playing) G.save(s);                                           // the other game stays on this device as it was
+      st.owner = me; s = st; G.save(s); $('modal').hidden = true; stopOnline?.(); stopOnline = null; show('game'); turn(); notify(t('olYourGame'));
+    } else if (playing && !s.owner) { s.owner = me; G.save(s); void sync?.flush('login'); }
+    else if (playing) notify(t('olNotYourGame'));
+  } catch { /* offline: the game goes on here */ }
 }
 /* automatic saving to the server (cloud-sync.ts), started only when the online part is on */
 let sync: import('./cloud-sync').Sync | null = null, homeOfPlayer: (() => { city: string; dwelling: string; design: import('./cloud').HomeDesign; stars: number } | null) | null = null;
@@ -930,6 +980,7 @@ async function startCloudSync(): Promise<void> {
     const [cm, cs, hm] = await Promise.all([import('./cloud'), import('./cloud-sync'), import('./homes')]); const c = cm.cloud(); if (!c) return;
     homeOfPlayer = () => { if ($('game').hidden) return null; const x = s as unknown as { furn?: { placed?: { id: string; i: number; j: number; rot: 0 | 1 }[] }; reno?: { wall?: string; floor?: string } }; const it = hm.designOf(s); return { city: s.city, dwelling: hm.dwellingOf(s), design: { placed: (x.furn?.placed ?? []).map(p => ({ id: p.id, i: p.i, j: p.j, rot: p.rot })), wall: x.reno?.wall, floor: x.reno?.floor, w: it.w, d: it.d }, stars: hm.renoStars(s) }; };
     sync = cs.startSync({ cloud: c, state: () => ($('game').hidden ? null : s), home: homeOfPlayer });
+    void reconcileAccount();                                            // the page may open with a session already
   } catch { /* the game goes on offline */ }
 }
 let stopOnline: (() => void) | null = null;
@@ -937,7 +988,8 @@ async function openOnline(link = ''): Promise<void> {
   const [cm, ui] = await Promise.all([import('./cloud'), import('./cloud-ui')]);
   if (link) ui.openAuthLink(link);
   stopOnline?.();
-  stopOnline = ui.mountOnline($('modalBody'), { cloud: cm.cloud(), state: () => ($('game').hidden ? null : s), notify, home: () => homeOfPlayer?.() ?? null, status: () => sync?.status() ?? null, onLoad: st => { s = st; G.save(s); $('modal').hidden = true; stopOnline?.(); stopOnline = null; show('game'); turn(); } });
+  stopOnline = ui.mountOnline($('modalBody'), { cloud: cm.cloud(), state: () => ($('game').hidden ? null : s), notify, home: () => homeOfPlayer?.() ?? null, status: () => sync?.status() ?? null, changed: () => { if (s) { G.save(s); header(); } }, onLoad: st => { const me = cm.cloud()?.session()?.userId; if (me) st.owner = me; s = st; G.save(s); $('modal').hidden = true; stopOnline?.(); stopOnline = null; show('game'); turn(); },
+    onSignedIn: () => reconcileAccount(), onSignedOut: () => { lastBeat = 0; $('onlinePill').hidden = true; $('modal').hidden = true; stopOnline?.(); stopOnline = null; show('title'); notify(t('olLoggedOut')); } });
   $('modal').classList.remove('phoneMode'); $('modal').hidden = false;
 }
 
@@ -964,6 +1016,7 @@ function end(): void {
 export const uiReady = (): Promise<void> => Promise.all([loadPhone(), loadShop()]).then(() => undefined);
 export function boot(): void {
   void loadPhone().catch(() => undefined); void loadShop().catch(() => undefined);
+  void import('./law').catch(() => undefined); void import('./cyber').then(c => c.registerCyber()).catch(() => undefined); void import('./homelife').catch(() => undefined); void import('./lifeacts').catch(() => undefined);    // the law (law.ts) and life at home (homelife.ts): their daily rules
   document.querySelectorAll<HTMLButtonElement>('#dock button').forEach(b => { b.onclick = () => dock(b.dataset.dock as string); });
   renderSoundBtn();
   $('soundBtn').onclick = () => { setSound(!soundOn()); renderSoundBtn(); play('tap'); };
@@ -983,8 +1036,9 @@ export function boot(): void {
   });
   $('citySel').innerHTML += G.CITIES.map(c => `<option>${c}</option>`).join('');
   $('randomBtn').onclick = () => { selected = G.pick(G.origins).id; renderOrigins(); };
-  $('startBtn').onclick = () => { try { if (!localStorage.getItem('vrussia_help_seen')) { localStorage.setItem('vrussia_help_seen', '1'); setTimeout(() => { $('modalBody').innerHTML = helpHtml(); $('modal').hidden = false; }, 50); } } catch { /* storage may be blocked */ } s = G.newState(($<HTMLInputElement>('nameInput')).value.trim() || 'Player', selected, ($<HTMLSelectElement>('citySel')).value, ($<HTMLSelectElement>('diffSel')).value as G.Difficulty); s.look = normalizeLook(draftLook); if (draftSample) { s.worn = { ...draftWorn }; for (const [k, v] of Object.entries(draftWorn)) { const id = v === true ? WORN_ITEMS[k] : typeof v === 'string' ? v : ''; if (id) (s.inv ??= {})[id] = 1; } } if (draftDream && !(draftDream === 'citizen' && G.origins.find(o => o.id === selected)?.status === 'citizen')) { s.dream = draftDream; const dr = dreamOf(s); if (dr) G.apply(s, dr.boost); } show('game'); turn(); if (preferred3d()) void open3d(false); };
-  $('continueBtn').onclick = () => { const saved = G.load(); if (saved) { s = saved; show('game'); turn(); notify(t('loaded')); if (preferred3d()) void open3d(false); } };
+  $('startBtn').onclick = () => { try { if (!localStorage.getItem('vrussia_help_seen')) { localStorage.setItem('vrussia_help_seen', '1'); setTimeout(showHelp, 50); } } catch { /* storage may be blocked */ } s = G.newState(($<HTMLInputElement>('nameInput')).value.trim() || 'Player', selected, ($<HTMLSelectElement>('citySel')).value, ($<HTMLSelectElement>('diffSel')).value as G.Difficulty); s.look = normalizeLook(draftLook); if (draftSample) { s.worn = { ...draftWorn }; for (const [k, v] of Object.entries(draftWorn)) { const id = v === true ? WORN_ITEMS[k] : typeof v === 'string' ? v : ''; if (id) (s.inv ??= {})[id] = 1; } } if (draftDream && !(draftDream === 'citizen' && G.origins.find(o => o.id === selected)?.status === 'citizen')) { s.dream = draftDream; const dr = dreamOf(s); if (dr) G.apply(s, dr.boost); } void cloudDo(c => { const me = c.session()?.userId; if (me && !s.owner) { s.owner = me; G.save(s); } });   // a new game belongs to the account playing it
+    show('game'); begin($<HTMLInputElement>('homeStart').checked); };
+  $('continueBtn').onclick = () => { const saved = G.load(); if (saved) { s = saved; show('game'); begin(false); notify(t('loaded')); } };
   $('menuBtn').onclick = () => { if (confirm('Leave this game? Progress is saved automatically.')) show('title'); };
   $('moodPill').onclick = showMood; $('moodPill').setAttribute('role', 'button'); $('moodPill').tabIndex = 0;
   $('closeModal').onclick = () => { $('modal').hidden = true; stopOnline?.(); stopOnline = null; };
@@ -1004,7 +1058,7 @@ export function boot(): void {
     $('modal').hidden = false;
   };
   renderAward();
-  $('helpBtn').onclick = () => { $('modalBody').innerHTML = helpHtml(); $('modal').hidden = false; };
+  $('helpBtn').onclick = showHelp;
   $('profileBtn').onclick = () => { $('modalBody').innerHTML = profileHtml(); $('modal').hidden = false; };
 
   // when a pop-up opens, focus moves into it; when it closes, focus returns to where it was
@@ -1045,7 +1099,7 @@ export function boot(): void {
       const obj = JSON.parse(await f.text()) as G.State;
       if (obj.version !== 7 || typeof obj.day !== 'number' || !obj.docs) throw new Error('bad file');
       G.save(obj); show('title'); alert('Save imported. Press "Continue saved game".');
-    } catch { alert('That file is not a valid V Russia save for this version.'); }
+    } catch { alert(`That file is not a valid ${BRAND} save for this version.`); }
   };
 
   renderOrigins();
@@ -1054,4 +1108,5 @@ export function boot(): void {
   applyTextStep(textStep());
   $('textBtn').onclick = () => { cycleTextStep(); }; $('textBtn2').onclick = () => { cycleTextStep(); };
   $('langBtn').onclick = toggleLanguage; $('langBtn2').onclick = toggleLanguage;
+  if (lang() === 'ru') void loadRussian().then(fresh => { if (fresh) refreshLanguage(); });          // the Russian word lists are their own download
 }

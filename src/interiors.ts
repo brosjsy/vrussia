@@ -9,7 +9,10 @@ import { designOf } from './homes';
 
 export type PropKind =
   | 'bed' | 'sofa' | 'tv' | 'fridge' | 'stove' | 'table' | 'chair' | 'desk' | 'laptop' | 'wardrobe' | 'plant' | 'window' | 'rug' | 'counter'
-  | 'shelf' | 'bench' | 'atm' | 'ticket' | 'board' | 'kennel' | 'car' | 'coffee' | 'stall' | 'lamp' | 'phone' | 'bedside' | 'item' | 'round';
+  | 'shelf' | 'bench' | 'atm' | 'ticket' | 'board' | 'kennel' | 'car' | 'coffee' | 'stall' | 'lamp' | 'phone' | 'bedside' | 'item' | 'round'
+  // the fittings of a Russian flat (round 151): the bath, the toilet, the basin, the washing machine, the coat hooks of the hallway, the Soviet wall unit (stenka),
+  // the Russian stove of the izba, a closed door (a neighbour's room in the kommunalka) and a bunk bed
+  | 'bath' | 'toilet' | 'sink' | 'washer' | 'hanger' | 'stenka' | 'pech' | 'door' | 'bunk';
 
 export interface Prop {
   kind: PropKind; x: number; z: number; ry?: number;
@@ -32,7 +35,17 @@ export type LightStyle = 'bare' | 'shade' | 'chandelier';
 export type WindowStyle = 'plain' | 'blinds' | 'curtains';
 /** How a room looks beyond the plain colours: the pattern of the floor, the skirting, what hangs in the windows, the lamps and what hangs on the walls. */
 export interface RoomLook { floorStyle: FloorStyle; floorA: string; floorB: string; trim: string; windows: WindowStyle; lights: LightStyle; deco: string[] }
-export interface Interior { id: string; title: string; w: number; d: number; floor: string; wall: string; props: Prop[]; occupants: number; look?: RoomLook }
+/** A low inner wall (round 151): the rooms of a flat are cut by walls about waist high, so the camera sees the whole flat at once. A gap between two walls is a doorway. */
+export interface InnerWall { x: number; z: number; w: number; d: number }
+/** A part of the floor with a name (the hallway, the kitchen, the bathroom...) and, where it differs, its own floor colour (tiles in the bathroom). */
+export interface Zone { x: number; z: number; w: number; d: number; name: string; floor?: string }
+export interface Interior {
+  id: string; title: string; w: number; d: number; floor: string; wall: string; props: Prop[]; occupants: number; look?: RoomLook;
+  /** The inner walls and named parts of a flat, and the height of its outer walls (a stalinka's ceilings are higher). All optional: places have none. */
+  walls?: InnerWall[]; zones?: Zone[]; wallH?: number;
+  /** The address shown over the flat (round 151), e.g. "ul. Profsoyuznaya, 43, flat 112". */
+  address?: string;
+}
 
 const P = (kind: PropKind, x: number, z: number, w: number, d: number, extra: Partial<Prop> = {}): Prop => ({ kind, x, z, w, d, ...extra });
 
@@ -143,7 +156,7 @@ export const KNOWN_ACTIONS = ['work', 'food', 'travel', 'out', 'paper', 'money',
 export const doorOf = (i: Interior): { x: number; z: number } => ({ x: 0, z: i.d / 2 - 0.4 });
 
 /* ---------- walking inside: solid furniture, walls and paths (pure, so it is tested without graphics) ---------- */
-const PASS = new Set<PropKind>(['rug', 'window', 'laptop', 'phone', 'board']);
+const PASS = new Set<PropKind>(['rug', 'window', 'laptop', 'phone', 'board', 'door']);
 const WALL_GAP = 0.45;
 const CELL = 0.5;
 export interface P2 { x: number; z: number }
@@ -151,6 +164,7 @@ export interface P2 { x: number; z: number }
 /** Can a person (a disc of radius r) not stand here? True inside a wall margin or on a piece of solid furniture. */
 export function blocked(it: Interior, x: number, z: number, r = 0.3): boolean {
   if (Math.abs(x) > it.w / 2 - WALL_GAP || Math.abs(z) > it.d / 2 - WALL_GAP) return true;
+  if (it.walls) for (const w of it.walls) if (Math.abs(x - w.x) < w.w / 2 + r && Math.abs(z - w.z) < w.d / 2 + r) return true;
   for (const p of it.props) {
     if (PASS.has(p.kind) || p.wallItem) continue;
     const turned = Math.abs(Math.sin(p.ry ?? 0)) > 0.5, w = turned ? p.d : p.w, d = turned ? p.w : p.d;
@@ -207,6 +221,16 @@ export function findPath(it: Interior, from: P2, to: P2): P2[] {
   const out: P2[] = []; for (let k = id(g.i, g.j); k !== -1 && k !== id(s.i, s.j); k = came[k]) out.push(toPoint(it, k % nx, Math.floor(k / nx)));
   out.reverse();
   return out;
+}
+
+/** Where a person stands to use a thing: in front of it (towards the door) if that spot is free and can be walked to from the door, otherwise beside or behind it.
+   In a flat with inner walls the spot in front can be on the other side of a wall, so the sides are tried too (round 151). */
+export function useSpot(it: Interior, p: Prop): P2 {
+  const door = doorOf(it), start = { x: door.x, z: door.z - 1 };
+  const turned = Math.abs(Math.sin(p.ry ?? 0)) > 0.5, w = turned ? p.d : p.w, d = turned ? p.w : p.d;
+  const tries: P2[] = [{ x: p.x, z: Math.min(door.z, p.z + d / 2 + 0.8) }, { x: p.x - w / 2 - 0.7, z: p.z }, { x: p.x + w / 2 + 0.7, z: p.z }, { x: p.x, z: p.z - d / 2 - 0.7 }];
+  for (const q of tries) if (!blocked(it, q.x, q.z) && (Math.hypot(q.x - start.x, q.z - start.z) < 0.6 || findPath(it, start, q).length > 0)) return q;
+  return { x: p.x, z: Math.min(door.z, p.z + 1.6) };
 }
 
 /** Where people can sit: one place on each chair, two on a sofa or a bench. Each faces towards the middle of the room. */

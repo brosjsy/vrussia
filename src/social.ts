@@ -62,8 +62,9 @@ export function ambientChat(placeId: string, rnd: () => number = Math.random): C
   return lines.slice(0, 3).map(text => { const i = Math.min(names.length - 1, Math.floor(rnd() * names.length)); const from = names.splice(i, 1)[0]; return { from, text }; });
 }
 
-/** Removes anything that could be mistaken for markup and keeps a message short. The screen also escapes it again. */
-export const cleanMessage = (raw: string): string => raw.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 80);
+/** Keeps a message on one line and short. */
+// kept as typed ("3 < 5" stays): the screen escapes it when it shows it (round 150: < and > were removed)
+export const cleanMessage = (raw: string): string => raw.replace(/\s+/g, ' ').trim().slice(0, 80);
 
 /** Someone nearby answers. The answer depends on a few words in the message and on the place. */
 export function chatReply(placeId: string, text: string, rnd: () => number = Math.random): ChatLine {

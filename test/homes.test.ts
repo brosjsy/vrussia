@@ -5,17 +5,21 @@ import * as G from '../src/engine';
 import '../src/content';
 import { HOMES, dwellingOf, designOf, homeInfo, renovate, renoOf, renoStars, currentLook, FLOORS, WALLS, LIGHTS, WINDOWS } from '../src/homes';
 import type { Dwelling } from '../src/homes';
-import { interiorFor, findPath, doorOf, blocked, SPECIAL } from '../src/interiors';
+import { interiorFor, findPath, doorOf, blocked, SPECIAL, useSpot } from '../src/interiors';
+import { moveTo } from '../src/housing';
 import { buildRoom, floorTexture } from '../src/rooms3d';
 import { buyFurn, placeFurn, canPlace, furnById, gridOf, totalStars } from '../src/furniture';
 
 const mk = (origin: string, housing = 'rented'): G.State => { const s = G.newState('H', origin); s.queue = []; s.housing = housing; s.money = 1_000_000; return s; };
 const ALL: [string, string, Dwelling][] = [['moscow', 'rented', 'family'], ['region', 'rented', 'panelka'], ['tajik', 'rented', 'shared'], ['uzbek', 'rented', 'shared'], ['kyrgyz', 'rented', 'shared'], ['student', 'rented', 'dorm'], ['dagestan', 'rented', 'dorm'], ['moscow', 'flat', 'studio'], ['tajik', 'village', 'village'], ['region', 'house', 'house']];
+/** Every home, also the rented ones chosen in the Home app (round 151: kommunalka, khrushchyovka, euro-two). */
+const rented = (id: 'kommunalka' | 'khrush' | 'eurotwo'): G.State => { const s = mk('region'); s.job = 'courier'; moveTo(s, id); return s; };
+const EVERY: [string, () => G.State][] = [...ALL.map(([o, h, d]): [string, () => G.State] => [d, () => mk(o, h)]), ['kommunal', () => rented('kommunalka')], ['khrush', () => rented('khrush')], ['eurotwo', () => rented('eurotwo')]];
 
 describe('who lives where', () => {
   it('a home for every kind of person and every step of the ladder; what the player owns comes first', () => {
     for (const [o, h, d] of ALL) expect(dwellingOf(mk(o, h)), `${o} ${h}`).toBe(d);
-    expect(HOMES.length).toBe(7); expect(new Set(HOMES.map(x => x.id)).size).toBe(7); for (const x of HOMES) { expect(x.name.length).toBeGreaterThan(8); expect(x.blurb.length).toBeGreaterThan(40); }
+    expect(HOMES.length).toBe(10); expect(new Set(HOMES.map(x => x.id)).size).toBe(10); expect(rented('kommunalka') && dwellingOf(rented('kommunalka'))).toBe('kommunal'); expect(dwellingOf(rented('khrush'))).toBe('khrush'); expect(dwellingOf(rented('eurotwo'))).toBe('eurotwo'); for (const x of HOMES) { expect(x.name.length).toBeGreaterThan(8); expect(x.blurb.length).toBeGreaterThan(40); }
     expect(homeInfo('shared').tier).toBeLessThan(homeInfo('panelka').tier); expect(homeInfo('panelka').tier).toBeLessThan(homeInfo('family').tier); expect(homeInfo('family').tier).toBeLessThan(homeInfo('house').tier);
     const odd = mk('moscow'); odd.o = 'weird'; expect(dwellingOf(odd)).toBe('panelka');
   });
@@ -24,35 +28,36 @@ describe('who lives where', () => {
     expect(new Set(d.map(x => x.title)).size).toBe(7); expect(new Set(d.map(x => x.w * x.d)).size).toBeGreaterThanOrEqual(5);
     const shared = designOf(mk('tajik')), family = designOf(mk('moscow')), house = designOf(mk('region', 'house')); expect(shared.w * shared.d).toBeLessThan(family.w * family.d); expect(family.w * family.d).toBeLessThan(house.w * house.d);
     expect(shared.look!.floorStyle).toBe('lino'); expect(family.look!.floorStyle).toBe('parquet'); expect(family.look!.lights).toBe('chandelier'); expect(shared.look!.lights).toBe('bare'); expect(designOf(mk('student')).look!.deco).toContain('poster');
-    expect(shared.props.filter(p => p.kind === 'bed').length).toBe(4);                           // four bunks, one of them yours
-    expect(shared.props.filter(p => p.kind === 'bed' && p.action === 'home').length).toBe(1);
+    expect(shared.props.filter(p => p.kind === 'bunk').length).toBe(2);                          // two bunk beds: four places, one of them yours
+    expect(shared.props.filter(p => p.kind === 'bunk' && p.action === 'home').length).toBe(1);
   });
 });
 
 describe('every home works as a home', () => {
   it('has the things a player needs, inside its walls, not on each other, and clear of the door', () => {
-    for (const [o, h, id] of ALL) {
-      const s = mk(o, h), it = interiorFor('home', s)!; const acts = it.props.map(p => p.action);
+    for (const [id, make] of EVERY) {
+      const s = make(), it = interiorFor('home', s)!; const acts = it.props.map(p => p.action);
       for (const a of ['home', 'wardrobe', 'food', 'online', 'wash', 'phone']) expect(acts, `${id} ${a}`).toContain(a);
       for (const p of it.props) { if (p.kind === 'window' || p.wallItem) continue; expect(Math.abs(p.x) + p.w / 2, `${id} ${p.kind} x`).toBeLessThanOrEqual(it.w / 2 + 0.05); expect(Math.abs(p.z) + p.d / 2, `${id} ${p.kind} z`).toBeLessThanOrEqual(it.d / 2 + 0.3); }
       const solid = it.props.filter(p => !['rug', 'window', 'laptop', 'phone', 'board'].includes(p.kind) && !p.wallItem);
       const rect = (p: typeof solid[number]): { x: number; z: number; w: number; d: number } => { const t = Math.abs(Math.sin(p.ry ?? 0)) > 0.5; return { x: p.x, z: p.z, w: t ? p.d : p.w, d: t ? p.w : p.d }; };
       for (let i = 0; i < solid.length; i++) for (let j = i + 1; j < solid.length; j++) { const a = rect(solid[i]), b = rect(solid[j]); const pair = [solid[i].kind, solid[j].kind].sort().join('+'); if (['chair+table', 'chair+desk', 'sofa+tv', 'bed+bedside'].includes(pair)) continue; expect(Math.abs(a.x - b.x) < (a.w + b.w) / 2 - 0.05 && Math.abs(a.z - b.z) < (a.d + b.d) / 2 - 0.05, `${id}: ${solid[i].kind} and ${solid[j].kind} overlap`).toBe(false); }
       const door = doorOf(it); for (const p of solid) { const r = rect(p); expect(Math.abs(r.x - door.x) < 1.3 + r.w / 2 && Math.abs(r.z - door.z) < 0.6 + r.d / 2, `${id} ${p.kind} blocks the door`).toBe(false); }
+      for (const p of solid) for (const w of it.walls ?? []) { const r = rect(p); expect(Math.abs(r.x - w.x) < (r.w + w.w) / 2 - 0.02 && Math.abs(r.z - w.z) < (r.d + w.d) / 2 - 0.02, `${id}: ${p.kind} at ${p.x},${p.z} stands in an inner wall`).toBe(false); }
     }
   });
   it('lets the player reach every thing that can be used, from the door', () => {
-    for (const [o, h, id] of ALL) {
-      const it = interiorFor('home', mk(o, h))!, door = doorOf(it), start = { x: door.x, z: door.z - 1 };
-      for (const p of it.props.filter(q => q.action && !q.action.startsWith('act:'))) { const goal = { x: p.x, z: Math.min(door.z - 0.6, p.z + 1.6) }; const path = findPath(it, start, goal); expect(path.length, `${id} ${p.kind} ${p.action}`).toBeGreaterThan(0); for (const w of path) expect(blocked(it, w.x, w.z), `${id} ${p.kind}`).toBe(false); }
+    for (const [id, make] of EVERY) {
+      const it = interiorFor('home', make())!, door = doorOf(it), start = { x: door.x, z: door.z - 1 };
+      for (const p of it.props.filter(q => q.action && !q.action.startsWith('act:'))) { const goal = useSpot(it, p); expect(blocked(it, goal.x, goal.z), `${id} ${p.kind} ${p.action}: no free spot beside it`).toBe(false); expect(Math.hypot(goal.x - p.x, goal.z - p.z), `${id} ${p.kind} spot near`).toBeLessThan(Math.max(p.w, p.d) / 2 + 1.7); const path = findPath(it, start, goal); expect(path.length > 0 || Math.hypot(goal.x - start.x, goal.z - start.z) < 0.6, `${id} ${p.kind} ${p.action}`).toBe(true); for (const w of path) expect(blocked(it, w.x, w.z), `${id} ${p.kind}`).toBe(false); }
     }
   });
   it('all actions are real game actions or known special ones', () => {
     const real = new Set(G.actions.map(a => a.id)); for (const [o, h, id] of ALL) for (const p of interiorFor('home', mk(o, h))!.props) if (p.action) expect(real.has(p.action) || (SPECIAL as readonly string[]).includes(p.action) || p.action.startsWith('act:'), `${id} ${p.action}`).toBe(true);
   });
   it('can be furnished: a free place for a stool and a sofa, and a piece moves back to the stock when the home changes', () => {
-    for (const [o, h, id] of ALL) {
-      const s = mk(o, h); const g = gridOf(interiorFor('home', s)!); buyFurn(s, 'stool');
+    for (const [id, make] of EVERY) {
+      const s = make(); const g = gridOf(interiorFor('home', s)!); buyFurn(s, 'stool');
       let ok = false; for (let j = 0; j < g.rows && !ok; j++) for (let i = 0; i < g.cols && !ok; i++) if (canPlace(s, furnById('stool')!, i, j, 0).ok) { ok = placeFurn(s, 'stool', i, j, 0).ok; }
       expect(ok, id).toBe(true);
     }
@@ -62,8 +67,8 @@ describe('every home works as a home', () => {
 describe('the room is drawn', () => {
   it('every home builds a room with its floor, skirting, lamps and wall things, and frees what it made', () => {
     HTMLCanvasElement.prototype.getContext = (() => null) as never;
-    for (const [o, h, id] of ALL) {
-      const it = interiorFor('home', mk(o, h))!; const r = buildRoom(it); let meshes = 0; r.group.traverse(x => { if ((x as THREE.Mesh).isMesh) meshes++; });
+    for (const [id, make] of EVERY) {
+      const it = interiorFor('home', make())!; const r = buildRoom(it); let meshes = 0; r.group.traverse(x => { if ((x as THREE.Mesh).isMesh) meshes++; });
       expect(meshes, id).toBeGreaterThan(it.props.length + 10); expect(r.usable.some(x => x.userData.action === 'wash'), id).toBe(true); r.dispose();
     }
   });

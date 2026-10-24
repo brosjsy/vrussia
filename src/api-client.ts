@@ -9,7 +9,7 @@ import type { State } from './engine';
 import type { KV } from './store';
 import { explain, SESSION_KEY } from './cloud';
 import type { Result, Session, ScoreRow, ChatMessage, Present, PlayerAd, PublicHome, HomeDesign, Note, Gift, Friend, BestHome, Talk, Announcement, CloudConfig } from './cloud';
-import { isRude } from './rude';
+import { isRude, hasContact } from './rude';
 
 const USERNAME = /^[a-z0-9_]{3,20}$/;
 const PENDING = 'vrussia_pending_name';
@@ -33,10 +33,14 @@ export function explainApi(code: string): string {
   return own[code] ?? explain(code);
 }
 
+/** An advert of a player on a place in a city (advertising spaces); views counts the real players who have seen it. */
+export interface Advert { id: number; username: string; city: string; spot: string; head: string; line: string; color: string; icon: string; expires_at: string; views: number | string }
 export interface Challenge { id: string; chapter: number; sort: number; kind: 'event' | 'coop' | 'city'; target: number; weekly: boolean; reward: number; title_en: string; title_ru: string; text_en: string; text_ru: string; have: number; done: boolean; claimed: boolean; joined: boolean }
 export interface Chapter { id: number; title_en: string; title_ru: string; text_en: string; text_ru: string }
 export interface Coop { id: number; challenge_id: string; status: 'invited' | 'accepted' | 'done'; inviter_done: boolean; invitee_done: boolean; mine: boolean; other: string; other_name: string }
 
+/** Today's table of the Kitchen's online challenge. */
+export interface CookTable { top: { username: string; score: number; stars: number }[]; mine: { score: number; place: number } | null; count: number }
 export class ApiCloud {
   readonly cfg: CloudConfig;
   private readonly f: typeof fetch;
@@ -135,6 +139,8 @@ export class ApiCloud {
     const r = await this.call<{ id: number }>('POST', '/api/messages', { room, body: text }); return r.ok ? { ok: true, msg: '', data: r.data?.id } : { ok: false, msg: r.msg };
   }
   async block(userId: string): Promise<Result> { const r = await this.call('POST', '/api/blocks', { user: userId }); return r.ok ? { ok: true, msg: 'Blocked. You will not see their messages.' } : { ok: false, msg: r.msg }; }
+  blocks(): Promise<Result<{ id: string; username: string }[]>> { return this.call('GET', '/api/blocks'); }
+  async unblock(userId: string): Promise<Result> { const r = await this.call('DELETE', `/api/blocks/${encodeURIComponent(userId)}`); return r.ok ? { ok: true, msg: 'Unblocked. You can write to each other again.' } : { ok: false, msg: r.msg }; }
   async report(messageId: number, reason: string): Promise<Result> {
     const text = reason.trim().slice(0, 200); if (text.length < 3) return { ok: false, msg: 'Say in a few words what is wrong.' };
     const r = await this.call('POST', '/api/reports', { message: messageId, reason: text }); return r.ok ? { ok: true, msg: 'Reported. Thank you.' } : { ok: false, msg: r.msg };
@@ -147,7 +153,9 @@ export class ApiCloud {
   ads(city: string): Promise<Result<PlayerAd[]>> { return this.call('GET', `/api/ads?city=${encodeURIComponent(city)}`); }
   async postAd(city: string, kind: PlayerAd['kind'], title: string, body: string, price: number): Promise<Result<number>> {
     const t = title.trim(); if (t.length < 4 || t.length > 60) return { ok: false, msg: 'Write a title of 4 to 60 characters.' };
-    const r = await this.call<{ id: number }>('POST', '/api/ads', { city, kind, title: t, body: body.trim().slice(0, 280), price: Math.max(0, Math.round(price) || 0) }); return r.ok ? { ok: true, msg: '', data: r.data?.id } : { ok: false, msg: r.msg };
+    if (!(price >= 0)) return { ok: false, msg: 'The price cannot be below zero.' };
+    if (hasContact(t) || hasContact(body)) return { ok: false, msg: 'No phone numbers or messenger names: players answer through the private chat of the game.' };
+    const r = await this.call<{ id: number }>('POST', '/api/ads', { city, kind, title: t, body: body.trim().slice(0, 280), price: Math.round(price) || 0 }); return r.ok ? { ok: true, msg: '', data: r.data?.id } : { ok: false, msg: r.msg };
   }
   async removeAd(id: number): Promise<Result> { const r = await this.call<{ ok: boolean }>('DELETE', `/api/ads/${Math.round(id)}`); return r.ok && r.data?.ok ? { ok: true, msg: 'The ad is taken down.' } : { ok: false, msg: r.ok ? 'That ad is not yours or is gone.' : r.msg }; }
   async reportAd(id: number): Promise<Result> { const r = await this.call('POST', `/api/ads/${Math.round(id)}/report`, {}); return r.ok ? { ok: true, msg: 'Reported. Thank you.' } : { ok: false, msg: r.msg }; }
@@ -163,6 +171,19 @@ export class ApiCloud {
     if (isRude(t)) return { ok: false, msg: explain('language') };
     const r = await this.call<{ id: number }>('POST', `/api/guestbook/${encodeURIComponent(owner)}`, { body: t, gift }); return r.ok ? { ok: true, msg: '', data: r.data?.id } : { ok: false, msg: r.msg };
   }
+  /** The Kitchen's online challenge (server/migrations/0007_cooking.sql): today's table for a dish, sending a score. */
+  cookToday(dish: string): Promise<Result<CookTable>> { return this.call('GET', `/api/cooking/today?dish=${encodeURIComponent(dish)}`); }
+  async sendCookScore(dish: string, score: number, stars: number): Promise<Result<number>> {
+    const r = await this.call<{ best: number }>('POST', '/api/cooking/today', { dish, score: Math.round(score), stars }); return r.ok ? { ok: true, msg: '', data: r.data?.best } : { ok: false, msg: r.msg };
+  }
+  /** Advertising spaces (server/migrations/0006_adspace.sql): the adverts of players up in a city, mounting one, taking it down, reporting. */
+  adverts(city: string): Promise<Result<Advert[]>> { return this.call('GET', `/api/adverts?city=${encodeURIComponent(city)}`); }
+  myAdverts(): Promise<Result<{ id: number; city: string; spot: string; head: string; views: number }[]>> { return this.call('GET', '/api/adverts/mine'); }
+  async mountAdvert(a: { city: string; spot: string; head: string; line: string; color: string; icon: string; days: number }): Promise<Result<number>> {
+    const r = await this.call<{ id: number }>('POST', '/api/adverts', a); return r.ok ? { ok: true, msg: '', data: r.data?.id } : { ok: false, msg: r.msg };
+  }
+  async removeAdvert(id: number): Promise<Result> { const r = await this.call<{ ok: boolean }>('DELETE', `/api/adverts/${Math.round(id)}`); return r.ok && r.data?.ok ? { ok: true, msg: 'Taken down online too.' } : { ok: false, msg: r.ok ? 'That advert is not yours or is gone.' : r.msg }; }
+  async reportAdvert(id: number): Promise<Result> { const r = await this.call('POST', `/api/adverts/${Math.round(id)}/report`, {}); return r.ok ? { ok: true, msg: 'Reported. Thank you.' } : { ok: false, msg: r.msg }; }
   myAds(): Promise<Result<{ id: number; city: string; kind: string; title: string; created_at: string }[]>> { return this.call('GET', '/api/ads/mine'); }
   async myHomeVote(): Promise<Result<string | null>> { const r = await this.call<{ owner: string | null }>('GET', '/api/homes/my-vote'); return r.ok ? { ok: true, msg: '', data: r.data?.owner ?? null } : { ok: false, msg: r.msg }; }
   /* ---------- challenges with other players ---------- */

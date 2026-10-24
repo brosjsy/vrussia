@@ -20,7 +20,7 @@ import type { Memory, Scramble } from './games';
 import { dating, profilesFor, swipesLeft, swipe, compat, playerInterests, dateReply, askOnDate, makeCouple, DATE_COST } from './dating';
 import type { Contact } from './phone';
 import { messagesFor } from './social';
-import { t, locale } from './i18n';
+import { t, locale, lang } from './i18n';
 
 const esc = (x: string): string => String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
 const BANK_NAMES: Record<string, string> = { sber: 'Sber', vtb: 'VTB', tbank: 'T-Bank' };
@@ -57,8 +57,8 @@ export function openPhone(d: PhoneDeps): void {
     const apps = flows.map((f, i) => { const w = broken ? 'Your phone is broken.' : f.available(s); return `<button class="app ${w ? 'off' : ''}" data-flow="${i}" ${w ? `title="${esc(w)}" aria-disabled="true"` : ''}><span class="appIcon" aria-hidden="true">${f.icon}</span><span class="appName">${esc(f.title)}</span></button>`; });
     const urgent = messagesFor(s).filter(m => m.tag === 'urgent').length + requestsFor(s).length;
     const sys: [string, string, string, boolean, number][] = [
-      ['💼', t('phoneJobs'), 'jobs', broken, 0], ['🎓', t('phoneStudy'), 'study', broken, 0], ['🏘️', t('phoneHousing'), 'housing', broken, unpaid(s).length], ['🧺', t('phoneLife'), 'chores', broken, choresOf(s).clothes <= 15 ? 1 : 0], ['🚆', t('trTitle'), 'trains', broken, 0], ['🛍️', t('shopTitle'), 'shop', broken, 0], ['💬', t('phoneMessages'), 'messages', !!why, urgent], ['💘', t('phoneDating'), 'dating', broken, 0], ['🎮', t('phoneGames'), 'games', broken, 0], ['📞', t('phoneCalls'), 'phone', !!why, 0], ['🏦', t('phoneBank'), 'bank', broken, 0],
-      ['✈️', t('phoneFlights'), 'flights', false, 0], ['📜', t('phoneJournal'), 'journal', false, 0], ['👤', t('phoneProfile'), 'profile', false, 0], ['💡', t('phoneHelp'), 'help', false, 0],
+      ['💼', t('phoneJobs'), 'jobs', broken, 0], ['🏛️', t('svApp'), 'service', broken, 0], ['🚨', t('lwTitle'), 'law', false, 0], ['🧹', t('hlTitle'), 'household', broken, 0], ['🏙️', t('laTitle'), 'citylife', broken, 0], ['🍳', t('ckApp'), 'kitchen', broken, 0], ['🎓', t('phoneStudy'), 'study', broken, 0], ['🏘️', t('phoneHousing'), 'housing', broken, unpaid(s).length], ['🧺', t('phoneLife'), 'chores', broken, choresOf(s).clothes <= 15 ? 1 : 0], ['🚆', t('trTitle'), 'trains', broken, 0], ['🛍️', t('shopTitle'), 'shop', broken, 0], ['💬', t('phoneMessages'), 'messages', !!why, urgent], ['💘', t('phoneDating'), 'dating', broken, 0], ['🎮', t('phoneGames'), 'games', broken, 0], ['📞', t('phoneCalls'), 'phone', !!why, 0], ['🏦', t('phoneBank'), 'bank', broken, 0],
+      ['✈️', t('phoneFlights'), 'flights', false, 0], ['📜', t('phoneJournal'), 'journal', false, 0], ['👤', t('phoneProfile'), 'profile', false, 0], ['🛡️', lang() === 'ru' ? 'Кибербезопасность' : 'Cyber safety', 'cyber', broken, 0], ['💡', t('phoneHelp'), 'help', false, 0],
     ];
     const seen = seenApps();
     const sysHtml = sys.map(([ic, name, id, off, badge]) => `<button class="app sys ${off ? 'off' : ''}" data-sys="${id}" ${off ? 'aria-disabled="true"' : ''}><span class="appIcon" aria-hidden="true">${ic}${badge ? `<i class="badge">${badge}</i>` : !seen.has(id) && !off ? `<i class="newTag">${esc(t('phoneNew'))}</i>` : ''}</span><span class="appName">${esc(name)}</span></button>`);
@@ -229,6 +229,12 @@ export function openPhone(d: PhoneDeps): void {
         else if (id === 'phone') go({ name: 'contacts' });
         else if (id === 'bank') go({ name: 'bank' });
         else if (id === 'study' || id === 'housing' || id === 'chores' || id === 'trains') (id === 'study' ? openStudy : id === 'housing' ? openHousing : id === 'chores' ? openChores : openTrains)(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, scenario: sc => { d.close(); d.scenario?.(sc); } });
+        else if (id === 'kitchen') void import('./cook-ui').then(m => m.openCook(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, notify: m2 => { flash = m2; } }));
+        else if (id === 'citylife') void import('./lifeacts-ui').then(m => m.openLife(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, notify: m2 => { flash = m2; } }));
+        else if (id === 'household') void import('./homelife-ui').then(m => m.openHomeLife(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, notify: m2 => { flash = m2; } }));
+        else if (id === 'law') void import('./law-ui').then(m => m.openLaw(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, notify: m2 => { flash = m2; } }));
+        else if (id === 'cyber') void import('./cyber-ui').then(m => m.openCyber(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, notify: m2 => { flash = m2; } }));
+        else if (id === 'service') void import('./service-ui').then(m => m.openService(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, notify: m2 => { flash = m2; } }));
         else if (id === 'jobs') openJobs(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, notify: m => { flash = m; } });
         else if (id === 'flights') { d.close(); d.flights(); }
         else if (id === 'journal') d.journal();

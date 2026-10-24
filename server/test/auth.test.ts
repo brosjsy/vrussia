@@ -13,7 +13,7 @@ describe('signing up and confirming the e-mail', () => {
   it('sign-up answers the same for a new and a known address; the known one gets a warning e-mail instead of a second account', async () => {
     const a = await call(c, 'POST', '/api/auth/register', { email: '  Anna@Example.org ', password: PW });
     expect(a.status).toBe(200);
-    const mail = c.mail.last('anna@example.org')!; expect(mail.subject).toContain('V Russia');
+    const mail = c.mail.last('anna@example.org')!; expect(mail.subject).toContain('В России');
     expect(mail.html).toContain('#verify='); expect(mail.text).toContain('#verify=');
     expect(mail.text).toContain('https://game.example.org/play/#verify=');                // the token is after '#': never sent to a server or in a Referer
     const b = await call(c, 'POST', '/api/auth/register', { email: 'anna@example.org', password: 'another long password' });

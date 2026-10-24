@@ -1,0 +1,2857 @@
+{
+ "seed": 1,
+ "players": 20,
+ "days": 100,
+ "features": 109,
+ "rows": [
+  {
+   "f": "account: change password",
+   "area": "Account",
+   "okP": 1,
+   "ps": 1,
+   "tot": 1,
+   "ok": 1,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: choose name",
+   "area": "Account",
+   "okP": 20,
+   "ps": 20,
+   "tot": 20,
+   "ok": 20,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: confirm e-mail",
+   "area": "Account",
+   "okP": 20,
+   "ps": 20,
+   "tot": 20,
+   "ok": 20,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: delete",
+   "area": "Account",
+   "okP": 1,
+   "ps": 1,
+   "tot": 1,
+   "ok": 1,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: forgot password",
+   "area": "Account",
+   "okP": 1,
+   "ps": 1,
+   "tot": 1,
+   "ok": 1,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: log in",
+   "area": "Account",
+   "okP": 20,
+   "ps": 20,
+   "tot": 20,
+   "ok": 20,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: log in after reset",
+   "area": "Account",
+   "okP": 1,
+   "ps": 1,
+   "tot": 1,
+   "ok": 1,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: log in again",
+   "area": "Account",
+   "okP": 5,
+   "ps": 5,
+   "tot": 5,
+   "ok": 5,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: log out",
+   "area": "Account",
+   "okP": 5,
+   "ps": 5,
+   "tot": 5,
+   "ok": 5,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: log out other devices",
+   "area": "Account",
+   "okP": 1,
+   "ps": 1,
+   "tot": 1,
+   "ok": 1,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: reset password",
+   "area": "Account",
+   "okP": 1,
+   "ps": 1,
+   "tot": 1,
+   "ok": 1,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "account: sign up",
+   "area": "Account",
+   "okP": 20,
+   "ps": 20,
+   "tot": 20,
+   "ok": 20,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "holiday pass",
+   "area": "City",
+   "okP": 1,
+   "ps": 1,
+   "tot": 1,
+   "ok": 1,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "run for governor",
+   "area": "City",
+   "okP": 18,
+   "ps": 20,
+   "tot": 112,
+   "ok": 101,
+   "err": 0,
+   "w": "Not enough money for the campaign fee. (11)"
+  },
+  {
+   "f": "vote for governor",
+   "area": "City",
+   "okP": 20,
+   "ps": 20,
+   "tot": 112,
+   "ok": 110,
+   "err": 0,
+   "w": "You vote in person: go to the polling station in the MFC hal (2)"
+  },
+  {
+   "f": "connect home internet",
+   "area": "Daily life",
+   "okP": 19,
+   "ps": 20,
+   "tot": 25,
+   "ok": 19,
+   "err": 0,
+   "w": "Installation and the first month cost 2100 ₽. (6)"
+  },
+  {
+   "f": "top up the mobile plan",
+   "area": "Daily life",
+   "okP": 17,
+   "ps": 19,
+   "tot": 102,
+   "ok": 99,
+   "err": 0,
+   "w": "That costs 450 ₽. (3)"
+  },
+  {
+   "f": "transport card",
+   "area": "Daily life",
+   "okP": 19,
+   "ps": 20,
+   "tot": 113,
+   "ok": 108,
+   "err": 0,
+   "w": "You do not have that much. (3); The deposit is 80 ₽. (2)"
+  },
+  {
+   "f": "wash clothes",
+   "area": "Daily life",
+   "okP": 19,
+   "ps": 20,
+   "tot": 114,
+   "ok": 109,
+   "err": 0,
+   "w": "A load at the laundromat costs 350 ₽. (5)"
+  },
+  {
+   "f": "buy groceries",
+   "area": "Food",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 104,
+   "err": 0,
+   "w": "Not enough money for a bag of groceries. (2)"
+  },
+  {
+   "f": "cook a meal",
+   "area": "Food",
+   "okP": 20,
+   "ps": 20,
+   "tot": 107,
+   "ok": 106,
+   "err": 0,
+   "w": "Needs 1 portion of groceries (you have 0). (1)"
+  },
+  {
+   "f": "build own house",
+   "area": "Home",
+   "okP": 11,
+   "ps": 20,
+   "tot": 116,
+   "ok": 35,
+   "err": 0,
+   "w": "Only citizens can buy land and build here. Get citizenship f (51); Not enough money for this stage. (23); Your house is finished. (7)"
+  },
+  {
+   "f": "buy and place furniture",
+   "area": "Home",
+   "okP": 20,
+   "ps": 20,
+   "tot": 115,
+   "ok": 94,
+   "err": 0,
+   "w": "bought, but no free spot in the flat (19); cannot afford any piece (2)"
+  },
+  {
+   "f": "pay bills",
+   "area": "Home",
+   "okP": 17,
+   "ps": 17,
+   "tot": 89,
+   "ok": 88,
+   "err": 0,
+   "w": "The bills come to 8670 roubles; you have 8111. (1)"
+  },
+  {
+   "f": "renovate: floor",
+   "area": "Home",
+   "okP": 16,
+   "ps": 20,
+   "tot": 115,
+   "ok": 72,
+   "err": 0,
+   "w": "It is already like that. (32); Not enough money. (11)"
+  },
+  {
+   "f": "renovate: walls",
+   "area": "Home",
+   "okP": 20,
+   "ps": 20,
+   "tot": 115,
+   "ok": 78,
+   "err": 0,
+   "w": "It is already like that. (33); Not enough money. (4)"
+  },
+  {
+   "f": "rent a better flat",
+   "area": "Home",
+   "okP": 17,
+   "ps": 20,
+   "tot": 116,
+   "ok": 61,
+   "err": 0,
+   "w": "You already live here. (27); The landlord wants a job and four weeks of rent in the bank. (8); You own your home: there is no need to rent. (7)"
+  },
+  {
+   "f": "home activity: chair · gossip",
+   "area": "Home life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 104,
+   "err": 0,
+   "w": "Not enough money. (2)"
+  },
+  {
+   "f": "home activity: plant · water",
+   "area": "Home life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 107,
+   "ok": 106,
+   "err": 0,
+   "w": "Not enough money. (1)"
+  },
+  {
+   "f": "home activity: table · breakfast",
+   "area": "Home life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 107,
+   "ok": 105,
+   "err": 0,
+   "w": "Not enough money. (2)"
+  },
+  {
+   "f": "home activity: tv · news",
+   "area": "Home life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 107,
+   "ok": 106,
+   "err": 0,
+   "w": "Not enough money. (1)"
+  },
+  {
+   "f": "home activity: window · look",
+   "area": "Home life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 108,
+   "ok": 107,
+   "err": 0,
+   "w": "Not enough money. (1)"
+  },
+  {
+   "f": "sit and rest",
+   "area": "Home life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 106,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "tea / samovar",
+   "area": "Home life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 106,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "watch TV",
+   "area": "Home life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 107,
+   "ok": 107,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "shift: barista",
+   "area": "Jobs",
+   "okP": 20,
+   "ps": 20,
+   "tot": 110,
+   "ok": 109,
+   "err": 0,
+   "w": "You are too tired for a shift. (1)"
+  },
+  {
+   "f": "shift: courier",
+   "area": "Jobs",
+   "okP": 20,
+   "ps": 20,
+   "tot": 109,
+   "ok": 107,
+   "err": 0,
+   "w": "You are too tired for a shift. (2)"
+  },
+  {
+   "f": "kitchen: buy equipment",
+   "area": "Kitchen",
+   "okP": 20,
+   "ps": 20,
+   "tot": 85,
+   "ok": 81,
+   "err": 0,
+   "w": "It costs 5,900 ₽. (4)"
+  },
+  {
+   "f": "kitchen: call home for a recipe",
+   "area": "Kitchen",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 106,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "kitchen: cook a dish",
+   "area": "Kitchen",
+   "okP": 12,
+   "ps": 12,
+   "tot": 26,
+   "ok": 26,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "kitchen: eat leftovers",
+   "area": "Kitchen",
+   "okP": 3,
+   "ps": 3,
+   "tot": 3,
+   "ok": 3,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "kitchen: share a dish",
+   "area": "Kitchen",
+   "okP": 12,
+   "ps": 12,
+   "tot": 53,
+   "ok": 26,
+   "err": 0,
+   "w": "This one is already shared. (26); There is no family at home to feed. (1)"
+  },
+  {
+   "f": "kitchen: shop at the market and haggle",
+   "area": "Kitchen",
+   "okP": 19,
+   "ps": 19,
+   "tot": 56,
+   "ok": 56,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "kitchen: wash the dishes",
+   "area": "Kitchen",
+   "okP": 11,
+   "ps": 20,
+   "tot": 106,
+   "ok": 23,
+   "err": 0,
+   "w": "You are not at home. (74); You lost your keys: you cannot get in. Call a locksmith. (6); You did that today already. (3)"
+  },
+  {
+   "f": "action: biz",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 106,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: culture",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 105,
+   "ok": 105,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: edu",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 106,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: family",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 106,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: food",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 106,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: home",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 105,
+   "ok": 105,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: money",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 106,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: out",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 106,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: paper",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 105,
+   "ok": 105,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: people",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 106,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: pets",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 105,
+   "ok": 105,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: travel",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 105,
+   "ok": 105,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "action: work",
+   "area": "Life",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 106,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "put money aside",
+   "area": "Money",
+   "okP": 20,
+   "ps": 20,
+   "tot": 116,
+   "ok": 115,
+   "err": 0,
+   "w": "You do not have that much. (1)"
+  },
+  {
+   "f": "savings goal",
+   "area": "Money",
+   "okP": 20,
+   "ps": 20,
+   "tot": 22,
+   "ok": 22,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "shower",
+   "area": "Needs",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 106,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "toilet",
+   "area": "Needs",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 106,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "automatic save",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 398,
+   "ok": 398,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "block a player",
+   "area": "Online",
+   "okP": 8,
+   "ps": 8,
+   "tot": 12,
+   "ok": 12,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "chat at a place",
+   "area": "Online",
+   "okP": 18,
+   "ps": 18,
+   "tot": 99,
+   "ok": 76,
+   "err": 0,
+   "w": "You are writing too fast. Wait a little. (23)"
+  },
+  {
+   "f": "chat: a rude word is refused",
+   "area": "Online",
+   "okP": 18,
+   "ps": 18,
+   "tot": 97,
+   "ok": 97,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "city vote online",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 20,
+   "ok": 20,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "find a player by name",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 109,
+   "ok": 109,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "follow a player",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 109,
+   "ok": 109,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "friends list",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 109,
+   "ok": 109,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "leaderboard",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 106,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "leaderboard: send my score",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 23,
+   "ok": 23,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "like a home (once a week)",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 30,
+   "ok": 21,
+   "err": 0,
+   "w": "This player has not shown their home yet. (9)"
+  },
+  {
+   "f": "list of private talks",
+   "area": "Online",
+   "okP": 18,
+   "ps": 18,
+   "tot": 97,
+   "ok": 97,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "load my save",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 106,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "news and counters",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 106,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "post an advert",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 56,
+   "ok": 56,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "presence in the city",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 1990,
+   "ok": 1990,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "private message",
+   "area": "Online",
+   "okP": 18,
+   "ps": 18,
+   "tot": 97,
+   "ok": 75,
+   "err": 0,
+   "w": "You are writing too fast. Wait a little. (22)"
+  },
+  {
+   "f": "read adverts",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 108,
+   "ok": 108,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "report a message",
+   "area": "Online",
+   "okP": 16,
+   "ps": 16,
+   "tot": 40,
+   "ok": 40,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "see my adverts",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 106,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "show my home",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 108,
+   "ok": 108,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "visit a home + guest book",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 94,
+   "ok": 94,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "who is online",
+   "area": "Online",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 106,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "phone: call someone",
+   "area": "Phone",
+   "okP": 20,
+   "ps": 20,
+   "tot": 116,
+   "ok": 116,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "phone: dating app",
+   "area": "Phone",
+   "okP": 20,
+   "ps": 20,
+   "tot": 115,
+   "ok": 85,
+   "err": 0,
+   "w": "You are already with Katya. It would not be fair to Aleksey. (4); You are already with Anna. It would not be fair to Kamila. (4); You are already with Maxim. It would not be fair to Rustam. (3)"
+  },
+  {
+   "f": "phone: memory game",
+   "area": "Phone",
+   "okP": 20,
+   "ps": 20,
+   "tot": 115,
+   "ok": 115,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "phone: send money",
+   "area": "Phone",
+   "okP": 15,
+   "ps": 20,
+   "tot": 116,
+   "ok": 73,
+   "err": 0,
+   "w": "You need a bank account first (Online services, Open a bank  (23); You have no Russian SIM card yet. Buy one at an operator sho (20)"
+  },
+  {
+   "f": "phone: strange messages",
+   "area": "Phone",
+   "okP": 20,
+   "ps": 20,
+   "tot": 116,
+   "ok": 116,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "phone: word game",
+   "area": "Phone",
+   "okP": 20,
+   "ps": 20,
+   "tot": 116,
+   "ok": 116,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "go out: banya",
+   "area": "Places",
+   "okP": 19,
+   "ps": 20,
+   "tot": 110,
+   "ok": 107,
+   "err": 0,
+   "w": "Not enough money for the ticket and the fare. (3)"
+  },
+  {
+   "f": "go out: cafe",
+   "area": "Places",
+   "okP": 19,
+   "ps": 20,
+   "tot": 111,
+   "ok": 108,
+   "err": 0,
+   "w": "Not enough money for the ticket and the fare. (3)"
+  },
+  {
+   "f": "go out: cathedral",
+   "area": "Places",
+   "okP": 20,
+   "ps": 20,
+   "tot": 113,
+   "ok": 112,
+   "err": 0,
+   "w": "Not enough money for the ticket and the fare. (1)"
+  },
+  {
+   "f": "go out: cinema",
+   "area": "Places",
+   "okP": 20,
+   "ps": 20,
+   "tot": 111,
+   "ok": 110,
+   "err": 0,
+   "w": "Not enough money for the ticket and the fare. (1)"
+  },
+  {
+   "f": "go out: embankment",
+   "area": "Places",
+   "okP": 20,
+   "ps": 20,
+   "tot": 112,
+   "ok": 111,
+   "err": 0,
+   "w": "Not enough money for the ticket and the fare. (1)"
+  },
+  {
+   "f": "go out: gym",
+   "area": "Places",
+   "okP": 20,
+   "ps": 20,
+   "tot": 110,
+   "ok": 110,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "go out: library",
+   "area": "Places",
+   "okP": 20,
+   "ps": 20,
+   "tot": 112,
+   "ok": 111,
+   "err": 0,
+   "w": "Not enough money for the ticket and the fare. (1)"
+  },
+  {
+   "f": "go out: park",
+   "area": "Places",
+   "okP": 19,
+   "ps": 20,
+   "tot": 110,
+   "ok": 107,
+   "err": 0,
+   "w": "Not enough money for the ticket and the fare. (3)"
+  },
+  {
+   "f": "go out: rink",
+   "area": "Places",
+   "okP": 15,
+   "ps": 20,
+   "tot": 111,
+   "ok": 25,
+   "err": 0,
+   "w": "Only in winter. (86)"
+  },
+  {
+   "f": "go out: stadium",
+   "area": "Places",
+   "okP": 20,
+   "ps": 20,
+   "tot": 113,
+   "ok": 112,
+   "err": 0,
+   "w": "Not enough money for the ticket and the fare. (1)"
+  },
+  {
+   "f": "go out: tower",
+   "area": "Places",
+   "okP": 20,
+   "ps": 20,
+   "tot": 113,
+   "ok": 112,
+   "err": 0,
+   "w": "Not enough money for the ticket and the fare. (1)"
+  },
+  {
+   "f": "online service: bank",
+   "area": "Services",
+   "okP": 20,
+   "ps": 20,
+   "tot": 116,
+   "ok": 54,
+   "err": 0,
+   "w": "You already have all three banks. (62)"
+  },
+  {
+   "f": "online service: biz",
+   "area": "Services",
+   "okP": 15,
+   "ps": 20,
+   "tot": 114,
+   "ok": 22,
+   "err": 0,
+   "w": "You already run a business. (65); A patent holder cannot register as self-employed. You need R (21); Students need a work permission before registering a busines (3)"
+  },
+  {
+   "f": "online service: dms",
+   "area": "Services",
+   "okP": 5,
+   "ps": 20,
+   "tot": 115,
+   "ok": 6,
+   "err": 0,
+   "w": "Citizens use the state insurance (OMS) policy. (64); You already hold a policy. (32); With residence you use the state insurance (OMS) policy. (13)"
+  },
+  {
+   "f": "online service: doctor",
+   "area": "Services",
+   "okP": 20,
+   "ps": 20,
+   "tot": 116,
+   "ok": 116,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "online service: fines",
+   "area": "Services",
+   "okP": 0,
+   "ps": 20,
+   "tot": 114,
+   "ok": 0,
+   "err": 0,
+   "w": "You have no unpaid fines. (114)"
+  },
+  {
+   "f": "online service: hh",
+   "area": "Services",
+   "okP": 20,
+   "ps": 20,
+   "tot": 116,
+   "ok": 116,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "online service: kg",
+   "area": "Services",
+   "okP": 4,
+   "ps": 20,
+   "tot": 115,
+   "ok": 4,
+   "err": 0,
+   "w": "You do not have children yet. (103); You are already in the queue. (8)"
+  },
+  {
+   "f": "online service: migr",
+   "area": "Services",
+   "okP": 5,
+   "ps": 20,
+   "tot": 115,
+   "ok": 5,
+   "err": 0,
+   "w": "No application is possible yet: check the language test, a g (110)"
+  },
+  {
+   "f": "online service: rent",
+   "area": "Services",
+   "okP": 20,
+   "ps": 20,
+   "tot": 116,
+   "ok": 116,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "online service: rzd",
+   "area": "Services",
+   "okP": 20,
+   "ps": 20,
+   "tot": 115,
+   "ok": 115,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "online service: shop",
+   "area": "Services",
+   "okP": 20,
+   "ps": 20,
+   "tot": 116,
+   "ok": 116,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "online service: simid",
+   "area": "Services",
+   "okP": 12,
+   "ps": 20,
+   "tot": 114,
+   "ok": 16,
+   "err": 0,
+   "w": "Citizens only need a passport at the operator shop. (63); You are already identified. Now buy the SIM card at an opera (35)"
+  },
+  {
+   "f": "online service: uni",
+   "area": "Services",
+   "okP": 14,
+   "ps": 20,
+   "tot": 116,
+   "ok": 14,
+   "err": 0,
+   "w": "The application window is June and July. (63); You have already applied this year. (39)"
+  },
+  {
+   "f": "online service: zags",
+   "area": "Services",
+   "okP": 2,
+   "ps": 20,
+   "tot": 116,
+   "ok": 2,
+   "err": 0,
+   "w": "Your relationship is not ready yet. (83); You are already married. (16); You need a partner first. (13)"
+  },
+  {
+   "f": "buy a gift",
+   "area": "Shop",
+   "okP": 20,
+   "ps": 20,
+   "tot": 114,
+   "ok": 112,
+   "err": 0,
+   "w": "You need ₽800; you have −₽1,506. (1); You need ₽800; you have −₽1,624. (1)"
+  },
+  {
+   "f": "buy clothes",
+   "area": "Shop",
+   "okP": 19,
+   "ps": 20,
+   "tot": 114,
+   "ok": 111,
+   "err": 0,
+   "w": "You need ₽7,500; you have ₽5,910. (1); You need ₽1,200; you have −₽1,446. (1); You need ₽24,000; you have ₽23,027. (1)"
+  },
+  {
+   "f": "wear something",
+   "area": "Shop",
+   "okP": 19,
+   "ps": 19,
+   "tot": 112,
+   "ok": 112,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "enrol in a course",
+   "area": "Study",
+   "okP": 20,
+   "ps": 20,
+   "tot": 37,
+   "ok": 36,
+   "err": 0,
+   "w": "The fee is 3000 roubles. (1)"
+  },
+  {
+   "f": "exam",
+   "area": "Study",
+   "okP": 14,
+   "ps": 15,
+   "tot": 26,
+   "ok": 19,
+   "err": 0,
+   "w": "Failed this time. Do two more pieces of homework and try aga (7)"
+  },
+  {
+   "f": "homework",
+   "area": "Study",
+   "okP": 20,
+   "ps": 20,
+   "tot": 107,
+   "ok": 107,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "lecture",
+   "area": "Study",
+   "okP": 20,
+   "ps": 20,
+   "tot": 96,
+   "ok": 96,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "book a flight",
+   "area": "Travel",
+   "okP": 19,
+   "ps": 20,
+   "tot": 114,
+   "ok": 95,
+   "err": 0,
+   "w": "Not enough money for this ticket. (19)"
+  },
+  {
+   "f": "metro or bus to a place",
+   "area": "Travel",
+   "okP": 20,
+   "ps": 20,
+   "tot": 106,
+   "ok": 106,
+   "err": 0,
+   "w": ""
+  },
+  {
+   "f": "train to another city",
+   "area": "Travel",
+   "okP": 11,
+   "ps": 19,
+   "tot": 41,
+   "ok": 14,
+   "err": 0,
+   "w": "open berths) · 3,960 ₽ (2); open berths) · 5,760 ₽ (2); open berths) · 25,870 ₽ (1)"
+  }
+ ],
+ "outcomes": [
+  {
+   "name": "aigerim",
+   "email": "aigerim@play.test",
+   "style": "careful",
+   "origin": "Moscow Baby",
+   "adult": true,
+   "lives": 1,
+   "history": [
+    {
+     "over": "time",
+     "day": 730,
+     "money": 2275988
+    }
+   ],
+   "longest": {
+    "over": "time",
+    "day": 730,
+    "money": 2275988,
+    "city": "Izhevsk",
+    "job": "courier",
+    "housing": "house",
+    "status": "citizen",
+    "partner": true,
+    "kids": 1,
+    "rep": 1,
+    "health": 100,
+    "achievements": [
+     "papers",
+     "friends",
+     "week",
+     "dog",
+     "tourist",
+     "bank",
+     "entrepreneur",
+     "graduate",
+     "profitable",
+     "move",
+     "gourmet",
+     "winter",
+     "quiz",
+     "settled",
+     "clean",
+     "millionaire",
+     "cook1",
+     "cook3star",
+     "homeowner",
+     "driver",
+     "patriot",
+     "carowner",
+     "proverb",
+     "married",
+     "parent",
+     "twoyears"
+    ],
+    "kitchen": {
+     "cooked": 1,
+     "dishes": 1,
+     "threeStars": 1,
+     "rank": "Learner"
+    }
+   },
+   "achievements": 26,
+   "kitchen": {
+    "cooked": 1,
+    "dishes": 1,
+    "threeStars": 1,
+    "rank": "Learner"
+   },
+   "features": {
+    "worked": 109,
+    "of": 125,
+    "most": [
+     "presence in the city (100)",
+     "automatic save (20)",
+     "buy groceries (7)",
+     "cook a meal (7)",
+     "buy and place furniture (7)",
+     "home activity: chair · gossip (7)"
+    ]
+   },
+   "scoresSent": 1
+  },
+  {
+   "name": "bakhrom",
+   "email": "bakhrom@play.test",
+   "style": "social",
+   "origin": "Regional Kid",
+   "adult": true,
+   "lives": 1,
+   "history": [
+    {
+     "over": "time",
+     "day": 730,
+     "money": 226086
+    }
+   ],
+   "longest": {
+    "over": "time",
+    "day": 730,
+    "money": 226086,
+    "city": "Novosibirsk",
+    "job": "courier",
+    "housing": "rented",
+    "status": "citizen",
+    "partner": true,
+    "kids": 3,
+    "rep": 1,
+    "health": 100,
+    "achievements": [
+     "papers",
+     "friends",
+     "week",
+     "tourist",
+     "bank",
+     "move",
+     "patriot",
+     "dog",
+     "quiz",
+     "married",
+     "proverb",
+     "festival",
+     "winter",
+     "parent",
+     "entrepreneur",
+     "gourmet",
+     "graduate",
+     "profitable",
+     "settled",
+     "driver",
+     "student",
+     "clean",
+     "cook1",
+     "honours",
+     "twoyears"
+    ],
+    "kitchen": {
+     "cooked": 1,
+     "dishes": 1,
+     "threeStars": 0,
+     "rank": "Learner"
+    }
+   },
+   "achievements": 25,
+   "kitchen": {
+    "cooked": 1,
+    "dishes": 1,
+    "threeStars": 0,
+    "rank": "Learner"
+   },
+   "features": {
+    "worked": 110,
+    "of": 125,
+    "most": [
+     "presence in the city (100)",
+     "automatic save (20)",
+     "buy groceries (7)",
+     "cook a meal (7)",
+     "home activity: plant · water (7)",
+     "home activity: tv · news (7)"
+    ]
+   },
+   "scoresSent": 1
+  },
+  {
+   "name": "chidi",
+   "email": "chidi@play.test",
+   "style": "hustler",
+   "origin": "Tajik Migrant",
+   "adult": true,
+   "lives": 1,
+   "history": [
+    {
+     "over": "time",
+     "day": 730,
+     "money": 1962441
+    }
+   ],
+   "longest": {
+    "over": "time",
+    "day": 730,
+    "money": 1962441,
+    "city": "Khabarovsk",
+    "job": "courier",
+    "housing": "rented",
+    "status": "migrant",
+    "partner": true,
+    "kids": 0,
+    "rep": 4,
+    "health": 97,
+    "achievements": [
+     "dog",
+     "friends",
+     "papers",
+     "week",
+     "tourist",
+     "bank",
+     "language",
+     "cook1",
+     "gourmet",
+     "graduate",
+     "driver",
+     "winter",
+     "cook3star",
+     "move",
+     "student",
+     "millionaire",
+     "clean",
+     "patriot",
+     "carowner",
+     "rvp",
+     "entrepreneur",
+     "honours",
+     "profitable",
+     "twoyears"
+    ],
+    "kitchen": {
+     "cooked": 3,
+     "dishes": 3,
+     "threeStars": 1,
+     "rank": "Home cook"
+    }
+   },
+   "achievements": 24,
+   "kitchen": {
+    "cooked": 3,
+    "dishes": 3,
+    "threeStars": 1,
+    "rank": "Home cook"
+   },
+   "features": {
+    "worked": 107,
+    "of": 125,
+    "most": [
+     "presence in the city (100)",
+     "automatic save (20)",
+     "top up the mobile plan (7)",
+     "wash clothes (7)",
+     "buy groceries (7)",
+     "cook a meal (7)"
+    ]
+   },
+   "scoresSent": 1
+  },
+  {
+   "name": "dasha",
+   "email": "dasha@play.test",
+   "style": "random",
+   "origin": "Uzbek Migrant",
+   "adult": true,
+   "lives": 3,
+   "history": [
+    {
+     "over": "deported",
+     "day": 24,
+     "money": 823
+    },
+    {
+     "over": "deported",
+     "day": 41,
+     "money": -32313
+    },
+    {
+     "over": "deported",
+     "day": 60,
+     "money": 9146
+    }
+   ],
+   "longest": {
+    "over": "deported",
+    "day": 60,
+    "money": 9146,
+    "city": "Moscow",
+    "job": "hotel",
+    "housing": "rented",
+    "status": "migrant",
+    "partner": false,
+    "kids": 0,
+    "rep": 0,
+    "health": 100,
+    "achievements": [
+     "friends",
+     "week",
+     "tourist",
+     "bank",
+     "driver",
+     "language"
+    ],
+    "kitchen": {
+     "cooked": 0,
+     "dishes": 0,
+     "threeStars": 0,
+     "rank": "Beginner"
+    }
+   },
+   "achievements": 6,
+   "kitchen": {
+    "cooked": 0,
+    "dishes": 0,
+    "threeStars": 0,
+    "rank": "Beginner"
+   },
+   "features": {
+    "worked": 97,
+    "of": 125,
+    "most": [
+     "presence in the city (100)",
+     "automatic save (20)",
+     "action: biz (3)",
+     "action: culture (3)",
+     "action: family (3)",
+     "action: pets (3)"
+    ]
+   },
+   "scoresSent": 3
+  },
+  {
+   "name": "emeka",
+   "email": "emeka@play.test",
+   "style": "careful",
+   "origin": "Kyrgyz (EAEU) Worker",
+   "adult": true,
+   "lives": 1,
+   "history": [
+    {
+     "over": "time",
+     "day": 730,
+     "money": 68148
+    }
+   ],
+   "longest": {
+    "over": "time",
+    "day": 730,
+    "money": 68148,
+    "city": "Rostov-on-Don",
+    "job": "courier",
+    "housing": "rented",
+    "status": "citizen",
+    "partner": true,
+    "kids": 0,
+    "rep": 0,
+    "health": 100,
+    "achievements": [
+     "papers",
+     "dog",
+     "week",
+     "move",
+     "friends",
+     "tourist",
+     "bank",
+     "entrepreneur",
+     "cook1",
+     "cook3star",
+     "language",
+     "rvp",
+     "profitable",
+     "driver",
+     "winter",
+     "gourmet",
+     "vnzh",
+     "carowner",
+     "quiz",
+     "student",
+     "clean",
+     "settled",
+     "patriot",
+     "citizen",
+     "graduate",
+     "proverb",
+     "honours",
+     "twoyears"
+    ],
+    "kitchen": {
+     "cooked": 4,
+     "dishes": 4,
+     "threeStars": 4,
+     "rank": "Home cook"
+    }
+   },
+   "achievements": 28,
+   "kitchen": {
+    "cooked": 4,
+    "dishes": 4,
+    "threeStars": 4,
+    "rank": "Home cook"
+   },
+   "features": {
+    "worked": 112,
+    "of": 125,
+    "most": [
+     "presence in the city (100)",
+     "automatic save (20)",
+     "run for governor (7)",
+     "vote for governor (7)",
+     "top up the mobile plan (7)",
+     "transport card (7)"
+    ]
+   },
+   "scoresSent": 1
+  },
+  {
+   "name": "farida",
+   "email": "farida@play.test",
+   "style": "social",
+   "origin": "Foreign Student",
+   "adult": true,
+   "lives": 1,
+   "history": [
+    {
+     "over": "time",
+     "day": 730,
+     "money": 344802
+    }
+   ],
+   "longest": {
+    "over": "time",
+    "day": 730,
+    "money": 344802,
+    "city": "Grozny",
+    "job": "courier",
+    "housing": "rented",
+    "status": "citizen",
+    "partner": true,
+    "kids": 3,
+    "rep": 0,
+    "health": 100,
+    "achievements": [
+     "papers",
+     "student",
+     "friends",
+     "week",
+     "tourist",
+     "language",
+     "move",
+     "bank",
+     "patriot",
+     "graduate",
+     "quiz",
+     "dog",
+     "winter",
+     "proverb",
+     "married",
+     "cook1",
+     "cook3star",
+     "honours",
+     "parent",
+     "festival",
+     "gourmet",
+     "rvp",
+     "entrepreneur",
+     "clean",
+     "driver",
+     "profitable",
+     "vnzh",
+     "settled",
+     "citizen",
+     "studied2y",
+     "twoyears"
+    ],
+    "kitchen": {
+     "cooked": 1,
+     "dishes": 1,
+     "threeStars": 1,
+     "rank": "Learner"
+    }
+   },
+   "achievements": 31,
+   "kitchen": {
+    "cooked": 1,
+    "dishes": 1,
+    "threeStars": 1,
+    "rank": "Learner"
+   },
+   "features": {
+    "worked": 111,
+    "of": 125,
+    "most": [
+     "presence in the city (100)",
+     "automatic save (20)",
+     "vote for governor (7)",
+     "transport card (7)",
+     "wash clothes (7)",
+     "buy groceries (7)"
+    ]
+   },
+   "scoresSent": 1
+  },
+  {
+   "name": "gulnara",
+   "email": "gulnara@play.test",
+   "style": "hustler",
+   "origin": "Dagestani Student",
+   "adult": false,
+   "lives": 1,
+   "history": [
+    {
+     "over": "time",
+     "day": 730,
+     "money": 2620035
+    }
+   ],
+   "longest": {
+    "over": "time",
+    "day": 730,
+    "money": 2620035,
+    "city": "Veliky Novgorod",
+    "job": "courier",
+    "housing": "house",
+    "status": "citizen",
+    "partner": true,
+    "kids": 0,
+    "rep": 1,
+    "health": 100,
+    "achievements": [
+     "papers",
+     "student",
+     "cook1",
+     "cook3star",
+     "friends",
+     "week",
+     "tourist",
+     "bank",
+     "entrepreneur",
+     "move",
+     "dog",
+     "profitable",
+     "graduate",
+     "winter",
+     "gourmet",
+     "millionaire",
+     "honours",
+     "driver",
+     "clean",
+     "carowner",
+     "patriot",
+     "quiz",
+     "homeowner",
+     "twoyears"
+    ],
+    "kitchen": {
+     "cooked": 4,
+     "dishes": 4,
+     "threeStars": 2,
+     "rank": "Home cook"
+    }
+   },
+   "achievements": 24,
+   "kitchen": {
+    "cooked": 4,
+    "dishes": 4,
+    "threeStars": 2,
+    "rank": "Home cook"
+   },
+   "features": {
+    "worked": 104,
+    "of": 125,
+    "most": [
+     "presence in the city (100)",
+     "automatic save (20)",
+     "top up the mobile plan (7)",
+     "transport card (7)",
+     "wash clothes (7)",
+     "cook a meal (7)"
+    ]
+   },
+   "scoresSent": 1
+  },
+  {
+   "name": "hiro",
+   "email": "hiro@play.test",
+   "style": "random",
+   "origin": "Moscow Baby",
+   "adult": true,
+   "lives": 1,
+   "history": [
+    {
+     "over": "time",
+     "day": 730,
+     "money": 2478306
+    }
+   ],
+   "longest": {
+    "over": "time",
+    "day": 730,
+    "money": 2478306,
+    "city": "Saint Petersburg",
+    "job": "hotel",
+    "housing": "house",
+    "status": "citizen",
+    "partner": true,
+    "kids": 0,
+    "rep": 0,
+    "health": 100,
+    "achievements": [
+     "papers",
+     "week",
+     "tourist",
+     "friends",
+     "bank",
+     "entrepreneur",
+     "patriot",
+     "explorer",
+     "profitable",
+     "move",
+     "married",
+     "winter",
+     "quiz",
+     "millionaire",
+     "gourmet",
+     "settled",
+     "student",
+     "driver",
+     "graduate",
+     "homeowner",
+     "clean",
+     "honours",
+     "carowner",
+     "twoyears"
+    ],
+    "kitchen": {
+     "cooked": 0,
+     "dishes": 0,
+     "threeStars": 0,
+     "rank": "Learner"
+    }
+   },
+   "achievements": 24,
+   "kitchen": {
+    "cooked": 0,
+    "dishes": 0,
+    "threeStars": 0,
+    "rank": "Learner"
+   },
+   "features": {
+    "worked": 108,
+    "of": 125,
+    "most": [
+     "presence in the city (100)",
+     "automatic save (20)",
+     "run for governor (7)",
+     "vote for governor (7)",
+     "top up the mobile plan (7)",
+     "transport card (7)"
+    ]
+   },
+   "scoresSent": 1
+  },
+  {
+   "name": "ivan",
+   "email": "ivan@play.test",
+   "style": "careful",
+   "origin": "Regional Kid",
+   "adult": true,
+   "lives": 1,
+   "history": [
+    {
+     "over": "time",
+     "day": 730,
+     "money": 41713
+    }
+   ],
+   "longest": {
+    "over": "time",
+    "day": 730,
+    "money": 41713,
+    "city": "Saratov",
+    "job": "courier",
+    "housing": "rented",
+    "status": "citizen",
+    "partner": true,
+    "kids": 1,
+    "rep": 0,
+    "health": 100,
+    "achievements": [
+     "papers",
+     "week",
+     "tourist",
+     "friends",
+     "bank",
+     "entrepreneur",
+     "patriot",
+     "driver",
+     "graduate",
+     "profitable",
+     "gourmet",
+     "winter",
+     "dog",
+     "move",
+     "student",
+     "quiz",
+     "clean",
+     "cook1",
+     "cook3star",
+     "settled",
+     "proverb",
+     "carowner",
+     "cookhost",
+     "honours",
+     "married",
+     "parent",
+     "twoyears"
+    ],
+    "kitchen": {
+     "cooked": 2,
+     "dishes": 2,
+     "threeStars": 2,
+     "rank": "Learner"
+    }
+   },
+   "achievements": 27,
+   "kitchen": {
+    "cooked": 2,
+    "dishes": 2,
+    "threeStars": 2,
+    "rank": "Learner"
+   },
+   "features": {
+    "worked": 113,
+    "of": 125,
+    "most": [
+     "presence in the city (100)",
+     "automatic save (20)",
+     "vote for governor (7)",
+     "top up the mobile plan (7)",
+     "transport card (7)",
+     "wash clothes (7)"
+    ]
+   },
+   "scoresSent": 1
+  },
+  {
+   "name": "jamila",
+   "email": "jamila@play.test",
+   "style": "social",
+   "origin": "Tajik Migrant",
+   "adult": true,
+   "lives": 1,
+   "history": [
+    {
+     "over": "deported",
+     "day": 108,
+     "money": -11146
+    }
+   ],
+   "longest": {
+    "over": "deported",
+    "day": 108,
+    "money": -11146,
+    "city": "Moscow",
+    "job": "courier",
+    "housing": "rented",
+    "status": "migrant",
+    "partner": true,
+    "kids": 0,
+    "rep": 0,
+    "health": 25,
+    "achievements": [
+     "week",
+     "papers",
+     "tourist",
+     "friends",
+     "bank",
+     "language",
+     "hospital"
+    ],
+    "kitchen": {
+     "cooked": 0,
+     "dishes": 0,
+     "threeStars": 0,
+     "rank": "Beginner"
+    }
+   },
+   "achievements": 7,
+   "kitchen": {
+    "cooked": 0,
+    "dishes": 0,
+    "threeStars": 0,
+    "rank": "Beginner"
+   },
+   "features": {
+    "worked": 87,
+    "of": 125,
+    "most": [
+     "presence in the city (100)",
+     "automatic save (20)",
+     "vote for governor (2)",
+     "cook a meal (2)",
+     "buy and place furniture (2)",
+     "sit and rest (2)"
+    ]
+   },
+   "scoresSent": 1
+  },
+  {
+   "name": "kofi",
+   "email": "kofi@play.test",
+   "style": "hustler",
+   "origin": "Uzbek Migrant",
+   "adult": true,
+   "lives": 1,
+   "history": [
+    {
+     "over": "time",
+     "day": 730,
+     "money": 1907679
+    }
+   ],
+   "longest": {
+    "over": "time",
+    "day": 730,
+    "money": 1907679,
+    "city": "Khabarovsk",
+    "job": "courier",
+    "housing": "rented",
+    "status": "citizen",
+    "partner": true,
+    "kids": 0,
+    "rep": 3,
+    "health": 100,
+    "achievements": [
+     "papers",
+     "friends",
+     "week",
+     "tourist",
+     "bank",
+     "language",
+     "dog",
+     "cook1",
+     "cook3star",
+     "rvp",
+     "graduate",
+     "patriot",
+     "entrepreneur",
+     "gourmet",
+     "winter",
+     "move",
+     "vnzh",
+     "profitable",
+     "millionaire",
+     "student",
+     "clean",
+     "citizen",
+     "honours",
+     "twoyears"
+    ],
+    "kitchen": {
+     "cooked": 3,
+     "dishes": 3,
+     "threeStars": 1,
+     "rank": "Home cook"
+    }
+   },
+   "achievements": 24,
+   "kitchen": {
+    "cooked": 3,
+    "dishes": 3,
+    "threeStars": 1,
+    "rank": "Home cook"
+   },
+   "features": {
+    "worked": 109,
+    "of": 125,
+    "most": [
+     "presence in the city (100)",
+     "automatic save (20)",
+     "run for governor (7)",
+     "vote for governor (7)",
+     "transport card (7)",
+     "wash clothes (7)"
+    ]
+   },
+   "scoresSent": 1
+  },
+  {
+   "name": "lena",
+   "email": "lena@play.test",
+   "style": "random",
+   "origin": "Kyrgyz (EAEU) Worker",
+   "adult": true,
+   "lives": 1,
+   "history": [
+    {
+     "over": "deported",
+     "day": 113,
+     "money": 60529
+    }
+   ],
+   "longest": {
+    "over": "deported",
+    "day": 113,
+    "money": 60529,
+    "city": "Moscow",
+    "job": "courier",
+    "housing": "rented",
+    "status": "eaeu",
+    "partner": false,
+    "kids": 0,
+    "rep": 0,
+    "health": 100,
+    "achievements": [
+     "papers",
+     "week",
+     "tourist",
+     "friends",
+     "bank",
+     "settled",
+     "language",
+     "entrepreneur"
+    ],
+    "kitchen": {
+     "cooked": 0,
+     "dishes": 0,
+     "threeStars": 0,
+     "rank": "Beginner"
+    }
+   },
+   "achievements": 8,
+   "kitchen": {
+    "cooked": 0,
+    "dishes": 0,
+    "threeStars": 0,
+    "rank": "Beginner"
+   },
+   "features": {
+    "worked": 101,
+    "of": 125,
+    "most": [
+     "presence in the city (100)",
+     "automatic save (20)",
+     "vote for governor (2)",
+     "transport card (2)",
+     "wash clothes (2)",
+     "buy groceries (2)"
+    ]
+   },
+   "scoresSent": 1
+  },
+  {
+   "name": "maksim",
+   "email": "maksim@play.test",
+   "style": "careful",
+   "origin": "Foreign Student",
+   "adult": true,
+   "lives": 1,
+   "history": [
+    {
+     "over": "time",
+     "day": 730,
+     "money": 617625
+    }
+   ],
+   "longest": {
+    "over": "time",
+    "day": 730,
+    "money": 617625,
+    "city": "Barnaul",
+    "job": "courier",
+    "housing": "rented",
+    "status": "citizen",
+    "partner": true,
+    "kids": 1,
+    "rep": 5,
+    "health": 100,
+    "achievements": [
+     "papers",
+     "student",
+     "week",
+     "tourist",
+     "friends",
+     "language",
+     "dog",
+     "cook1",
+     "cook3star",
+     "bank",
+     "driver",
+     "patriot",
+     "rvp",
+     "entrepreneur",
+     "winter",
+     "gourmet",
+     "move",
+     "graduate",
+     "honours",
+     "vnzh",
+     "profitable",
+     "carowner",
+     "settled",
+     "quiz",
+     "clean",
+     "citizen",
+     "proverb",
+     "married",
+     "parent",
+     "studied2y",
+     "twoyears"
+    ],
+    "kitchen": {
+     "cooked": 2,
+     "dishes": 2,
+     "threeStars": 2,
+     "rank": "Learner"
+    }
+   },
+   "achievements": 31,
+   "kitchen": {
+    "cooked": 2,
+    "dishes": 2,
+    "threeStars": 2,
+    "rank": "Learner"
+   },
+   "features": {
+    "worked": 113,
+    "of": 125,
+    "most": [
+     "presence in the city (100)",
+     "automatic save (20)",
+     "vote for governor (7)",
+     "transport card (7)",
+     "wash clothes (7)",
+     "shift: barista (7)"
+    ]
+   },
+   "scoresSent": 1
+  },
+  {
+   "name": "nodira",
+   "email": "nodira@play.test",
+   "style": "social",
+   "origin": "Dagestani Student",
+   "adult": false,
+   "lives": 1,
+   "history": [
+    {
+     "over": "time",
+     "day": 730,
+     "money": 145540
+    }
+   ],
+   "longest": {
+    "over": "time",
+    "day": 730,
+    "money": 145540,
+    "city": "Makhachkala",
+    "job": "courier",
+    "housing": "rented",
+    "status": "citizen",
+    "partner": true,
+    "kids": 3,
+    "rep": 0,
+    "health": 100,
+    "achievements": [
+     "papers",
+     "student",
+     "friends",
+     "week",
+     "tourist",
+     "bank",
+     "entrepreneur",
+     "driver",
+     "patriot",
+     "quiz",
+     "profitable",
+     "proverb",
+     "winter",
+     "settled",
+     "dog",
+     "gourmet",
+     "move",
+     "married",
+     "honours",
+     "parent",
+     "clean",
+     "festival",
+     "graduate",
+     "cook1",
+     "carowner",
+     "studied2y",
+     "twoyears"
+    ],
+    "kitchen": {
+     "cooked": 1,
+     "dishes": 1,
+     "threeStars": 0,
+     "rank": "Learner"
+    }
+   },
+   "achievements": 27,
+   "kitchen": {
+    "cooked": 1,
+    "dishes": 1,
+    "threeStars": 0,
+    "rank": "Learner"
+   },
+   "features": {
+    "worked": 103,
+    "of": 125,
+    "most": [
+     "presence in the city (100)",
+     "automatic save (20)",
+     "run for governor (7)",
+     "vote for governor (7)",
+     "transport card (7)",
+     "wash clothes (7)"
+    ]
+   },
+   "scoresSent": 1
+  },
+  {
+   "name": "olu",
+   "email": "olu@play.test",
+   "style": "hustler",
+   "origin": "Moscow Baby",
+   "adult": true,
+   "lives": 1,
+   "history": [
+    {
+     "over": "time",
+     "day": 730,
+     "money": 3830832
+    }
+   ],
+   "longest": {
+    "over": "time",
+    "day": 730,
+    "money": 3830832,
+    "city": "Perm",
+    "job": "courier",
+    "housing": "house",
+    "status": "citizen",
+    "partner": true,
+    "kids": 0,
+    "rep": 4,
+    "health": 99,
+    "achievements": [
+     "papers",
+     "tourist",
+     "week",
+     "friends",
+     "bank",
+     "entrepreneur",
+     "driver",
+     "move",
+     "profitable",
+     "gourmet",
+     "winter",
+     "dog",
+     "carowner",
+     "patriot",
+     "graduate",
+     "millionaire",
+     "student",
+     "clean",
+     "homeowner",
+     "honours",
+     "proverb",
+     "twoyears"
+    ],
+    "kitchen": {
+     "cooked": 0,
+     "dishes": 0,
+     "threeStars": 0,
+     "rank": "Learner"
+    }
+   },
+   "achievements": 22,
+   "kitchen": {
+    "cooked": 0,
+    "dishes": 0,
+    "threeStars": 0,
+    "rank": "Learner"
+   },
+   "features": {
+    "worked": 106,
+    "of": 125,
+    "most": [
+     "presence in the city (100)",
+     "automatic save (20)",
+     "run for governor (7)",
+     "vote for governor (7)",
+     "transport card (7)",
+     "wash clothes (7)"
+    ]
+   },
+   "scoresSent": 1
+  },
+  {
+   "name": "pavel",
+   "email": "pavel@play.test",
+   "style": "random",
+   "origin": "Regional Kid",
+   "adult": true,
+   "lives": 1,
+   "history": [
+    {
+     "over": "time",
+     "day": 730,
+     "money": 314307
+    }
+   ],
+   "longest": {
+    "over": "time",
+    "day": 730,
+    "money": 314307,
+    "city": "Yekaterinburg",
+    "job": "farm",
+    "housing": "rented",
+    "status": "citizen",
+    "partner": true,
+    "kids": 0,
+    "rep": 0,
+    "health": 100,
+    "achievements": [
+     "papers",
+     "tourist",
+     "week",
+     "bank",
+     "friends",
+     "driver",
+     "settled",
+     "move",
+     "patriot",
+     "entrepreneur",
+     "winter",
+     "gourmet",
+     "graduate",
+     "carowner",
+     "explorer",
+     "profitable",
+     "quiz",
+     "student",
+     "cook1",
+     "proverb",
+     "hospital",
+     "honours",
+     "twoyears"
+    ],
+    "kitchen": {
+     "cooked": 1,
+     "dishes": 1,
+     "threeStars": 0,
+     "rank": "Learner"
+    }
+   },
+   "achievements": 23,
+   "kitchen": {
+    "cooked": 1,
+    "dishes": 1,
+    "threeStars": 0,
+    "rank": "Learner"
+   },
+   "features": {
+    "worked": 110,
+    "of": 125,
+    "most": [
+     "presence in the city (100)",
+     "automatic save (20)",
+     "transport card (7)",
+     "wash clothes (7)",
+     "action: edu (7)",
+     "action: food (7)"
+    ]
+   },
+   "scoresSent": 1
+  },
+  {
+   "name": "qudrat",
+   "email": "qudrat@play.test",
+   "style": "careful",
+   "origin": "Tajik Migrant",
+   "adult": true,
+   "lives": 1,
+   "history": [
+    {
+     "over": "time",
+     "day": 730,
+     "money": 231518
+    }
+   ],
+   "longest": {
+    "over": "time",
+    "day": 730,
+    "money": 231518,
+    "city": "Novosibirsk",
+    "job": "courier",
+    "housing": "rented",
+    "status": "migrant",
+    "partner": true,
+    "kids": 1,
+    "rep": 15,
+    "health": 100,
+    "achievements": [
+     "papers",
+     "week",
+     "friends",
+     "bank",
+     "language",
+     "tourist",
+     "settled",
+     "driver",
+     "cook1",
+     "cook3star",
+     "winter",
+     "dog",
+     "carowner",
+     "move",
+     "gourmet",
+     "clean",
+     "quiz",
+     "proverb",
+     "patriot",
+     "married",
+     "student",
+     "parent",
+     "twoyears"
+    ],
+    "kitchen": {
+     "cooked": 3,
+     "dishes": 3,
+     "threeStars": 3,
+     "rank": "Home cook"
+    }
+   },
+   "achievements": 23,
+   "kitchen": {
+    "cooked": 3,
+    "dishes": 3,
+    "threeStars": 3,
+    "rank": "Home cook"
+   },
+   "features": {
+    "worked": 111,
+    "of": 125,
+    "most": [
+     "presence in the city (100)",
+     "automatic save (20)",
+     "run for governor (7)",
+     "vote for governor (7)",
+     "top up the mobile plan (7)",
+     "transport card (7)"
+    ]
+   },
+   "scoresSent": 1
+  },
+  {
+   "name": "rustam",
+   "email": "rustam@play.test",
+   "style": "social",
+   "origin": "Uzbek Migrant",
+   "adult": true,
+   "lives": 2,
+   "history": [
+    {
+     "over": "deported",
+     "day": 43,
+     "money": -11444
+    },
+    {
+     "over": "deported",
+     "day": 127,
+     "money": 596
+    }
+   ],
+   "longest": {
+    "over": "deported",
+    "day": 127,
+    "money": 596,
+    "city": "Moscow",
+    "job": "courier",
+    "housing": "rented",
+    "status": "migrant",
+    "partner": true,
+    "kids": 0,
+    "rep": 1,
+    "health": 83,
+    "achievements": [
+     "driver",
+     "tourist",
+     "papers",
+     "week",
+     "friends",
+     "bank",
+     "dog",
+     "language",
+     "patriot"
+    ],
+    "kitchen": {
+     "cooked": 0,
+     "dishes": 0,
+     "threeStars": 0,
+     "rank": "Beginner"
+    }
+   },
+   "achievements": 10,
+   "kitchen": {
+    "cooked": 0,
+    "dishes": 0,
+    "threeStars": 0,
+    "rank": "Beginner"
+   },
+   "features": {
+    "worked": 94,
+    "of": 125,
+    "most": [
+     "presence in the city (100)",
+     "automatic save (20)",
+     "vote for governor (3)",
+     "buy and place furniture (3)",
+     "renovate: walls (3)",
+     "put money aside (3)"
+    ]
+   },
+   "scoresSent": 2
+  },
+  {
+   "name": "sveta",
+   "email": "sveta@play.test",
+   "style": "hustler",
+   "origin": "Kyrgyz (EAEU) Worker",
+   "adult": true,
+   "lives": 1,
+   "history": [
+    {
+     "over": "time",
+     "day": 730,
+     "money": 2900172
+    }
+   ],
+   "longest": {
+    "over": "time",
+    "day": 730,
+    "money": 2900172,
+    "city": "Grozny",
+    "job": "courier",
+    "housing": "rented",
+    "status": "eaeu",
+    "partner": true,
+    "kids": 0,
+    "rep": 8,
+    "health": 100,
+    "achievements": [
+     "papers",
+     "week",
+     "bank",
+     "friends",
+     "tourist",
+     "settled",
+     "move",
+     "language",
+     "entrepreneur",
+     "dog",
+     "gourmet",
+     "patriot",
+     "winter",
+     "profitable",
+     "millionaire",
+     "student",
+     "clean",
+     "graduate",
+     "rvp",
+     "honours",
+     "driver",
+     "twoyears"
+    ],
+    "kitchen": {
+     "cooked": 0,
+     "dishes": 0,
+     "threeStars": 0,
+     "rank": "Learner"
+    }
+   },
+   "achievements": 22,
+   "kitchen": {
+    "cooked": 0,
+    "dishes": 0,
+    "threeStars": 0,
+    "rank": "Learner"
+   },
+   "features": {
+    "worked": 106,
+    "of": 125,
+    "most": [
+     "presence in the city (100)",
+     "automatic save (20)",
+     "run for governor (7)",
+     "top up the mobile plan (7)",
+     "transport card (7)",
+     "wash clothes (7)"
+    ]
+   },
+   "scoresSent": 1
+  }
+ ],
+ "checks": [
+  "day 10: all well · server errors so far 0 · messages 0 · sessions 20",
+  "day 20: all well · server errors so far 0 · messages 5 · sessions 20",
+  "day 30: all well · server errors so far 0 · messages 16 · sessions 20",
+  "day 40: all well · server errors so far 0 · messages 27 · sessions 20",
+  "day 50: all well · server errors so far 0 · messages 36 · sessions 20",
+  "day 60: all well · server errors so far 0 · messages 36 · sessions 20",
+  "day 70: all well · server errors so far 0 · messages 36 · sessions 20",
+  "day 80: all well · server errors so far 0 · messages 48 · sessions 20",
+  "day 90: all well · server errors so far 0 · messages 55 · sessions 19",
+  "day 100: all well · server errors so far 0 · messages 67 · sessions 19"
+ ],
+ "problems": [],
+ "serverErrors": [],
+ "leaderboard": [
+  {
+   "username": "olu",
+   "origin": "moscow",
+   "city": "Perm",
+   "ending": "time",
+   "score": 10269,
+   "days": 730,
+   "created_at": "2026-10-21T21:11:42.616Z"
+  },
+  {
+   "username": "gulnara",
+   "origin": "dagestan",
+   "city": "Veliky Novgorod",
+   "ending": "time",
+   "score": 9052,
+   "days": 730,
+   "created_at": "2026-10-21T21:11:23.359Z"
+  },
+  {
+   "username": "aigerim",
+   "origin": "moscow",
+   "city": "Izhevsk",
+   "ending": "time",
+   "score": 8708,
+   "days": 730,
+   "created_at": "2026-10-21T21:11:01.022Z"
+  },
+  {
+   "username": "sveta",
+   "origin": "kyrgyz",
+   "city": "Grozny",
+   "ending": "time",
+   "score": 8146,
+   "days": 730,
+   "created_at": "2026-10-21T21:11:58.349Z"
+  },
+  {
+   "username": "kofi",
+   "origin": "uzbek",
+   "city": "Khabarovsk",
+   "ending": "time",
+   "score": 7944,
+   "days": 730,
+   "created_at": "2026-10-21T21:11:34.517Z"
+  },
+  {
+   "username": "chidi",
+   "origin": "tajik",
+   "city": "Khabarovsk",
+   "ending": "time",
+   "score": 7600,
+   "days": 730,
+   "created_at": "2026-10-21T21:11:11.272Z"
+  },
+  {
+   "username": "maksim",
+   "origin": "student",
+   "city": "Barnaul",
+   "ending": "time",
+   "score": 7458,
+   "days": 730,
+   "created_at": "2026-10-21T21:11:38.814Z"
+  },
+  {
+   "username": "hiro",
+   "origin": "moscow",
+   "city": "Saint Petersburg",
+   "ending": "time",
+   "score": 7208,
+   "days": 730,
+   "created_at": "2026-10-21T21:11:26.006Z"
+  },
+  {
+   "username": "farida",
+   "origin": "student",
+   "city": "Grozny",
+   "ending": "time",
+   "score": 6375,
+   "days": 730,
+   "created_at": "2026-10-21T21:11:15.537Z"
+  },
+  {
+   "username": "nodira",
+   "origin": "dagestan",
+   "city": "Makhachkala",
+   "ending": "time",
+   "score": 6176,
+   "days": 730,
+   "created_at": "2026-10-21T21:11:40.269Z"
+  }
+ ],
+ "seconds": 96
+}

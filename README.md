@@ -1,6 +1,7 @@
-# V Russia — Life Simulator
+# В России (In Russia) — Life Simulator
 
-A free, browser-based life simulation set in Russia, in the spirit of the viral *Lagos Life*.
+**В России** — "In Russia" — asks one question: **who can you become in Russia?** Named after its country the way *Lagos Life* is named after its city.
+Start with a name, a passport and a dream. Survive your first winter, get your papers, build a career — from your first rented room to a flat of your own, from courier to your own business, from newcomer to citizen — and see how far you can go in two years. On the way you learn how life in Russia really works: registration, the work patent, public services, the language and traditions. Free, in Russian and English, in any browser.
 Pick a life — a Moscow "nepo baby", a regional kid, a Tajik, Uzbek or Kyrgyz labour migrant, a foreign student, a Dagestani student —
 and live two years (730 days) of work, study, paperwork, family, culture and everyday surprises.
 
@@ -49,7 +50,8 @@ Each day has three parts (morning, afternoon, evening); every action uses one. R
 - 👥 14 recurring characters whose storylines remember your choices
 - 🎚️ three difficulty levels (Easy, Normal, Realistic) that change starting money, how often police checks come, living costs and how fast violations expire
 - 🌐 English / Russian interface toggle (menus and labels; story texts are still English)
-- 🏆 39 achievements, a first-month checklist, goals, a journal, export/import of saves
+- 🍳 **the Kitchen**: over 1,000 dishes of 28 cuisines to cook step by step - pick the ingredients from the shelf, prepare them safely (do not wash raw chicken, thaw in the fridge), answer the steps of cooking, keep the leftovers - with a drawing of every dish, suggestions, diets, guests with allergies, a fridge where food goes off, the market and haggling, and a daily online challenge with a table of the best (`docs/DISHES.md`)
+- 🏆 45 achievements, a first-month checklist, goals, a journal, export/import of saves
 - 📱 a working phone: your own Russian mobile number (newcomers need a SIM card first, a broken phone blocks everything), contacts that depend on your life, text chats with replies and small effects, calls, and a bank app with balance, cards, history and transfers to family and friends
 - 🧊 a **3D world** (the default when your device can draw 3D): people walk the roads, talk and work, your city has its river or sea, a bridge, parks and notice boards, and **Go inside** opens a furnished room for the place you are at (flat, workplace, bank, MFC, clinic, lecture hall and more). Click the fridge, desk or counter and your character walks there and does the same thing as the matching button. Low-poly, not photoreal; loaded only when opened.
 - 🏠 **A home that fits your life**: a worker who has just arrived sleeps on a bunk in a shared room, a student in a dormitory room, a family from the regions in a panel-block flat, a rich family in a roomy flat with parquet and a chandelier; what you buy (a studio, a village house) changes it. In **Buy mode**, the **Home** tab lets you renovate (floor, walls, light, windows) and, if you are a citizen, **build your own house** stage by stage (plot, foundation, walls, roof, finish): the plot appears in the 3D city and grows, and when it is done you live in it rent free.

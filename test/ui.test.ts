@@ -11,7 +11,7 @@ describe('whole page', () => {
     const { boot } = await import('../src/ui');
     boot(); await (await import('../src/ui')).uiReady();
     expect(document.querySelectorAll('.ocard').length).toBeGreaterThanOrEqual(7);
-    expect(document.getElementById('tagCount')!.textContent).toMatch(/scenarios/);
+    expect(document.querySelector('#title .tag')!.textContent).toMatch(/Start with a name, a passport and a dream/);
     (document.getElementById('nameInput') as HTMLInputElement).value = 'Test';
     document.getElementById('startBtn')!.click();
     expect(document.getElementById('game')!.hidden).toBe(false);

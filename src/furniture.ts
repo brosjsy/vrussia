@@ -4,7 +4,7 @@
    The flat is a grid of one-metre cells. An item covers w x d cells (turned a quarter, it covers d x w); wall items hang on the back wall and cover no floor.
    Furniture is for looks and a good home: it changes nothing but money, so the game's balance is untouched. */
 import type { State } from './engine';
-import { interiorFor, findPath, blocked, doorOf } from './interiors';
+import { interiorFor, findPath, blocked, doorOf, useSpot } from './interiors';
 import { keyFor, thingFor } from './activities';
 import type { Interior, Prop, PropKind } from './interiors';
 
@@ -144,6 +144,7 @@ export function canPlace(s: State, f: Furn, i: number, j: number, rot: 0 | 1, ig
     const turned = Math.abs(Math.sin(p.ry ?? 0)) > 0.5;
     if (overlap(me, { x: p.x, z: p.z, w: turned ? p.d : p.w, d: turned ? p.w : p.d })) return { ok: false, why: 'something is there' };
   }
+  for (const w of base.walls ?? []) if (overlap(me, w)) return { ok: false, why: 'a wall is there' };
   for (const p of fs.placed) {
     const o = furnById(p.id); if (!o || o.wall || p.uid === ignoreUid) continue;
     const sz = sizeOf(o, p.rot); if (overlap(me, { x: -base.w / 2 + p.i + sz.w / 2, z: -base.d / 2 + p.j + sz.d / 2, w: sz.w, d: sz.d })) return { ok: false, why: 'something is there' };
@@ -153,7 +154,7 @@ export function canPlace(s: State, f: Furn, i: number, j: number, rot: 0 | 1, ig
   const start = { x: door.x, z: door.z - 1 };
   for (const p of trial.props) {
     if (!p.action || p.action.startsWith('act:')) continue;                 // little activities are done from wherever one can reach
-    const goal = { x: p.x, z: Math.min(door.z, p.z + 1.6) };
+    const goal = useSpot(trial, p);
     if (blocked(trial, goal.x, goal.z) && findPath(trial, start, goal).length === 0) return { ok: false, why: 'would block the way' };
     if (findPath(trial, start, goal).length === 0 && Math.hypot(start.x - goal.x, start.z - goal.z) > 1) return { ok: false, why: 'would block the way' };
   }

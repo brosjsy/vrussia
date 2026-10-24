@@ -1,0 +1,153 @@
+/* =====================================================================
+   The game's design (round 146): the "City Life UI Kit" (life-sim-full-ui-kit.html) laid over style.css.
+   Its tokens (leaf, lagoon, sunset, rose, violet; paper, mist, ink), its fonts (Fredoka for display, Nunito for text, served by the game itself
+   from @fontsource, so nothing is fetched from Google), pills with a floating shadow, round bubbles, the tab dock with a separate phone
+   button, white bottom sheets with a grab handle, the gradient phone with coloured app tiles, the green call-to-action, the dark toast,
+   and a night chrome in the evening (body.night, set by ui.ts). It changes only how things look: every screen and button stays as it was.
+   ===================================================================== */
+:root, :root:not([data-theme="light"]){
+  --leaf:#22b573; --leaf-deep:#128a55; --leaf-soft:#e3f6ed;
+  --lagoon:#2f7de1; --lagoon-soft:#e8f1fd;
+  --sunset:#f59e42; --rose:#ef5a6f; --violet:#a78bfa; --violet-soft:#f1ebff;
+  --paper:#fff; --mist:#f3f5f9;
+  --radius:1rem; --radius-lg:1.5rem; --pill-r:999px;
+  --shadow-float:inset 0 1px 0 rgba(255,255,255,.8),0 8px 24px rgba(22,32,60,.14);
+  --shadow-soft:0 4px 14px rgba(22,32,60,.10);
+  --font-display:"Fredoka","Nunito",system-ui,sans-serif;
+  --font-body:"Nunito",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --chrome:rgba(255,255,255,.97); --chrome-ink:#1d2433;
+  /* the old names, in the kit's colours */
+  --bg:#eef2f7; --card:#fff; --card2:#f3f5f9; --ink:#1d2433; --mute:#5b6478; --line:#1d243314;
+  --red:#ef5a6f; --blue:#2f7de1; --ok:#22b573; --warn:#f59e42; --bad:#ef5a6f; --shadow:var(--shadow-soft);
+  color-scheme:light;
+}
+body.night{--chrome:rgba(18,18,24,.88); --chrome-ink:#fff}
+body{background:linear-gradient(#bfe0f7 0%,#e8f1f7 340px,#eef2f7 100%) fixed;color:var(--ink);font-family:var(--font-body);transition:background .6s}
+body.night{background:linear-gradient(#3b3a7a 0%,#7a5aa8 260px,#e0a66b 520px,#eef2f7 760px) fixed}
+h1,h2,.card h2,.sheet h2,.score,.phoneClock,.money,.ocard b{font-family:var(--font-display);font-weight:600;letter-spacing:0}
+h1{color:#1d2433}
+h3{font-family:var(--font-body);font-weight:800;color:var(--mute);letter-spacing:.04em}
+#title h1{font-size:52px}
+.flagbar{height:6px;border-radius:var(--pill-r)}
+
+/* ---------- buttons ---------- */
+button{border:0;border-radius:var(--pill-r);background:var(--mist);color:var(--ink);font-weight:700;padding:10px 16px;transition:transform .12s,box-shadow .15s,background .15s}
+button:hover{border-color:transparent;background:#e8ecf3}
+button:active{transform:scale(.97)}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--lagoon);outline-offset:2px}
+.primary,button.primary{background:var(--leaf);color:#fff;font:600 17px var(--font-display);padding:13px 22px;box-shadow:0 6px 16px rgba(34,181,115,.35)}
+.primary:hover{background:var(--leaf-deep)}
+.primary:disabled,button:disabled{background:#d7dde6;color:#8a93a5;box-shadow:none;cursor:not-allowed}
+.secondary,button.secondary{background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow-soft)}
+.secondary:hover{background:var(--mist)}
+.ghost{background:var(--mist);padding:7px 14px;font-size:14px}
+input,select,textarea{border-radius:var(--radius)!important;border:1px solid var(--line)!important;background:var(--mist)!important;color:var(--ink)!important;font-family:var(--font-body)}
+
+/* ---------- surfaces ---------- */
+.panel,.card{background:#fff;border:0;border-radius:var(--radius-lg);box-shadow:var(--shadow-soft)}
+.ocard{background:#fff;border:2px solid transparent;border-radius:var(--radius-lg);box-shadow:var(--shadow-soft)}
+.ocard:hover{border-color:var(--lagoon)}.ocard.sel{border-color:var(--leaf);background:var(--leaf-soft)}
+.chip,.svChip{border-radius:var(--pill-r);background:var(--mist);font-weight:700;border:0}
+.svChip.on{background:var(--ink);color:#fff}
+.chip.ok{color:var(--leaf-deep);background:var(--leaf-soft)}.chip.warn{background:#fff4d6;color:#b45309}.chip.bad{background:#fde7ea;color:#c0263a}
+.note{border-radius:var(--pill-r);background:var(--mist);font-weight:700}
+.note.pos{color:var(--leaf-deep);background:var(--leaf-soft)}.note.neg{color:#c0263a;background:#fde7ea}
+.bar{height:8px;border-radius:var(--pill-r);background:var(--mist)}.bar i{border-radius:inherit}
+
+/* ---------- the top: pills ---------- */
+#game .top{background:transparent}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--chrome);color:var(--chrome-ink);border:0;border-radius:var(--pill-r);box-shadow:var(--shadow-float);font-weight:800;font-size:13px;transition:background .6s,color .6s}
+.pill.mood-ok{color:var(--leaf-deep)}.pill.mood-warn{color:#c2410c}.pill.mood-bad{color:#c0263a}
+body.night .pill.mood-ok{color:#7ee2b0}
+.money{color:var(--leaf-deep);font-weight:700}
+#date{font-weight:800}
+.whoPic{border-radius:50%;box-shadow:0 0 0 3px var(--leaf)}
+#game.immersive .top{background:var(--chrome);box-shadow:var(--shadow-float);color:var(--chrome-ink)}
+#game.immersive .top .pill,#game.immersive .top .money,#game.immersive .top .soundBtn{background:var(--mist);color:var(--ink);border:0}
+body.night #game.immersive .top .pill,body.night #game.immersive .top .soundBtn{background:#ffffff1f;color:#fff}
+#game.immersive .top .money{color:var(--leaf-deep)}
+body.night #game.immersive .top .money{color:#7ee2b0}
+
+/* ---------- needs and condition ---------- */
+.hud>*{background:#fff;border:0;border-radius:var(--radius);box-shadow:var(--shadow-soft)}
+
+/* ---------- the action cards ---------- */
+.actions button{background:#fff;border:2px solid transparent;border-radius:var(--radius);box-shadow:var(--shadow-soft)}
+.actions button:hover{border-color:var(--lagoon);background:#fff}
+.actions .lb{font-family:var(--font-body);font-weight:800}
+
+/* ---------- the map overlays ---------- */
+.ticker{background:var(--leaf-deep);color:#fff;border-radius:var(--pill-r);font-weight:700;box-shadow:var(--shadow-soft)}
+.ticker:hover{background:var(--leaf)}
+.placeCard{background:#fff;border:0;border-radius:var(--radius-lg) var(--radius-lg) var(--radius) var(--radius);box-shadow:0 -10px 30px rgba(22,32,60,.15)}
+
+/* ---------- the dock: tabs and a separate phone button ---------- */
+.dock{gap:0;padding:0;background:transparent;backdrop-filter:none;box-shadow:none;border:0}
+.dock button{background:var(--chrome);box-shadow:var(--shadow-float);border-radius:0;color:var(--chrome-ink);transition:background .6s}
+.dock button b{font-family:var(--font-body);font-weight:700;font-size:11px;color:var(--mute)}
+body.night .dock button b{color:#b9bfcc}
+.dock button:first-child{border-radius:22px 0 0 22px;padding-left:12px}
+.dock button:nth-child(3){border-radius:0 22px 22px 0;padding-right:12px}
+.dock button[aria-current="page"],.dock button.on{background:var(--ink);color:#fff;border-radius:17px}
+.dock button[aria-current="page"] b,.dock button.on b{color:#fff}
+.dock #dockPhone{border-radius:22px;min-width:58px;margin-left:8px}
+.dock button:hover{background:#fff}
+body.night .dock button:hover{background:#26262f}
+
+/* ---------- sheets: the pop-ups slide up from the bottom ---------- */
+.modal{background:rgba(10,14,25,.25);align-items:flex-end;padding:0}
+.modal .sheet{position:relative;background:#fff;color:var(--ink);border-radius:var(--radius-lg) var(--radius-lg) 0 0;max-width:620px;max-height:86vh;padding:22px 20px 20px;box-shadow:0 -10px 30px rgba(22,32,60,.15);animation:kitSheet .3s cubic-bezier(.2,.8,.2,1)}
+.modal .sheet::before{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);width:44px;height:5px;border-radius:9px;background:#d9dde5}
+@media (min-width:700px){.modal{align-items:center;padding:16px}.modal .sheet{border-radius:var(--radius-lg)}}
+@keyframes kitSheet{from{transform:translateY(40px);opacity:.6}}
+#closeModal{background:var(--mist);border-radius:var(--pill-r);font-weight:700}
+.modal.phoneMode{align-items:center;padding:16px}
+.modal.phoneMode .sheet{animation:none;background:transparent;box-shadow:none;padding:0}
+.modal.phoneMode .sheet::before{display:none}
+.modal.phoneMode #closeModal{background:#fff;color:var(--ink);box-shadow:var(--shadow-soft)}
+
+/* ---------- the phone ---------- */
+.phone{border:9px solid #16171c;border-radius:46px;background:linear-gradient(180deg,#4b46d6 0%,#8b4fd8 45%,#f08a3a 100%);box-shadow:0 30px 60px rgba(0,0,0,.4);padding:18px 18px 24px}
+.phone.night{background:linear-gradient(180deg,#10142e,#262456 60%,#3a2a4a)}
+.phoneClock{font:700 64px/1 var(--font-display)}
+.phoneDate{font-weight:700}
+.apps{gap:16px 8px}
+.app{font-weight:700}
+.appIcon{width:56px;height:56px;border-radius:16px;border:0;background:#ffffff2b;box-shadow:0 4px 10px rgba(0,0,0,.2)}
+.app.sys .appIcon{background:#64748b}
+.app[data-sys="jobs"] .appIcon{background:#2bb673}.app[data-sys="service"] .appIcon{background:#1d4ed8}.app[data-sys="law"] .appIcon{background:#ef5a6f}
+.app[data-sys="household"] .appIcon{background:#0ea5e9}.app[data-sys="citylife"] .appIcon{background:#7c3aed}.app[data-sys="kitchen"] .appIcon{background:#ef7a2b}
+.app[data-sys="study"] .appIcon{background:#2563eb}.app[data-sys="housing"] .appIcon{background:#7c3aed}.app[data-sys="chores"] .appIcon{background:#0f766e}
+.app[data-sys="trains"] .appIcon{background:#334155}.app[data-sys="shop"] .appIcon{background:#db2777}.app[data-sys="messages"] .appIcon{background:#3a8df0}
+.app[data-sys="dating"] .appIcon{background:#ef5a6f}.app[data-sys="games"] .appIcon{background:#169a6c}.app[data-sys="phone"] .appIcon{background:#22a35a}
+.app[data-sys="bank"] .appIcon{background:#1d4ed8}
+.app[data-flow]:nth-child(6n+1) .appIcon{background:#2bb673}.app[data-flow]:nth-child(6n+2) .appIcon{background:#3a8df0}.app[data-flow]:nth-child(6n+3) .appIcon{background:#f5b52e}
+.app[data-flow]:nth-child(6n+4) .appIcon{background:#0ea5e9}.app[data-flow]:nth-child(6n+5) .appIcon{background:#f2c230}.app[data-flow]:nth-child(6n) .appIcon{background:#0f766e}
+.app.off .appIcon{filter:grayscale(.6)}
+.newTag,.app .badge{background:var(--rose)!important;color:#fff;border-radius:var(--pill-r);font-weight:800}
+/* an app opened inside the phone: a white page */
+.phone.sub{background:#fff;color:var(--ink);border:9px solid #16171c;border-radius:46px}
+.phHead b{font:600 22px var(--font-display)}
+.phNote{background:var(--mist);border-radius:var(--radius)}
+.svVac,.ckCard button,.ckGuests,.ckOpt,.ckIng{border:0!important;background:var(--mist)!important;border-radius:var(--radius)!important}
+.ckIng,.svChip{border-radius:var(--pill-r)!important}
+.ckIng.on,.ckOpt.ok{background:var(--leaf-soft)!important;box-shadow:inset 0 0 0 2px var(--leaf)}
+.ckOpt.bad{background:#fde7ea!important;box-shadow:inset 0 0 0 2px var(--rose)}
+.ckOnline{background:var(--violet-soft);border:0;border-radius:var(--radius)}
+.svPay,.ckCard em{color:var(--leaf-deep)}
+
+/* ---------- toasts: the dark pill ---------- */
+.toast{background:var(--ink);color:#fff;border:0;border-radius:var(--radius);box-shadow:var(--shadow-float);font-weight:700}
+.toast div{color:#c9cfdb}
+
+@media (prefers-reduced-motion:reduce){.modal .sheet{animation:none}body,.pill,.dock button{transition:none}}
+/* the night: light text on the evening sky, the chosen tab turns white (as in the kit) */
+body.night #game>.top{color:#fff}body.night #game>.top .sub{color:#e9e3f7}
+body.night .dock button.on{background:#fff;color:var(--ink)}body.night .dock button.on b{color:var(--ink)}
+/* the title screen (round 148): the name and what the game is */
+#title .titlebar{flex-wrap:wrap}#title h1.brand{font:700 clamp(40px,11vw,58px)/1.05 var(--font-display);letter-spacing:-.01em;background:linear-gradient(90deg,#1d2433,#2f7de1 60%,#ef5a6f);-webkit-background-clip:text;background-clip:text;color:transparent}
+.heroSub{font:600 22px/1.3 var(--font-display);margin:6px 0 10px;color:var(--ink)}
+.heroPoints{list-style:none;padding:0;margin:0 0 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;max-width:900px}
+.heroPoints li{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-soft);padding:12px 14px;font-size:14px;line-height:1.45}
+html,body{overflow-x:clip}
+#title .titlebar{justify-content:flex-start;column-gap:8px}#title .titlebar h1{margin-right:auto}

@@ -6,9 +6,11 @@ import * as G from '../src/engine';
 import '../src/content';
 import { designOf, renovate } from '../src/homes';
 import { buildRoom } from '../src/rooms3d';
+import { moveTo } from '../src/housing';
 
 const q = new URLSearchParams(location.search);
 const s = G.newState('Walker', q.get('o') ?? 'moscow'); s.housing = q.get('h') ?? 'rented'; s.money = 1e7;
+if (q.get('rent')) { s.job = 'courier'; moveTo(s, q.get('rent') as never); }      // &rent=kommunalka|khrush|studio|eurotwo|tworoom
 if (q.get('reno')) { renovate(s, 'floor', 'checker'); renovate(s, 'wall', '#d6b97a'); renovate(s, 'light', 'shade'); renovate(s, 'windows', 'blinds'); }
 const it = designOf(s);
 document.getElementById('msg')!.textContent = `${it.title} (${it.w} x ${it.d} m)`;

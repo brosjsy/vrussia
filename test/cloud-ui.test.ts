@@ -166,6 +166,8 @@ describe('finding and talking to other players', () => {
     await click(r, '[data-tab="ads"]');
     expect(r.reqs.find(q => q.url.includes('ads?select'))!.url).toContain(encodeURIComponent(st.city));
     expect(r.host.querySelectorAll('[data-adoff]').length).toBe(1); expect(r.host.querySelectorAll('[data-adreport]').length).toBe(1);
+    fill(r, 'olAdTitle', 'Winter boots'); fill(r, 'olAdPrice', '-500'); await submit(r, '#olAdForm');          // a price below zero is refused, not saved as 500 (round 150)
+    expect(r.reqs.some(q => q.url.includes('rpc/post_ad'))).toBe(false);
     fill(r, 'olAdTitle', '  Winter boots '); fill(r, 'olAdBody', 'size 42'); fill(r, 'olAdPrice', '1 500 rub'); (r.host.querySelector('#olAdKind') as HTMLSelectElement).value = 'sell'; await submit(r, '#olAdForm');
     expect(r.reqs.find(q => q.url.includes('rpc/post_ad'))!.body).toEqual({ p_city: st.city, p_kind: 'sell', p_title: 'Winter boots', p_body: 'size 42', p_price: 1500 });
     await click(r, '[data-adoff="8"]'); expect(r.reqs.some(q => q.method === 'DELETE' && q.url.includes('ads?id=eq.8'))).toBe(true);

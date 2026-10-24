@@ -21,7 +21,7 @@ describe('the dock, the phone and the clean screen', () => {
     expect(document.getElementById('modal')!.hidden).toBe(false);
     const apps = document.querySelectorAll('#modalBody .app[data-flow]');
     expect(apps.length).toBe(flows.length);
-    expect(document.querySelectorAll('#modalBody .app[data-sys]').length).toBe(15);      // ten, the Jobs app (Phase 3), Study and Home (Phase 5), Daily life and Trains (round 124)
+    expect(document.querySelectorAll('#modalBody .app[data-sys]').length).toBe(21);      // the Kitchen (round 131); ten, the Jobs app (Phase 3), Study and Home (Phase 5), Daily life and Trains (round 124), State service (round 127), Police & law (round 128)
     expect(document.querySelector('#modalBody .phoneClock')!.textContent).toMatch(/^\d\d:\d\d$/);
 
     // the first service that is available opens as a website in the main panel and the phone closes

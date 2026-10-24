@@ -1,4 +1,4 @@
-/* V Russia — game engine. DOM-free: runs in the browser and in Node tests. */
+/* В России (In Russia) — game engine. DOM-free: runs in the browser and in Node tests. */
 import { decayNeeds, needsOnAction } from './needs';
 import { boostOf, recordShift } from './career';
 import { payOffice } from './election';
@@ -56,6 +56,10 @@ export interface Note { k: string; v: number; label: string }
 export interface LogEntry { day: number; text: string }
 
 export interface State {
+  /** The online account this game belongs to (its server save); none for a game never played logged in. The automatic cloud save only uploads a game to its owner. */
+  owner?: string;
+  /** The game day each accepted co-op challenge started on (cloud-ui.ts): the player's part counts from that day. */
+  coopSince?: Record<number, number>;
   name: string; o: string; label: string; icon: string; status: Status; home: string; city: string;
   day: number; slot: number; money: number; energy: number; health: number; stress: number; rep: number; know: number;
   strikes: number; docs: Docs; flags: Record<string, boolean>; job: string | null;
@@ -615,7 +619,7 @@ export const goals: { id: string; label: string; done: (s: State) => boolean }[]
 export const score = (s: State): number => Math.round(Math.max(0, s.money) / 1000 + s.know * 5 + s.rep * 2 + goals.filter(g => g.done(s)).length * 400 - s.strikes * 150 + s.day);
 export const endings: Record<EndingId, [string, string]> = {
   hospital: ['🏥 Hospital', 'You pushed too hard. Doctors at the city clinic tell you the only treatment is sleep.'],
-  deported: ['✈️ Deported', 'Three violations on record. Border service, entry ban, one-way ticket home.'],
+  deported: ['✈️ Deported', 'Three violations on record, or a court ordered expulsion. Border service, entry ban, one-way ticket home.'],
   debt: ['💸 Debt spiral', 'The collectors, the loans, the phone that never stops. Time to start over.'],
   time: ['📅 Two years in Russia', 'Two winters survived. Here is how your story ended.'],
 };
@@ -718,7 +722,16 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'russianb1', icon: '🗣️', title: 'Speaks Russian', text: 'Pass Russian B1.', done: s => !!(s as unknown as { study?: { certs?: string[] } }).study?.certs?.includes('ru-b1') },
   { id: 'saver', icon: '🐷', title: 'Goal reached', text: 'Reach a savings goal in the bank app.', done: s => { const v = (s as unknown as { savings?: { goal?: number; saved?: number } }).savings; return !!v?.goal && (v.saved ?? 0) >= v.goal; } },
   { id: 'festive', icon: '🎉', title: 'In the spirit', text: 'Finish every task of a holiday event.', done: s => Object.values((s as unknown as { events?: { claimed?: Record<string, number[]> } }).events?.claimed ?? {}).some(c => c.length >= 3) },
+  // the Kitchen (src/cook.ts)
+  { id: 'cook1', icon: '🍳', title: 'First dish', text: 'Cook a dish in the Kitchen.', done: s => Object.keys(kitchen(s).count ?? {}).length >= 1 },
+  { id: 'cook3star', icon: '⭐', title: 'Three stars', text: 'Cook a dish without a single mistake.', done: s => Object.values(kitchen(s).best ?? {}).some(b => b >= 3) },
+  { id: 'cook25', icon: '📖', title: 'A recipe book', text: 'Cook 25 different dishes.', done: s => Object.keys(kitchen(s).count ?? {}).length >= 25 },
+  { id: 'cookworld', icon: '🌍', title: 'Around the world in the kitchen', text: 'Cook dishes of 10 different cuisines.', done: s => new Set(Object.keys(kitchen(s).count ?? {}).map(id => kitchen(s).cuisineOf?.[id])).size >= 10 },
+  { id: 'cooksafe', icon: '🧼', title: 'Safe kitchen', text: 'Cook 10 dishes in a row without a danger mistake.', done: s => (kitchen(s).safeRun ?? 0) >= 10 },
+  { id: 'cookhost', icon: '🥂', title: 'The host', text: 'Have friends round for a good dish that every guest could eat.', done: s => !!kitchen(s).hosted },
 ];
+/** The Kitchen's record, read without loading the Kitchen (it is an on-demand file). */
+const kitchen = (s: State): { count?: Record<string, number>; best?: Record<string, number>; cuisineOf?: Record<string, string>; safeRun?: number; hosted?: boolean } => (s as unknown as { cook?: ReturnType<typeof kitchen> }).cook ?? {};
 
 /** Marks newly earned achievements on the state and returns them. */
 export function checkAchievements(s: State): Achievement[] {

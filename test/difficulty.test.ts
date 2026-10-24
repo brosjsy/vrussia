@@ -79,6 +79,7 @@ describe('the difficulty selector', () => {
     document.getElementById('langBtn')!.click();
     sel.value = 'hard';
     document.querySelector<HTMLButtonElement>('.ocard[data-o="tajik"]')!.click();
+    (document.getElementById('homeStart') as HTMLInputElement).checked = false;      // straight into Russia (the way from home is tested in prearrival.test.ts)
     document.getElementById('startBtn')!.click();
     expect(document.getElementById('moneyBox')!.textContent).toBe('₽31,500');
   });

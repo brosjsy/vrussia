@@ -13,7 +13,7 @@ const firstOfMonth = (s: G.State, month: number, year = 2026): void => { s.day =
 
 describe('moving up', () => {
   it('a kommunalka, a studio and a two-room flat, dearer in Moscow and Saint Petersburg', () => {
-    expect(RENTALS.map(r => r.id)).toEqual(['kommunalka', 'studio', 'tworoom']);
+    expect(RENTALS.map(r => r.id)).toEqual(['kommunalka', 'khrush', 'studio', 'eurotwo', 'tworoom']);
     for (let i = 1; i < RENTALS.length; i++) expect(RENTALS[i].rent).toBeGreaterThan(RENTALS[i - 1].rent);
     expect(rentIn(RENTALS[1], 'Kazan')).toBeLessThan(rentIn(RENTALS[1], 'Moscow'));
   });
@@ -21,7 +21,7 @@ describe('moving up', () => {
     const s = fresh(); s.job = null; s.rep = 30;
     expect(cannotMove(s, 'studio')).toContain('job'); expect(cannotMove(s, 'tworoom')).toContain('job');
     const rent = rentIn(RENTALS[0], s.city); expect(moveTo(s, 'kommunalka').ok).toBe(true); expect(s.money).toBe(200000 - rent * 2); expect(s.rent).toBe(rent);
-    expect(rentalOf(s)!.id).toBe('kommunalka'); expect(dwellingOf(s)).toBe('panelka'); expect(cannotMove(s, 'kommunalka')).toContain('already');
+    expect(rentalOf(s)!.id).toBe('kommunalka'); expect(dwellingOf(s)).toBe('kommunal'); expect(cannotMove(s, 'kommunalka')).toContain('already');
     s.job = 'courier'; expect(moveTo(s, 'studio').ok).toBe(true); expect(dwellingOf(s)).toBe('studio');
     const poor = fresh(); poor.money = 1000; expect(moveTo(poor, 'kommunalka').ok).toBe(false); expect(poor.rent).toBe(fresh().rent);
     const owner = fresh(); owner.housing = 'flat'; expect(cannotMove(owner, 'studio')).toContain('own');
@@ -91,7 +91,7 @@ describe('the Study and Home apps', () => {
   it('Home shows the rent, moves the player and pays the bills', () => {
     const s = fresh(), host = document.createElement('div');
     openHousing(host, s, { back: () => undefined, refresh: () => undefined, scenario: () => undefined });
-    expect(host.querySelectorAll('[data-move]').length).toBe(3); host.querySelector<HTMLButtonElement>('[data-move="kommunalka"]')!.click();
+    expect(host.querySelectorAll('[data-move]').length).toBe(5); host.querySelector<HTMLButtonElement>('[data-move="kommunalka"]')!.click();
     expect(rentalOf(s)!.id).toBe('kommunalka'); expect(host.querySelector('[data-ap="pay"]')).toBeTruthy();
     const m = s.money; host.querySelector<HTMLButtonElement>('[data-ap="pay"]')!.click(); expect(s.money).toBeLessThan(m); expect(unpaid(s)).toEqual([]);
   });

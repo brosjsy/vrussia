@@ -8,7 +8,8 @@
    - Every 10 days the world is checked: no server errors, numbers in range, sessions alive, server saves equal the device, private
      talks private, the number of accounts right.
    - The server counts limits by the clock, so after each day the stored rows are moved one hour back (an hour passes).
-   Settings: PT_SEED (the same seed plays the same run), PT_DAYS (100), PT_PLAYERS (20), PT_OUT (where the report goes).
+   Settings: PT_SEED (the same seed plays the same run), PT_DAYS (100), PT_PLAYERS (20), PT_OUT (where the report goes), PT_DB_DIR (keep the
+   database in this folder, with every player's account and last save, for testing by hand; the accounts go to server/secrets/).
    Writes docs/PLAYTEST_20.md (and dev/playtest/<seed>.json for the long soak). Run: npm run playtest */
 import { it, expect } from 'vitest';
 import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
@@ -42,6 +43,13 @@ import { tripScenario } from '../src/train-trip';
 import { choresOf, hasWasher, planActive } from '../src/chores';
 import { washClothes, topUpPhone, connectWifi, buyCard, topUpCard } from '../src/chores-do';
 import { start, ORIGIN } from '../server/test/util';
+import * as K from '../src/cook';
+import { DISHES_A } from '../src/cook-dishes-a';
+import { DISHES_B } from '../src/cook-dishes-b';
+import { DISHES_C } from '../src/cook-dishes-c';
+import { DISHES_D } from '../src/cook-dishes-d';
+import { washDishes, homeOf, locksmith } from '../src/homelife';
+K.addDishes(DISHES_A); K.addDishes(DISHES_B); K.addDishes(DISHES_C); K.addDishes(DISHES_D);
 import type { Ctx } from '../server/test/util';
 
 const SEED = Number(process.env.PT_SEED ?? 1), DAYS = Number(process.env.PT_DAYS ?? 100), PLAYERS = Number(process.env.PT_PLAYERS ?? 20), CHECK_EVERY = 10;
@@ -56,10 +64,14 @@ const LINES = ['Привет! Кто идёт в МФЦ?', 'Does anyone know a g
 const R = (n: number): number => Math.floor(Math.random() * n);
 const pick = <T>(a: T[]): T => a[R(a.length)];
 
-interface P { last?: { over: string; money: number; day: number }; name: string; style: Style; api: ApiCloud; s: G.State; id: string; lives: number; adult: boolean; scores: number; turn: number; pw: string }
+interface P { last?: { over: string; money: number; day: number }; history?: Life[]; name: string; style: Style; api: ApiCloud; s: G.State; id: string; lives: number; adult: boolean; scores: number; turn: number; pw: string }
 type Out = { ok: boolean; why?: string } | null;          // null: does not apply right now (not counted)
 interface Feature { id: string; area: string; run: (p: P, day: number) => Out | Promise<Out> }
 
+/** A finished life, for the report. */
+interface Life { over: string; day: number; money: number; city: string; job: string | null; housing: string; status: string; partner: boolean; kids: number; rep: number; health: number; achievements: string[]; kitchen: { cooked: number; dishes: number; threeStars: number; rank: string } }
+const lifeOf = (s: G.State): Life => { const k = K.cookOf(s); return { over: s.over ?? '', day: s.day, money: s.money, city: s.city, job: s.job, housing: s.housing, status: s.status, partner: !!s.partner, kids: s.kids, rep: s.rep, health: s.health, achievements: [...s.ach],
+  kitchen: { cooked: Object.values(k.count).reduce((a, b) => a + b, 0), dishes: Object.keys(k.count).length, threeStars: Object.values(k.best).filter(b => b >= 3).length, rank: K.TITLES[K.rankOf(s)] } }; };
 const yes: Out = { ok: true };
 const no = (why: string): Out => ({ ok: false, why: why.replace(/\s+/g, ' ').slice(0, 60) });
 const res = (r: { ok: boolean; msg?: string; message?: string }): Out => (r.ok ? yes : no(r.msg ?? r.message ?? 'refused'));
@@ -98,6 +110,25 @@ const FEATURES: Feature[] = [
   // food and home life
   { id: 'buy groceries', area: 'Food', run: p => res(buyGroceries(p.s, 'shop')) },
   { id: 'cook a meal', area: 'Food', run: p => { const k = kitchenOf(p.s); const rec = RECIPES.filter(x => x.skill <= k.skill).pop() ?? RECIPES[0]; if (cannotCook(p.s, rec)) buyGroceries(p.s, 'shop'); return res(cook(p.s, rec.id)); } },
+  // the Kitchen (round 143): careful players answer right, random players pick at random, the others mostly right
+  { id: 'kitchen: cook a dish', area: 'Kitchen', run: (p, day) => {
+    if (p.s.loc !== 'home') return null;
+    const open = K.DISHES.filter(d => !K.lockedWhy(p.s, d) && !K.missingKit(p.s, d).length); if (!open.length) return no('no dish open');
+    if (homeOf(p.s).keysLost && p.s.money > 5000) locksmith(p.s);                     // locked out: the locksmith first
+    if (homeOf(p.s).dishes >= 20) washDishes(p.s);
+    if (p.s.slot >= 2) K.cookOf(p.s).shop = 'shop';                               // the market is shut in the evening                                   // a full sink is washed first, as a person would
+    const d = pick(open), c = K.challengeOf(d.id, String(day))!, why = K.cannotCookDish(p.s, d.id, d.ings); if (why) return no(why);
+    const right = p.style === 'careful' ? 1 : p.style === 'random' ? 0.25 : 0.75;
+    const picked = p.style === 'random' ? c.shelf.filter(() => Math.random() < 0.6) : d.ings;
+    const o = K.cook(p.s, c, picked.length ? picked : d.ings, c.questions.map((q, qi) => ({ qi, chosen: Math.random() < right ? q.options.findIndex(x => x.ok) : R(q.options.length) })));
+    return o.ok ? yes : no(o.msg);
+  } },
+  { id: 'kitchen: wash the dishes', area: 'Kitchen', run: p => res(washDishes(p.s)) },
+  { id: 'kitchen: share a dish', area: 'Kitchen', run: p => { const id = Object.keys(K.cookOf(p.s).count).pop(); return id ? res(K.share(p.s, id, pick(['guests', 'neighbours', 'partner', 'family'] as const))) : null; } },
+  { id: 'kitchen: call home for a recipe', area: 'Kitchen', run: p => res(K.callHome(p.s)) },
+  { id: 'kitchen: buy equipment', area: 'Kitchen', run: p => { const k = Object.keys(K.KIT).find(x => !K.kitOf(p.s).includes(x)); return k ? res(K.buyKit(p.s, k)) : null; } },
+  { id: 'kitchen: eat leftovers', area: 'Kitchen', run: p => (K.leftoversLeft(p.s) ? res(K.eatLeftovers(p.s)) : null) },
+  { id: 'kitchen: shop at the market and haggle', area: 'Kitchen', run: p => { if (p.s.slot >= 2) { K.cookOf(p.s).shop = 'shop'; return null; } K.cookOf(p.s).shop = 'market'; const r = K.haggle(p.s); return r.msg.includes('already') ? null : yes; } },
   { id: 'tea / samovar', area: 'Home life', run: p => res(useObject(p.s, 'tea')) },
   { id: 'watch TV', area: 'Home life', run: p => res(useObject(p.s, 'tv')) },
   { id: 'sit and rest', area: 'Home life', run: p => res(useObject(p.s, 'sit')) },
@@ -240,7 +271,7 @@ it(`${PLAYERS} players live ${DAYS} days using every feature of the game, on the
   const newLifeIfOver = async (p: P): Promise<void> => {
     if (!p.s.over) return;
     const sc = await p.api.submitScore(p.s.o, p.s.city, p.s.over, G.score(p.s), Math.max(1, p.s.day)); record('leaderboard: send my score', p.name, res(sc)); if (sc.ok) p.scores++;
-    p.last = { over: p.s.over, money: p.s.money, day: p.s.day };
+    p.last = { over: p.s.over, money: p.s.money, day: p.s.day }; (p.history ??= []).push(lifeOf(p.s));
     p.s = G.newState(p.name, p.s.o); p.lives++;
   };
 
@@ -324,6 +355,17 @@ it(`${PLAYERS} players live ${DAYS} days using every feature of the game, on the
   writeFileSync(process.env.PT_OUT ?? 'docs/PLAYTEST_20.md', out.join('\n'));
   mkdirSync('dev/playtest', { recursive: true });
   writeFileSync(`dev/playtest/${SEED}.json`, JSON.stringify({ seed: SEED, crashes: crashed.map(r => ({ f: r.f, ex: crashes[r.f] })), nobody: nobody.map(r => ({ f: r.f, w: r.w })), serverErrors, problems, rows }, null, 1));
+  // each player's outcome, for the report (dev/playtest/<seed>-<players>-players.json) and, with PT_DB_DIR, the accounts to log in with
+  const outcomes = players.map(p => {
+    const worked = all.filter(f => grid[f][p.name]?.ok), most = [...worked].sort((a, b) => grid[b][p.name].ok - grid[a][p.name].ok).slice(0, 6);
+    const lives = p.history ?? [], best = [...lives].sort((a, b) => b.day - a.day)[0] ?? lifeOf(p.s);       // the longest life they lived
+    return { name: p.name, email: p.name + '@play.test', style: p.style, origin: G.origins.find(o => o.id === p.s.o)?.label, adult: p.adult, lives: lives.length, history: lives.map(l => ({ over: l.over, day: l.day, money: l.money })),
+      longest: best, achievements: [...new Set(lives.flatMap(l => l.achievements))].length,
+      kitchen: { cooked: lives.reduce((a, l) => a + l.kitchen.cooked, 0), dishes: Math.max(0, ...lives.map(l => l.kitchen.dishes)), threeStars: lives.reduce((a, l) => a + l.kitchen.threeStars, 0), rank: best.kitchen.rank },
+      features: { worked: worked.length, of: all.length, most: most.map(f => `${f} (${grid[f][p.name].ok})`) }, scoresSent: p.scores };
+  });
+  writeFileSync(`dev/playtest/${SEED}-${PLAYERS}-players.json`, JSON.stringify({ seed: SEED, players: PLAYERS, days: DAYS, features: FEATURES.length, rows, outcomes, checks, problems, serverErrors, leaderboard: board.slice(0, 10), seconds: Math.round((Date.now() - t0) / 1000) }, null, 1));
+  if (process.env.PT_DB_DIR) { mkdirSync('server/secrets', { recursive: true }); writeFileSync('server/secrets/playtest-accounts.json', JSON.stringify({ note: 'Test accounts of the play-test database (local only, never real people). Start it with: npm run local -- --db ' + process.env.PT_DB_DIR, accounts: players.map(p => ({ username: p.name, email: p.name + '@play.test', password: p.pw })) }, null, 1)); }
   await c.app.close(); await c.t.close();
   expect(serverErrors, serverErrors.join('\n')).toEqual([]);
   expect(problems, problems.join('\n')).toEqual([]);

@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import * as THREE from 'three';
 import * as G from '../src/engine';
 import '../src/content';
-import { interiorFor, KNOWN_ACTIONS, SPECIAL, doorOf, NO_INTERIOR } from '../src/interiors';
+import { interiorFor, KNOWN_ACTIONS, SPECIAL, doorOf, NO_INTERIOR, useSpot } from '../src/interiors';
 import { buildRoom } from '../src/rooms3d';
 import { mountWorld3d } from '../src/world3d';
 import type { World3dDeps } from '../src/world3d';
@@ -135,7 +135,7 @@ describe('walls and furniture stop people', () => {
     expect(blocked(home, home.w / 2 - 0.1, 0)).toBe(true); expect(blocked(home, 0, -home.d / 2 + 0.1)).toBe(true);
     const bed = home.props.find(p => p.kind === 'bed')!; expect(blocked(home, bed.x, bed.z)).toBe(true);
     const rug = home.props.find(p => p.kind === 'rug')!; expect(blocked(home, rug.x, rug.z)).toBe(false);
-    const sofa = home.props.find(p => p.kind === 'sofa')!; expect(sofa.ry).toBeTruthy(); expect(blocked(home, sofa.x, sofa.z + sofa.w / 2 - 0.2)).toBe(true);   // a turned sofa is long in z
+    const flat = interiorFor('home', (() => { const s = fresh(); s.o = 'region'; return s; })())!, sofa = flat.props.find(p => p.kind === 'sofa')!; expect(sofa.ry).toBeTruthy(); expect(blocked(flat, sofa.x, sofa.z + sofa.w / 2 - 0.2)).toBe(true);   // a turned sofa is long in z
     expect(blocked(home, 0, home.d / 2 - 1.4)).toBe(false);
   });
   it('a path from the door to the front of everything usable exists in every room and never touches furniture or a wall', () => {
@@ -144,7 +144,7 @@ describe('walls and furniture stop people', () => {
       const it = interiorFor(id, s); if (!it) continue;
       const door = { x: doorOf(it).x, z: doorOf(it).z - 1 };
       for (const p of it.props.filter(q => q.action && !q.action.startsWith('act:'))) {
-        const goal = { x: p.x, z: Math.min(doorOf(it).z, p.z + 1.6) };
+        const goal = useSpot(it, p);                                                  // in front of it, or beside it when an inner wall is in front (round 151)
         const path = findPath(it, door, goal);
         expect(path.length, `${id} ${p.kind}`).toBeGreaterThan(0);
         for (const w of path) expect(blocked(it, w.x, w.z), `${id} ${p.kind} at ${w.x},${w.z}`).toBe(false);
@@ -156,8 +156,10 @@ describe('walls and furniture stop people', () => {
   });
   it('goes round a thing in the way instead of through it, and has no path when already there', () => {
     const home = interiorFor('home', fresh())!;
-    const path = findPath(home, { x: -1, z: 4 }, { x: 5.2, z: -3 });
-    expect(path.length).toBeGreaterThan(Math.hypot(6.2, 7) / 0.5 - 2);          // longer than a straight line would need
+    const path = findPath(home, { x: -1, z: 4 }, { x: 5.2, z: -1 });                // from the hallway into the bedroom of the stalinka (round 151)
+    expect(path.length).toBeGreaterThan(8);
+    expect(path.some(p => p.x > 1.6 && p.x < 2.9 && Math.abs(p.z - 1.6) < 0.6), 'goes through the bedroom doorway, not through the wall').toBe(true);
+    for (const p of path) expect(blocked(home, p.x, p.z)).toBe(false);
     expect(findPath(home, { x: 0, z: 4 }, { x: 0, z: 4 })).toEqual([]);
     expect(blocked(home, ...(Object.values(nearestFree(home, { x: 4.2, z: -0.6 })) as [number, number]))).toBe(false);   // asked for a table: gets floor
   });

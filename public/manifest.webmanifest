@@ -1,13 +1,13 @@
 {
-  "name": "V Russia — Life Simulator",
-  "short_name": "V Russia",
-  "description": "A free browser life simulator of Russia: papers, work, study, family, culture.",
+  "name": "В России — who can you become in Russia?",
+  "short_name": "В России",
+  "description": "Start with a name, a passport and a dream: survive the winter, get your papers, build a career and see how far you can go in two years.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#0e1424",
-  "theme_color": "#0e1424",
+  "background_color": "#eef2f7",
+  "theme_color": "#bfe0f7",
   "icons": [
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }

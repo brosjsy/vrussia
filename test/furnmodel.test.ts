@@ -7,7 +7,8 @@ import { partsFor, MODELLED } from '../src/furniture3d';
 import { interiorFor } from '../src/interiors';
 import { buildRoom } from '../src/rooms3d';
 
-const SIZE: Record<string, [number, number, number]> = { bed: [2.6, 3.4, 0.7], chair: [0.9, 0.9, 0.5], table: [2.4, 1.6, 0.85], desk: [2.4, 1.2, 0.8], sofa: [3.2, 1.6, 0.5], wardrobe: [2.6, 1.0, 2.4], fridge: [1.2, 1.2, 2.1], stove: [1.2, 1.2, 0.95], tv: [2.2, 0.5, 1.2], plant: [0.8, 0.8, 1.5], shelf: [2.0, 1.0, 2.2], lamp: [0.6, 0.6, 1.7], bedside: [1.0, 0.9, 0.6], bench: [3.4, 0.7, 0.5], counter: [3.0, 1.3, 1.1], round: [0.8, 0.8, 0.45], rug: [3.4, 2.4, 0.04], laptop: [0.8, 0.6, 0.06], item: [1.2, 1.2, 0.9] };
+const SIZE: Record<string, [number, number, number]> = { bed: [2.6, 3.4, 0.7], chair: [0.9, 0.9, 0.5], table: [2.4, 1.6, 0.85], desk: [2.4, 1.2, 0.8], sofa: [3.2, 1.6, 0.5], wardrobe: [2.6, 1.0, 2.4], fridge: [1.2, 1.2, 2.1], stove: [1.2, 1.2, 0.95], tv: [2.2, 0.5, 1.2], plant: [0.8, 0.8, 1.5], shelf: [2.0, 1.0, 2.2], lamp: [0.6, 0.6, 1.7], bedside: [1.0, 0.9, 0.6], bench: [3.4, 0.7, 0.5], counter: [3.0, 1.3, 1.1], round: [0.8, 0.8, 0.45], rug: [3.4, 2.4, 0.04], laptop: [0.8, 0.6, 0.06], item: [1.2, 1.2, 0.9],
+  bath: [1.3, 3.0, 0.6], toilet: [0.7, 0.8, 0.45], sink: [0.8, 0.5, 0.85], washer: [0.8, 0.8, 0.85], hanger: [1.2, 0.5, 1.9], stenka: [2.8, 0.7, 2.2], pech: [2.6, 2.4, 2.3], door: [1.0, 0.1, 2.1], bunk: [1.6, 3.4, 1.8] };
 
 describe('the shapes of furniture', () => {
   it('every modelled kind is made of several parts that stay inside its floor space, stand on the floor and are not absurdly tall', () => {
@@ -53,7 +54,7 @@ describe('the room with shaped furniture', () => {
     HTMLCanvasElement.prototype.getContext = (() => null) as never;
     const day = buildRoom(home()!, 1), night = buildRoom(home()!, 2);
     const light = (g: THREE.Object3D): number => { let n = 0; g.traverse(x => { if (x instanceof THREE.PointLight) n++; }); return n; };
-    expect(light(day.group)).toBe(0); expect(light(night.group)).toBe(1);
+    expect(light(day.group)).toBe(0); expect(light(night.group)).toBeGreaterThanOrEqual(1);          // the design (round 147): a light for each wall lamp in the evening
     const glass = (g: THREE.Object3D): string[] => { const out: string[] = []; g.traverse(x => { const m = (x as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined; if (m && m.emissive && x.position.y === 1.9) out.push('#' + m.color.getHexString()); }); return out; };
     expect(glass(day.group)).toContain('#9fd4ff'); expect(glass(night.group)).toContain('#26345c'); expect(glass(buildRoom(home()!, 0).group)).toContain('#bfe3ff');
     day.dispose(); night.dispose();

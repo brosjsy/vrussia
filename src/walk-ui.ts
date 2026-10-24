@@ -2,6 +2,7 @@
    a round stick in the corner on a touch screen. Standing at a door shows a chip that goes in (or travels there, which takes the usual time).
    Holding the keys only moves the person in the picture: the game's day does not move until the player goes somewhere. */
 import { placeById } from './engine';
+import { placeL } from './i18n-words';
 import './i18n-life';
 import { t } from './i18n';
 
@@ -64,7 +65,7 @@ export function mountWalk(host: HTMLElement, ctl: Walker, o: WalkOpts): () => vo
   chip.onclick = () => { if (shown) { held.clear(); stick = null; push(); o.go(shown); } };
   const look = (): void => {
     const w = ctl.walkInfo(), near = w.near;
-    const text = w.waiting ? `🚗 ${t('walkWait')}` : near ? `🚪 ${t(near === o.here() ? 'walkIn' : 'walkGo')}: ${placeById(near).n}` : '';
+    const text = w.waiting ? `🚗 ${t('walkWait')}` : near ? `🚪 ${t(near === o.here() ? 'walkIn' : 'walkGo')}: ${placeL(placeById(near).n)}` : '';
     if (text !== chip.textContent) chip.textContent = text;
     shown = w.waiting ? '' : near ?? ''; chip.hidden = !text; chip.disabled = w.waiting;
   };

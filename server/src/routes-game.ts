@@ -76,6 +76,11 @@ export async function gameRoutes(app: FastifyInstance, db: Db, need: (req: Fasti
     if (b.user === u.userId) throw new AppError(400, 'invalid input');
     await db.query('insert into app.blocks (blocker, blocked) select $1, $2 where exists (select 1 from app.profiles where id = $2) on conflict do nothing', [u.userId, b.user]); return ok;
   });
+  app.get('/api/blocks', async req => all('select b.blocked as id, p.username from app.blocks b join app.profiles p on p.id = b.blocked where b.blocker = $1 order by p.username', [need(req).userId]));
+  app.delete('/api/blocks/:user', async req => {
+    const u = need(req), b = parse(z.object({ user: uuid }), req.params);
+    await db.query('delete from app.blocks where blocker = $1 and blocked = $2', [u.userId, b.user]); return ok;
+  });
   app.post('/api/reports', async req => {
     const u = need(req), b = parse(z.object({ message: id, reason: z.string().trim().min(3).max(200) }), req.body);
     await db.query('select app.report_message($1, $2, $3)', [u.userId, b.message, b.reason]); return ok;
@@ -112,6 +117,40 @@ export async function gameRoutes(app: FastifyInstance, db: Db, need: (req: Fasti
     return { ok: (await db.query('delete from app.ads where id = $1 and player_id = $2', [a, u.userId])).rowCount > 0 };
   });
   app.post('/api/ads/:id/report', async req => { const u = need(req), a = parse(z.object({ id }), req.params).id; await db.query('select app.report_ad($1, $2)', [u.userId, a]); return ok; });
+
+  /* ---------- advertising spaces (migrations/0006_adspace.sql) ---------- */
+  /** The adverts up in a city. Anyone may look; a logged-in player who looks counts as one view of each (once a day). */
+  app.get('/api/adverts', async req => {
+    const c = parse(z.object({ city }), req.query).city;
+    let viewer: string | null = null; try { viewer = need(req).userId; } catch { /* looking without an account is fine */ }
+    return all('select * from app.adverts_in($1, $2)', [viewer, c]);
+  });
+  app.get('/api/adverts/mine', async req => all('select a.id, a.city, a.spot, a.head, a.expires_at, (select count(*) from app.advert_views v where v.advert_id = a.id) as views from app.adverts a where a.player_id = $1 and a.expires_at > now() order by a.id desc', [need(req).userId]));
+  app.post('/api/adverts', async req => {
+    const u = need(req), b = parse(z.object({ city, spot: z.enum(['stop', 'metro', 'board', 'wall', 'screen']), head: z.string().max(64), line: z.string().max(120).default(''), color: z.string().regex(/^#[0-9a-fA-F]{6}$/), icon: z.string().min(1).max(8), days: z.number().int().min(1).max(14) }), req.body);
+    return { id: (await one<{ id: number }>('select app.mount_advert($1, $2, $3, $4, $5, $6, $7, $8) as id', [u.userId, b.city, b.spot, b.head, b.line, b.color, b.icon, b.days]))!.id };
+  });
+  app.delete('/api/adverts/:id', async req => {
+    const u = need(req), a = parse(z.object({ id }), req.params).id;
+    return { ok: (await db.query('delete from app.adverts where id = $1 and player_id = $2', [a, u.userId])).rowCount > 0 };
+  });
+  app.post('/api/adverts/:id/report', async req => { const u = need(req), a = parse(z.object({ id }), req.params).id; await db.query('select app.report_advert($1, $2)', [u.userId, a]); return ok; });
+
+  /* ---------- the Kitchen's online challenge (migrations/0007_cooking.sql) ---------- */
+  const dish = z.string().regex(/^[A-Za-z0-9_]{2,40}$/);
+  /** Today's table for a dish: the ten best, and the player's own place when logged in. Anyone may look. */
+  app.get('/api/cooking/today', async req => {
+    const d = parse(z.object({ dish }), req.query).dish;
+    let me: string | null = null; try { me = need(req).userId; } catch { /* looking without an account is fine */ }
+    const top = await all('select username, score, stars from app.cook_scores where day = current_date and dish = $1 order by score desc, updated_at asc limit 10', [d]);
+    const mine = me ? await one<{ score: number; place: number }>('select s.score, (select count(*) + 1 from app.cook_scores o where o.day = current_date and o.dish = s.dish and (o.score > s.score or (o.score = s.score and o.updated_at < s.updated_at)))::int as place from app.cook_scores s where s.player_id = $1 and s.day = current_date and s.dish = $2', [me, d]) : null;
+    const count = (await one<{ n: number }>('select count(*)::int as n from app.cook_scores where day = current_date and dish = $1', [d]))!.n;
+    return { top, mine, count };
+  });
+  app.post('/api/cooking/today', async req => {
+    const u = need(req), b = parse(z.object({ dish, score: z.number().int().min(0).max(100), stars: z.number().int().min(0).max(3) }), req.body);
+    return { best: (await one<{ best: number }>('select app.cook_submit($1, $2, $3, $4) as best', [u.userId, b.dish, b.score, b.stars]))!.best };
+  });
 
   /* ---------- following and friends ---------- */
   app.post('/api/follows', async req => {

@@ -2,22 +2,27 @@
    player stands, and the news (announcements and the number of visits). It draws itself into one element and draws again when something changes.
    The rules and the requests are in cloud.ts; this file is only the screen. When the game has no online part it says so and how to set one up. */
 import type { State } from './engine';
+import { msgL } from './i18n-account';
 import './i18n-online';
 import * as G from './engine';
 import type { OnlineClient as Cloud, ScoreRow, ChatMessage, Announcement, PlayerAd, Talk, Friend, BestHome, PublicHome, Note, Gift } from './cloud';
 import { furnById } from './furniture';
 import { placeRoom, directRoom } from './cloud';
-import { t, lang } from './i18n';
+import { COOP_ACT } from './coop-acts';
+import { t, lang, originText } from './i18n';
+import { cityName } from './i18n-words';
 import { COUNTRIES, REGIONS, flagOf } from './countries';
 import type { Challenge, Chapter, Coop } from './api-client';
 
-export interface OnlineDeps { cloud: Cloud | null; state: () => State | null; notify: (m: string) => void; onLoad: (s: State) => void; home?: () => { city: string; dwelling: string; design: import('./cloud').HomeDesign; stars: number } | null; status?: () => { lastSaved: number | null; pending: boolean } | null }
+export interface OnlineDeps { cloud: Cloud | null; state: () => State | null; notify: (m: string) => void; onLoad: (s: State) => void; onSignedIn?: () => Promise<void>; onSignedOut?: () => void; /** the game changed here (money from a reward, a gift, a co-op activity): save it and redraw the money */ changed?: () => void; home?: () => { city: string; dwelling: string; design: import('./cloud').HomeDesign; stars: number } | null; status?: () => { lastSaved: number | null; pending: boolean } | null }
 type Tab = 'account' | 'challenges' | 'top' | 'chat' | 'friends' | 'ads' | 'news';
 const esc = (x: string): string => String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
 
-interface View { email: string; ch: { chapters: Chapter[]; challenges: Challenge[] } | null; coops: Coop[]; openChapter: number; myAds: number | null; liked: string | null; link: { kind: 'verify' | 'reset'; token: string } | null; forgot: boolean; tab: Tab; busy: boolean; online: number | null; top: ScoreRow[] | null; chat: ChatMessage[]; news: Announcement[] | null; visits: number | null; signup: boolean; ads: PlayerAd[] | null; talks: Talk[]; dm: { id: string; name: string } | null; friends: Friend[] | null; found: { id: string; username: string }[]; best: BestHome[] | null; visit: { id: string; name: string; home: PublicHome | null; notes: Note[] } | null }
-const FIRST = (): View => ({ email: '', ch: null, coops: [], openChapter: 0, myAds: null, liked: null, link: null, forgot: false, tab: 'account', busy: false, online: null, top: null, chat: [], news: null, visits: null, signup: false, ads: null, talks: [], dm: null, friends: null, found: [], best: null, visit: null });
+interface View { email: string; ch: { chapters: Chapter[]; challenges: Challenge[] } | null; coops: Coop[]; openChapter: number; myAds: number | null; myAdList: { id: number; city: string; kind: string; title: string }[]; liked: string | null; link: { kind: 'verify' | 'reset'; token: string } | null; forgot: boolean; tab: Tab; busy: boolean; online: number | null; top: ScoreRow[] | null; chat: ChatMessage[]; news: Announcement[] | null; visits: number | null; signup: boolean; ads: PlayerAd[] | null; talks: Talk[]; dm: { id: string; name: string } | null; friends: Friend[] | null; found: { id: string; username: string }[]; best: BestHome[] | null; blocked: { id: string; username: string }[]; visit: { id: string; name: string; home: PublicHome | null; notes: Note[] } | null }
+const FIRST = (): View => ({ email: '', ch: null, coops: [], openChapter: 0, myAds: null, myAdList: [], liked: null, link: null, forgot: false, tab: 'account', busy: false, online: null, top: null, chat: [], news: null, visits: null, signup: false, ads: null, talks: [], dm: null, friends: null, found: [], best: null, blocked: [], visit: null });
 const view: View = FIRST();
+/** Forgets everything one account had open (chats and private chats, the home visited, the last search, the challenges), keeping only the tab. */
+function forgetAccount(): void { const tab = view.tab; Object.assign(view, FIRST(), { tab }); }
 
 let syncLine = (): string => '';
 function accountHtml(c: Cloud): string {
@@ -40,12 +45,17 @@ function accountHtml(c: Cloud): string {
     <div class="row"><button class="primary" id="olSave"${view.busy ? ' disabled' : ''}>${esc(t('olSave'))}</button><button class="secondary" id="olLoad"${view.busy ? ' disabled' : ''}>${esc(t('olLoad'))}</button><button class="ghost" id="olOut">${esc(t('olLogOut'))}</button></div><p class="sub">${esc(t('olSaveHint'))}</p>${syncLine()}<p><button type="button" class="olMini" id="olDelete">${esc(t('olDelete'))}</button>${own ? `<input type="password" id="olDelPass" class="olDelPass" autocomplete="current-password" placeholder="${esc(t('olDelPass'))}" aria-label="${esc(t('olDelPass'))}">` : ''}</p>
     ${own ? `<details class="olPw"><summary>${esc(t('olPwChange'))}</summary><form id="olPwForm"><label>${esc(t('olPwCurrent'))}<input type="password" id="olPwCur" autocomplete="current-password" required></label><label>${esc(t('olPwNew'))}<input type="password" id="olPwNext" autocomplete="new-password" minlength="10" required></label><div class="row"><button class="secondary" type="submit">${esc(t('olPwChange'))}</button><button type="button" class="ghost" id="olEndOthers">${esc(t('olEndOthers'))}</button></div></form></details>` : ''}</div>`;
 }
+/** A starting life by its name, never its code (round 150: the table showed codes such as "uz_migrant"). */
+const originOf = (id: string): string => { const o = G.origins.find(x => x.id === id); return o ? `${o.icon} ${originText(o).label}` : id ? id.replace(/_/g, ' ') : '—'; };
 const topHtml = (): string => (view.top === null ? `<p class="hint">${esc(t('olLoading'))}</p>` : view.top.length === 0 ? `<p class="hint">${esc(t('olNoScores'))}</p>`
-  : `<ol class="olTop">${view.top.map(r => `<li><b>@${esc(r.username)}</b><span>${esc(r.city)} · ${esc(r.origin)} · ${r.days} ${esc(t('olDays'))}</span><i>${r.score}</i></li>`).join('')}</ol>`);
-const MUTE_KEY = 'vrussia_muted', MUTE_MS = 86_400_000;
+  : `<ol class="olTop">${view.top.map(r => `<li><b>@${esc(r.username)}</b><span>${esc(cityName(r.city))} · ${esc(originOf(r.origin))} · ${r.days} ${esc(t('olDays'))}</span><i>${r.score}</i></li>`).join('')}</ol>`);
+const MUTE_MS = 86_400_000;
+let muteOwner = '';                                                     // the mute list belongs to the account that made it
+const MUTE_KEY = (): string => `vrussia_muted${muteOwner ? ':' + muteOwner : ''}`;
+export function setMuteOwner(id: string): void { muteOwner = id; }
 /** Players muted on this device (until when). Muting only hides their messages here for a day; it tells nobody. */
-export function muted(now = Date.now()): Record<string, number> { try { const m = JSON.parse(localStorage.getItem(MUTE_KEY) ?? '{}') as Record<string, number>; for (const k of Object.keys(m)) if (!(m[k] > now)) delete m[k]; return m; } catch { return {}; } }
-export function mute(id: string, now = Date.now()): void { try { const m = muted(now); m[id] = now + MUTE_MS; localStorage.setItem(MUTE_KEY, JSON.stringify(m)); } catch { /* storage may be blocked */ } }
+export function muted(now = Date.now()): Record<string, number> { try { const m = JSON.parse(localStorage.getItem(MUTE_KEY()) ?? '{}') as Record<string, number>; for (const k of Object.keys(m)) if (!(m[k] > now)) delete m[k]; return m; } catch { return {}; } }
+export function mute(id: string, now = Date.now()): void { try { const m = muted(now); m[id] = now + MUTE_MS; localStorage.setItem(MUTE_KEY(), JSON.stringify(m)); } catch { /* storage may be blocked */ } }
 const GIFTS: { id: Gift; icon: string; price: number }[] = [{ id: 'flowers', icon: '💐', price: 800 }, { id: 'cake', icon: '🍰', price: 600 }, { id: 'tea', icon: '🍵', price: 300 }, { id: 'chocolates', icon: '🍫', price: 500 }];
 /** A drawing of a visited home from above: the floor and a square with an icon for each piece of furniture. */
 function planHtml(h: PublicHome): string {
@@ -65,14 +75,14 @@ function friendsHtml(c: Cloud): string {
   const list = view.friends === null ? `<p class="hint">${esc(t('olLoading'))}</p>` : view.friends.length ? `<ul class="olFriends">${view.friends.map(f => `<li><i class="dot${f.online ? ' on' : ''}" aria-label="${esc(t(f.online ? 'olOnlineNow' : 'olOffline'))}"></i><b>@${esc(f.username)}</b>${f.mutual ? ' 🤝' : ''}<small>${f.online && f.city ? esc(f.city) : ''}</small><span class="acts"><button type="button" class="olMini" data-visit="${esc(f.id)}" data-name="${esc(f.username)}">${esc(t('olVisit'))}</button><button type="button" class="olMini" data-dm="${esc(f.id)}" data-name="${esc(f.username)}">${esc(t('olWrite'))}</button><button type="button" class="olMini" data-unfollow="${esc(f.id)}">${esc(t('olUnfollow'))}</button></span></li>`).join('')}</ul>` : `<p class="hint">${esc(t('olNoFriends'))}</p>`;
   const found = view.found.length ? `<ul class="olFriends">${view.found.filter(p => p.id !== me.userId).map(p => `<li><b>@${esc(p.username)}</b><span class="acts"><button type="button" class="olMini" data-follow="${esc(p.id)}">${esc(t('olFollow'))}</button><button type="button" class="olMini" data-visit="${esc(p.id)}" data-name="${esc(p.username)}">${esc(t('olVisit'))}</button></span></li>`).join('')}</ul>` : '';
   const best = view.best && view.best.length ? `<h4>🏆 ${esc(t('olBest'))}</h4><ol class="olTop">${view.best.map(b => `<li><b>@${esc(b.username)}</b><span>${esc(b.city)} · ★ ${b.stars}</span><i>${Number(b.votes)} 👍</i><button type="button" class="olMini" data-visit="${esc(b.owner)}" data-name="${esc(b.username)}">${esc(t('olVisit'))}</button></li>`).join('')}</ol>` : '';
-  return `<form class="olSend" id="olFind"><input type="text" id="olFindText" maxlength="20" placeholder="${esc(t('olFindPh'))}"><button class="secondary" type="submit">${esc(t('olFind'))}</button></form>${found}<h4>${esc(t('olFriends'))}</h4>${list}${best}<p class="sub">${esc(t('olPublishHint'))}</p><button type="button" class="ghost" id="olPublish">${esc(t('olPublish'))}</button>`;
+  return `<form class="olSend" id="olFind"><input type="text" id="olFindText" maxlength="20" placeholder="${esc(t('olFindPh'))}"><button class="secondary" type="submit">${esc(t('olFind'))}</button></form>${found}<h4>${esc(t('olFriends'))}</h4>${list}${view.blocked.length ? `<h4>🚫 ${esc(t('olBlocked'))}</h4><ul class="olFriends">${view.blocked.map(b => `<li><b>@${esc(b.username)}</b><span class="acts"><button type="button" class="olMini" data-unblock="${esc(b.id)}">${esc(t('olUnblock'))}</button></span></li>`).join('')}</ul>` : ''}${best}<p class="sub">${esc(t('olPublishHint'))}</p><button type="button" class="ghost" id="olPublish">${esc(t('olPublish'))}</button>`;
 }
 function chatHtml(c: Cloud, s: State | null): string {
   const me = c.session();
   if (!me || !me.username) return `<p class="hint">${esc(t('olChatLogin'))}</p>`;
   if (!me.adult) return `<p class="hint">${esc(t('olChatAdult'))}</p>`;
   if (!s) return `<p class="hint">${esc(t('olChatNoGame'))}</p>`;
-  const talks = view.talks.length ? `<div class="olTalks">${view.talks.map(k => `<button type="button" class="olChip" data-dm="${esc(k.other)}" data-name="${esc(k.other_name)}">@${esc(k.other_name)}</button>`).join('')}</div>` : '';
+  const talks = view.talks.length ? `<div class="olTalks">${view.talks.filter(k => k.other !== c.session()?.userId).map(k => `<button type="button" class="olChip" data-dm="${esc(k.other)}" data-name="${esc(k.other_name)}">@${esc(k.other_name)}</button>`).join('')}</div>` : '';
   return `${talks}<div class="sub">${view.dm ? `${esc(t('olTalkWith'))} @${esc(view.dm.name)} <button type="button" class="olMini" id="olBack">${esc(t('olBackRoom'))}</button>` : `${esc(t('olChatRoom'))}: ${esc(G.placeById(s.loc).n)}, ${esc(s.city)}`}</div>
     <ul class="olChat">${view.chat.length ? view.chat.slice().reverse().filter(m => !muted()[m.sender]).map(m => `<li class="${m.sender === me.userId ? 'mine' : ''}"><b>@${esc(m.username)}</b> ${esc(m.body)}${m.sender === me.userId ? '' : ` <button type="button" class="olMini" data-report="${m.id}">${esc(t('olReport'))}</button><button type="button" class="olMini" data-block="${esc(m.sender)}">${esc(t('olBlock'))}</button><button type="button" class="olMini" data-mute="${esc(m.sender)}">${esc(t('olMute'))}</button>${view.dm ? '' : `<button type="button" class="olMini" data-dm="${esc(m.sender)}" data-name="${esc(m.username)}">${esc(t('olWrite'))}</button>`}`}</li>`).join('') : `<li class="hint">${esc(t('olChatEmpty'))}</li>`}</ul>
     <form class="olSend" id="olSend"><input type="text" id="olText" maxlength="280" placeholder="${esc(t('olSay'))}" autocomplete="off" required><button class="primary" type="submit">${esc(t('olSendBtn'))}</button><button type="button" class="ghost" id="olRefresh">↻</button></form><p class="sub">${esc(t('olChatRules'))}</p>`;
@@ -89,7 +99,9 @@ function adsHtml(c: Cloud, s: State | null): string {
   };
   const list = view.ads === null ? `<p class="hint">${esc(t('olLoading'))}</p>` : view.ads.length ? `<ul class="olAds">${view.ads.map(row).join('')}</ul>` : `<p class="hint">${esc(t('olNoAds'))}</p>`;
   const form = me?.username && (view.myAds ?? 0) >= 3 ? `<p class="hint">${esc(t('olAdsFull'))}</p>` : me?.username ? `<form class="olForm" id="olAdForm"><b>${esc(t('olAdNew'))}</b><label>${esc(t('olAdKind'))}<select id="olAdKind">${KINDS.map(k => `<option value="${k}">${esc(t('olKind.' + k))}</option>`).join('')}</select></label><label>${esc(t('olAdTitle'))}<input type="text" id="olAdTitle" maxlength="60" required></label><label>${esc(t('olAdBody'))}<input type="text" id="olAdBody" maxlength="280"></label><label>${esc(t('olAdPrice'))}<input type="text" id="olAdPrice" inputmode="numeric" value="0"></label><button class="primary" type="submit">${esc(t('olAdPut'))}</button><p class="sub">${esc(t('olAdRules'))}</p></form>` : `<p class="hint">${esc(t('olAdLogin'))}</p>`;
-  return `<div class="sub">${esc(t('olAdsIn'))} ${esc(s.city)}</div>${list}${form}`;
+  // the player's own adverts in every city (the limit of three counts them all), each with its take-down button
+  const mineAll = view.myAdList.length ? `<h4>${esc(t('olMyAds'))} (${view.myAdList.length}/3)</h4><ul class="olAds">${view.myAdList.map(a => `<li><b>${esc(a.title)}</b> <small>${esc(t('olKind.' + a.kind))} · ${esc(a.city)}</small><button type="button" class="olMini" data-adoff="${a.id}">${esc(t('olTakeDown'))}</button></li>`).join('')}</ul>` : '';
+  return `<div class="sub">${esc(t('olAdsIn'))} ${esc(s.city)}</div>${list}${mineAll}${form}`;
 }
 const newsHtml = (): string => `${view.visits !== null ? `<p class="sub">${esc(t('olVisits'))}: ${view.visits.toLocaleString('en-US')}</p>` : ''}${view.news === null ? `<p class="hint">${esc(t('olLoading'))}</p>` : view.news.length ? view.news.map(a => `<div class="olNews"><b>${esc(a.title)}</b><p>${esc(a.body)}</p></div>`).join('') : `<p class="hint">${esc(t('olNoNews'))}</p>`}`;
 
@@ -102,10 +114,10 @@ export function mountOnline(host: HTMLElement, d: OnlineDeps): () => void {
     if (!c) { host.innerHTML = `<div class="online"><h2>🌐 ${esc(t('olTitle'))}</h2><p>${esc(t('olOff'))}</p><p class="sub">${esc(t('olOffHow'))}</p></div>`; return; }
     const tabs: [Tab, string][] = [['account', t('olTabAccount')], ...(c.challenges ? [['challenges', t('chlTab')] as [Tab, string]] : []), ['top', t('olTabTop')], ['chat', t('olTabChat')], ['friends', t('olTabFriends')], ['ads', t('olTabAds')], ['news', t('olTabNews')]];
     host.innerHTML = `<div class="online"><h2>🌐 ${esc(t('olTitle'))}</h2><div class="olTabs" role="tablist">${tabs.map(([id, l]) => `<button type="button" role="tab" data-tab="${id}" aria-selected="${view.tab === id}">${esc(l)}</button>`).join('')}</div>
-      <div class="olBody">${view.tab === 'account' ? accountHtml(c) : view.tab === 'challenges' ? challengesHtml(c) : view.tab === 'top' ? topHtml() : view.tab === 'chat' ? chatHtml(c, d.state()) : view.tab === 'friends' ? friendsHtml(c) : view.tab === 'ads' ? adsHtml(c, d.state()) : newsHtml()}</div></div>`;
+      <div class="olBody">${view.tab === 'account' ? accountHtml(c) : view.tab === 'challenges' ? challengesHtml(c, d.state()) : view.tab === 'top' ? topHtml() : view.tab === 'chat' ? chatHtml(c, d.state()) : view.tab === 'friends' ? friendsHtml(c) : view.tab === 'ads' ? adsHtml(c, d.state()) : newsHtml()}</div></div>`;
     wire();
   };
-  const say = (r: { ok: boolean; msg: string }): void => { if (r.msg) d.notify(r.msg); };
+  const say = (r: { ok: boolean; msg: string }): void => { if (r.msg) d.notify(msgL(r.msg, lang() === 'ru')); };
   const busy = async (fn: () => Promise<void>): Promise<void> => { view.busy = true; draw(); try { await fn(); } finally { view.busy = false; draw(); } };
   const refresh = async (): Promise<void> => {
     if (!c || !alive) return;
@@ -115,14 +127,14 @@ export function mountOnline(host: HTMLElement, d: OnlineDeps): () => void {
     if (view.tab === 'chat') { const s = d.state(), me = c.session(); if (s && me?.adult) { const [r, k] = await Promise.all([c.messages(roomNow(s, me.userId)), c.talks()]); if (r.ok) view.chat = r.data ?? []; if (k.ok && Array.isArray(k.data)) view.talks = k.data; } }
     if (view.tab === 'friends' && c.session()?.username) {
       if (view.visit) { const [h, n, lv] = await Promise.all([c.home(view.visit.id), c.guestbook(view.visit.id), c.myHomeVote ? c.myHomeVote() : Promise.resolve({ ok: false, msg: '', data: null as string | null })]); view.liked = lv.ok ? lv.data ?? null : null; if (view.visit) { view.visit.home = h.ok ? h.data ?? null : null; view.visit.notes = n.ok ? n.data ?? [] : []; } }
-      else { const [f, b] = await Promise.all([c.friends(), c.bestHomes()]); view.friends = f.ok && Array.isArray(f.data) ? f.data : []; view.best = b.ok && Array.isArray(b.data) ? b.data : []; }
+      else { const [f, b, k] = await Promise.all([c.friends(), c.bestHomes(), c.blocks ? c.blocks() : Promise.resolve({ ok: false, msg: '', data: [] })]); view.friends = f.ok && Array.isArray(f.data) ? f.data : []; view.best = b.ok && Array.isArray(b.data) ? b.data : []; view.blocked = k.ok && Array.isArray(k.data) ? k.data : []; }
     }
     if (view.tab === 'challenges' && c.challenges && c.session()?.username) {
       const s = d.state(); const [r, k, f] = await Promise.all([c.challenges(s?.city ?? 'Moscow'), c.coops!(), c.friends()]);
       view.ch = r.ok ? r.data ?? null : null; view.coops = k.ok ? k.data ?? [] : []; view.friends = f.ok && Array.isArray(f.data) ? f.data : [];
       if (!view.openChapter && view.ch) view.openChapter = (view.ch.chapters.find(ch => view.ch!.challenges.some(x => x.chapter === ch.id && !x.claimed)) ?? view.ch.chapters[0])?.id ?? 1;
     }
-    if (view.tab === 'ads') { const s = d.state(); if (s) { const [r, mine] = await Promise.all([c.ads(s.city), c.myAds && c.session()?.username ? c.myAds() : Promise.resolve(null)]); view.ads = r.ok ? r.data ?? [] : []; view.myAds = mine && mine.ok ? (mine.data ?? []).length : null; } }
+    if (view.tab === 'ads') { const s = d.state(); if (s) { const [r, mine] = await Promise.all([c.ads(s.city), c.myAds && c.session()?.username ? c.myAds() : Promise.resolve(null)]); view.ads = r.ok ? r.data ?? [] : []; view.myAds = mine && mine.ok ? (mine.data ?? []).length : null; view.myAdList = mine && mine.ok ? mine.data ?? [] : []; } }
     draw();
   };
   const roomNow = (s: State, me: string): string => (view.dm ? directRoom(me, view.dm.id) : placeRoom(s.city, s.loc));
@@ -131,12 +143,16 @@ export function mountOnline(host: HTMLElement, d: OnlineDeps): () => void {
   function wire(): void {
     if (!c) return;
     host.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach(b => { b.onclick = () => { view.tab = b.dataset.tab as Tab; draw(); void refresh(); }; });
-    const auth = host.querySelector<HTMLFormElement>('#olAuth'); if (auth) auth.onsubmit = e => { e.preventDefault(); const email = val('olEmail'), pass = val('olPass'), name = val('olName'), adult = checked('olAdult'), up = view.signup; void busy(async () => { const [cc, rg] = val('olCountry').split('|'); const r = up ? await c.signUp(email, pass, name, adult, cc ? { country: cc, region: rg } : undefined) : await c.signIn(email, pass); say(r); if (up && r.ok) { view.signup = false; view.email = email; }   /* next step: confirm the e-mail, then log in here (found by playing, round 124) */ await refresh(); }); };
+    const auth = host.querySelector<HTMLFormElement>('#olAuth'); if (auth) auth.onsubmit = e => { e.preventDefault(); const email = val('olEmail'), pass = val('olPass'), name = val('olName'), adult = checked('olAdult'), up = view.signup; void busy(async () => { const [cc, rg] = val('olCountry').split('|'); const r = up ? await c.signUp(email, pass, name, adult, cc ? { country: cc, region: rg } : undefined) : await c.signIn(email, pass); say(r); if (up && r.ok) { view.signup = false; view.email = email; } if (!up && r.ok) { forgetAccount(); setMuteOwner(c.session()?.userId ?? ''); await d.onSignedIn?.(); }   /* next step: confirm the e-mail, then log in here (found by playing, round 124) */ await refresh(); }); };
     host.querySelectorAll<HTMLButtonElement>('[data-chapter]').forEach(b => { b.onclick = () => { view.openChapter = Number(b.dataset.chapter); draw(); }; });
-    host.querySelectorAll<HTMLButtonElement>('[data-claim]').forEach(b => { b.onclick = () => void busy(async () => { const s = d.state(); const r = await c.claimChallenge!(b.dataset.claim as string, s?.city ?? 'Moscow'); if (r.ok) { if (s) s.money += r.data ?? 0; d.notify(`${t('chlClaimed')} +${(r.data ?? 0).toLocaleString()} ₽`); } else say(r); await refresh(); }); });
+    host.querySelectorAll<HTMLButtonElement>('[data-claim]').forEach(b => { b.onclick = () => void busy(async () => { const s = d.state(); const r = await c.claimChallenge!(b.dataset.claim as string, s?.city ?? 'Moscow'); if (r.ok) { if (s) { s.money += r.data ?? 0; d.changed?.(); } d.notify(`${t('chlClaimed')} +${(r.data ?? 0).toLocaleString()} ₽`); } else say(r); await refresh(); }); });
     host.querySelectorAll<HTMLButtonElement>('[data-join]').forEach(b => { b.onclick = () => void busy(async () => { const s = d.state(); const r = await c.joinCity!(b.dataset.join as string, s?.city ?? 'Moscow'); say(r.ok ? { ok: true, msg: t('chlJoined') } : r); await refresh(); }); });
     host.querySelectorAll<HTMLButtonElement>('[data-invite]').forEach(b => { b.onclick = () => { const who = host.querySelector<HTMLSelectElement>(`#inv-${b.dataset.invite}`)?.value; if (!who) { d.notify(t('chlPickFriend')); return; } void busy(async () => { say(await c.coopInvite!(who, b.dataset.invite as string)); await refresh(); }); }; });
-    host.querySelectorAll<HTMLButtonElement>('[data-coop]').forEach(b => { b.onclick = () => void busy(async () => { const [act, idS] = (b.dataset.coop as string).split(':'), id = Number(idS); const r = act === 'done' ? await c.coopDone!(id) : await c.coopAnswer!(id, act === 'yes'); say(r.ok ? { ok: true, msg: act === 'done' ? t(r.data === 'done' ? 'chlBothDone' : 'chlWaiting') : t(act === 'yes' ? 'chlAccepted' : 'chlDeclined') } : r); await refresh(); }); });
+    host.querySelectorAll<HTMLButtonElement>('[data-coop]').forEach(b => { b.onclick = () => void busy(async () => { const [act, idS] = (b.dataset.coop as string).split(':'), id = Number(idS); if (act === 'done') { const s = d.state(), need = COOP_ACT[view.coops.find(k => k.id === id)?.challenge_id ?? '']; if (!s) { d.notify(t('chlNeedGame')); return; }
+      if (need) { const la = await import('./lifeacts'), since = s.coopSince?.[id] ?? s.day, L = la.lifeOf(s);
+        if (!((L.done[need.act] ?? -1) >= since)) { const done = la.doAct(s, need.act); if (!done.ok) { d.notify(`${t('chlPartFirst')} ${lang() === 'ru' ? need.ru : need.en}: ${done.msg}`); return; } d.changed?.(); d.notify(done.msg); } } }
+      if (act === 'yes') { const s = d.state(); if (s) (s.coopSince ??= {})[id] = s.day; }
+      const r = act === 'done' ? await c.coopDone!(id) : await c.coopAnswer!(id, act === 'yes'); say(r.ok ? { ok: true, msg: act === 'done' ? t(r.data === 'done' ? 'chlBothDone' : 'chlWaiting') : t(act === 'yes' ? 'chlAccepted' : 'chlDeclined') } : r); await refresh(); }); });
     const fb = host.querySelector<HTMLButtonElement>('#olForgotBtn'); if (fb) fb.onclick = () => { view.forgot = true; draw(); };
     const lc = host.querySelector<HTMLButtonElement>('#olLinkCancel'); if (lc) lc.onclick = () => { view.forgot = false; view.link = null; draw(); };
     const ff = host.querySelector<HTMLFormElement>('#olForgotForm'); if (ff) ff.onsubmit = e => { e.preventDefault(); const email = val('olEmail'); void busy(async () => { say(await c.forgot!(email)); view.forgot = false; }); };
@@ -146,7 +162,7 @@ export function mountOnline(host: HTMLElement, d: OnlineDeps): () => void {
     const eo = host.querySelector<HTMLButtonElement>('#olEndOthers'); if (eo) eo.onclick = () => void busy(async () => { say(await c.endOtherSessions!()); });
     const sw = host.querySelector<HTMLButtonElement>('#olSwitch'); if (sw) sw.onclick = () => { view.signup = !view.signup; draw(); };
     const claim = host.querySelector<HTMLFormElement>('#olClaim'); if (claim) claim.onsubmit = e => { e.preventDefault(); const name = val('olName'), adult = checked('olAdult'); void busy(async () => { say(await c.claim(name, adult)); }); };
-    const out = host.querySelector<HTMLButtonElement>('#olOut'); if (out) out.onclick = () => void busy(async () => { say(await c.signOut()); view.chat = []; });
+    const out = host.querySelector<HTMLButtonElement>('#olOut'); if (out) out.onclick = () => void busy(async () => { say(await c.signOut()); forgetAccount(); setMuteOwner(''); d.onSignedOut?.(); });
     const save = host.querySelector<HTMLButtonElement>('#olSave'); if (save) save.onclick = () => { const s = d.state(); if (!s) { d.notify(t('olNoGame')); return; } void busy(async () => { say(await c.save(s)); }); };
     const load = host.querySelector<HTMLButtonElement>('#olLoad'); if (load) load.onclick = () => void busy(async () => { const r = await c.load(); const st = r.ok && r.data ? r.data.state : null;
       // the same check as for a save file from disk: a game from another version of the rules is not loaded
@@ -163,15 +179,16 @@ export function mountOnline(host: HTMLElement, d: OnlineDeps): () => void {
     const like = host.querySelector<HTMLButtonElement>('#olLike'); if (like && view.visit) like.onclick = () => void (async () => { const r = await c.voteHome(view.visit!.id); d.notify(r.ok ? t('olLiked') : r.msg); if (r.ok) { view.liked = view.visit!.id; draw(); } })();
     const note = host.querySelector<HTMLFormElement>('#olNote'); if (note && view.visit) note.onsubmit = e => { e.preventDefault(); const body = val('olNoteText'), gift = (val('olGift') || null) as Gift | null, st = d.state(), price = GIFTS.find(g => g.id === gift)?.price ?? 0;
       if (gift && (!st || st.money < price)) { d.notify(t('olGiftPoor')); return; }
-      void (async () => { const r = await c.signGuestbook(view.visit!.id, body, gift); if (r.ok && gift && st) { st.money -= price; d.notify(t('olGiftSent')); } else say(r.ok ? { ok: true, msg: t('olNoteSent') } : r); await refresh(); })(); };
+      void (async () => { const r = await c.signGuestbook(view.visit!.id, body, gift); if (r.ok && gift && st) { st.money -= price; d.changed?.(); d.notify(t('olGiftSent')); } else say(r.ok ? { ok: true, msg: t('olNoteSent') } : r); await refresh(); })(); };
     const pub = host.querySelector<HTMLButtonElement>('#olPublish'); if (pub) pub.onclick = () => void (async () => { const h = d.home?.(); if (!h) { d.notify(t('olChatNoGame')); return; } say(await c.publishHome(h.city, h.dwelling, h.design, h.stars)); })();
     host.querySelectorAll<HTMLButtonElement>('[data-dm]').forEach(b => { b.onclick = () => { view.dm = { id: b.dataset.dm as string, name: b.dataset.name ?? '' }; view.chat = []; view.tab = 'chat'; draw(); void refresh(); }; });
     const back = host.querySelector<HTMLButtonElement>('#olBack'); if (back) back.onclick = () => { view.dm = null; view.chat = []; draw(); void refresh(); };
     const del = host.querySelector<HTMLButtonElement>('#olDelete'); if (del) del.onclick = () => { if (del.dataset.sure !== '1') { del.dataset.sure = '1'; del.textContent = t('olDeleteSure'); return; } void busy(async () => { say(await c.deleteAccount(val('olDelPass'))); view.chat = []; view.talks = []; view.dm = null; }); };
-    const adForm = host.querySelector<HTMLFormElement>('#olAdForm'); if (adForm) adForm.onsubmit = e => { e.preventDefault(); const s = d.state(); if (!s) return; const kind = val('olAdKind') as PlayerAd['kind'], title = val('olAdTitle'), body = val('olAdBody'), price = Number(val('olAdPrice').replace(/[^0-9]/g, '')) || 0; void (async () => { say(await c.postAd(s.city, kind, title, body, price)); await refresh(); })(); };
+    const adForm = host.querySelector<HTMLFormElement>('#olAdForm'); if (adForm) adForm.onsubmit = e => { e.preventDefault(); const s = d.state(); if (!s) return; const kind = val('olAdKind') as PlayerAd['kind'], title = val('olAdTitle'), body = val('olAdBody'), rawPrice = val('olAdPrice'), price = Number(rawPrice.replace(/[^0-9]/g, '')) || 0; if (/[-−]\s*\d/.test(rawPrice)) { /* "-500" is refused, not saved as 500 (round 150) */ d.notify(msgL('The price cannot be below zero.', lang() === 'ru')); return; } void (async () => { say(await c.postAd(s.city, kind, title, body, price)); await refresh(); })(); };
     host.querySelectorAll<HTMLButtonElement>('[data-adoff]').forEach(b => { b.onclick = () => void (async () => { say(await c.removeAd(Number(b.dataset.adoff))); await refresh(); })(); });
     host.querySelectorAll<HTMLButtonElement>('[data-adreport]').forEach(b => { b.onclick = () => void (async () => { say(await c.reportAd(Number(b.dataset.adreport))); })(); });
     host.querySelectorAll<HTMLButtonElement>('[data-report]').forEach(b => { b.onclick = () => void (async () => { say(await c.report(Number(b.dataset.report), 'reported from the chat')); })(); });
+    host.querySelectorAll<HTMLButtonElement>('[data-unblock]').forEach(b => { b.onclick = () => void (async () => { if (c.unblock) say(await c.unblock(b.dataset.unblock as string)); await refresh(); })(); });
     host.querySelectorAll<HTMLButtonElement>('[data-block]').forEach(b => { b.onclick = () => void (async () => { say(await c.block(b.dataset.block as string)); await refresh(); })(); });
   }
   draw(); void refresh();
@@ -182,16 +199,18 @@ export function mountOnline(host: HTMLElement, d: OnlineDeps): () => void {
 }
 /** The storyline and the challenges with other players: chapters to open, progress bars, a reward to take, a city effort to join,
     a friend to invite for a co-op challenge, and the invitations under way. */
-function challengesHtml(c: Cloud): string {
+function challengesHtml(c: Cloud, st: State | null): string {
   if (!c.session()?.username) return `<p class="hint">${esc(t('olChooseName'))}</p>`;
   if (!view.ch) return `<p class="hint">${esc(t('olLoading'))}</p>`;
   const ru = lang() === 'ru', mutual = (view.friends ?? []).filter(f => f.mutual);
   const title = (x: { title_en: string; title_ru: string }): string => (ru ? x.title_ru : x.title_en), text = (x: { text_en: string; text_ru: string }): string => (ru ? x.text_ru : x.text_en);
   const kindIcon = { event: '⭐', coop: '🤝', city: '🏙️' } as const;
+  // what this player does for an accepted co-op; it counts from the game day the co-op started for them
+  const part = (k: Coop): string => { const need = COOP_ACT[k.challenge_id], s = st; if (s && !s.coopSince?.[k.id]) (s.coopSince ??= {})[k.id] = s.day; return need ? `<span class="sub">${esc(t('chlYourPart'))}: ${esc(lang() === 'ru' ? need.ru : need.en)}</span>` : ''; };
   const coopsHtml = view.coops.length ? `<h3>🤝 ${esc(t('chlCoops'))}</h3><ul class="olList">${view.coops.map(k => {
     const ch = view.ch!.challenges.find(x => x.id === k.challenge_id), me = k.mine ? k.inviter_done : k.invitee_done;
     const act = k.status === 'invited' ? (k.mine ? `<span class="sub">${esc(t('chlSent'))}</span>` : `<button type="button" class="primary" data-coop="yes:${k.id}">${esc(t('chlAccept'))}</button><button type="button" class="ghost" data-coop="no:${k.id}">${esc(t('chlDecline'))}</button>`)
-      : k.status === 'accepted' ? (me ? `<span class="sub">${esc(t('chlWaiting'))}</span>` : `<button type="button" class="primary" data-coop="done:${k.id}">${esc(t('chlMyPart'))}</button>`) : `<span class="sub">✔ ${esc(t('chlBothDone'))}</span>`;
+      : k.status === 'accepted' ? (me ? `<span class="sub">${esc(t('chlWaiting'))}</span>` : `${part(k)}<button type="button" class="primary" data-coop="done:${k.id}">${esc(t('chlMyPart'))}</button>`) : `<span class="sub">✔ ${esc(t('chlBothDone'))}</span>`;
     return `<li><b>${esc(ch ? title(ch) : k.challenge_id)}</b> · @${esc(k.other_name)}<div class="row">${act}</div></li>`; }).join('')}</ul>` : '';
   const chapters = view.ch.chapters.map(chp => {
     const items = view.ch!.challenges.filter(x => x.chapter === chp.id), done = items.filter(x => x.claimed).length, open = view.openChapter === chp.id;

@@ -51,7 +51,7 @@ describe('talk at the place', () => {
     expect(r('bananas')).toContain('app is faster');
   });
   it('messages are cleaned of markup characters and cut to 80 characters', () => {
-    expect(cleanMessage('  <b>hi</b>   there ')).toBe('bhi/b there');
+    expect(cleanMessage('  <b>hi</b>   there ')).toBe('<b>hi</b> there');                 // kept as typed; the screen escapes it
     expect(cleanMessage('x'.repeat(200)).length).toBe(80);
   });
 });

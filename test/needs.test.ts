@@ -83,7 +83,7 @@ function stub(): NonNullable<World3dDeps['rendererFactory']> {
 describe('the bucket in the flat', () => {
   it('stands in the flat as a thing to use, and wash is a known special action', () => {
     const home = interiorFor('home', fresh())!; const b = home.props.find(p => p.action === 'wash')!;
-    expect(b).toBeTruthy(); expect(b.label).toMatch(/Bucket/); expect((SPECIAL as readonly string[]).includes('wash')).toBe(true);
+    expect(b).toBeTruthy(); expect(b.label).toMatch(/Bucket|Bath|Shower|Washstand/); expect((SPECIAL as readonly string[]).includes('wash')).toBe(true);
   });
   it('using it asks the page to wash, the washing pose can be played in a room only, and the flat offers it', async () => {
     const s = fresh(); const host = document.body.appendChild(document.createElement('div'));

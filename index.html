@@ -3,26 +3,39 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>V Russia — Life Simulator</title>
-<meta name="theme-color" content="#0e1424">
-<meta name="description" content="A free browser life simulator of Russia: papers, work, study, family and culture.">
+<title>В России — who can you become in Russia?</title>
+<meta name="theme-color" content="#bfe0f7">
+<meta property="og:type" content="website">
+<meta property="og:title" content="В России — who can you become in Russia?">
+<meta property="og:description" content="В России: start with a name, a passport and a dream. Survive the winter, get your papers, build a career — from a rented room to a flat of your own, from newcomer to citizen. A free life simulator, in Russian and English.">
+<meta property="og:image" content="icon.svg">
+<meta name="twitter:card" content="summary">
+<meta name="description" content="В России: start with a name, a passport and a dream. Survive the winter, get your papers, build a career — from a rented room to a flat of your own, from newcomer to citizen. A free life simulator, in Russian and English.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 </head>
 <body>
 <div id="errbar" hidden></div>
-<noscript><p style="padding:16px">V Russia is a browser game and needs JavaScript. Please enable it and reload the page.</p></noscript>
+<noscript><p style="padding:16px">В России (In Russia) is a browser game and needs JavaScript. Please enable it and reload the page.</p></noscript>
 
 <section id="title" class="screen">
   <div class="flagbar"><i></i><i></i><i></i></div>
-  <div class="titlebar"><h1>V&nbsp;Russia</h1><button class="ghost langBtn" id="onlineBtn" data-i18n="olBtn">🌐 Online</button><button class="ghost langBtn" id="textBtn" data-i18n-aria="textSize" aria-label="Text size">Aa</button><button class="ghost langBtn" id="langBtn" data-i18n="langBtn" aria-label="Language / Язык">RU</button></div>
-  <p class="tag" data-i18n="tag">A free browser life simulator of Russia: <b id="tagCount">4,000+ scenarios</b> across culture, history, traditions, study, work and everyday life — for citizens and newcomers alike.</p>
+  <div class="titlebar"><h1 class="brand">В&nbsp;России</h1><button class="ghost langBtn" id="onlineBtn" data-i18n="olBtn">🌐 Online</button><button class="ghost langBtn" id="textBtn" data-i18n-aria="textSize" aria-label="Text size">Aa</button><button class="ghost langBtn" id="langBtn" data-i18n="langBtn" aria-label="Language / Язык">RU</button></div>
+  <p class="heroSub" data-i18n="heroSub">Who can you become in Russia?</p>
+  <p class="tag" data-i18n="tag">Start with a name, a passport and a dream. Survive your first winter, get your papers, build a career — and see how far you can go in two years.</p>
+  <ul class="heroPoints">
+    <li data-i18n="heroP1">🎯 Pick your start: a Moscow kid, a student from Lagos, a worker from Samarkand or Osh — every life starts hard in its own way.</li>
+    <li data-i18n="heroP2">🏆 Climb: from your first rented room to a flat of your own, from courier to your own business, from newcomer to citizen. Or get deported trying.</li>
+    <li data-i18n="heroP3">⚖️ Every choice counts: papers, money, the law, love and family — the game remembers everything.</li>
+    <li data-i18n="heroP4">🌍 Compete online: the challenge of the day, the leaderboard, the dish of the day. And learn on the way how life in Russia really works: registration, the patent, public services, the language and traditions.</li>
+  </ul>
   <p class="sub" id="langNote" data-i18n="note"></p>
   <label class="field"><span data-i18n="name">Your name</span> <input id="nameInput" maxlength="20" placeholder="e.g. Rustam, Aisha, Ivan" data-i18n-ph="namePh"></label> <button type="button" class="ghost randName" id="randNameBtn" data-i18n="crRandomName">Random Russian name</button>
   <label class="field"><span data-i18n="startCity">Starting city (optional — migrants default to Moscow)</span>
     <select id="citySel"><option value="" data-i18n="cityDefault">Default for your character</option></select></label>
   <label class="field"><span data-i18n="difficulty">Difficulty</span>
     <select id="diffSel"><option value="easy" data-i18n="diff.easy">Easy: more money, fewer checks</option><option value="normal" data-i18n="diff.normal" selected>Normal</option><option value="hard" data-i18n="diff.hard">Realistic: less money, more checks</option></select></label>
+  <label class="field checkField"><input type="checkbox" id="homeStart" checked> <span data-i18n="homeStart">Foreigners: start at home (visa, appointment, ticket)</span></label>
   <section id="creator" class="creator" aria-labelledby="creatorTitle">
     <h2 id="creatorTitle" data-i18n="creatorTitle">Create your character</h2>
     <div class="creatorGrid">
@@ -82,7 +95,7 @@
 <section id="end" class="screen" hidden></section>
 <button class="keysBtn" id="keysBtn" aria-label="Keyboard shortcuts" title="Keyboard shortcuts" hidden>⌨</button>
 <nav id="dock" class="dock" aria-label="Main menu" hidden>
-  <button id="dockHome" data-dock="home"><span aria-hidden="true">🏠</span><b data-i18n="dockHome">Home</b></button>
+  <button id="dockHome" data-dock="home" class="on"><span aria-hidden="true">🏠</span><b data-i18n="dockHome">Home</b></button>
   <button id="dockShop" data-dock="shop"><span aria-hidden="true">🛍️</span><b data-i18n="dockShop">Shop</b></button>
   <button id="dockMap" data-dock="map"><span aria-hidden="true">🗺️</span><b data-i18n="dockMap">Map</b></button>
   <button id="dockPhone" data-dock="phone"><span aria-hidden="true">📱</span><b data-i18n="dockPhone">Phone</b></button>

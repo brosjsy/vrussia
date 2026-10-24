@@ -7,11 +7,13 @@ import type { State } from './engine';
 import type { Dwelling } from './homes';
 
 export interface Rental { id: RentalId; name: string; ru: string; icon: string; dwelling: Dwelling; rent: number; size: number; needs: string }
-export type RentalId = 'kommunalka' | 'studio' | 'tworoom';
+export type RentalId = 'kommunalka' | 'khrush' | 'studio' | 'eurotwo' | 'tworoom';
 /** Weekly rents for Moscow and Saint Petersburg; other cities pay about two thirds. Invented game values. */
 export const RENTALS: Rental[] = [
-  { id: 'kommunalka', name: 'A room in a kommunalka', ru: 'Комната в коммуналке', icon: '🚪', dwelling: 'panelka', rent: 4500, size: 18, needs: 'nothing' },
+  { id: 'kommunalka', name: 'A room in a kommunalka', ru: 'Комната в коммуналке', icon: '🚪', dwelling: 'kommunal', rent: 4500, size: 18, needs: 'nothing' },
+  { id: 'khrush', name: 'A one-room flat in a khrushchyovka', ru: 'Однушка в хрущёвке', icon: '🏚️', dwelling: 'khrush', rent: 6500, size: 31, needs: 'nothing' },
   { id: 'studio', name: 'A studio flat', ru: 'Студия', icon: '🏢', dwelling: 'studio', rent: 9000, size: 28, needs: 'a job or a good reputation (40)' },
+  { id: 'eurotwo', name: 'A euro-two in a new block', ru: 'Евродвушка в новостройке', icon: '🏙️', dwelling: 'eurotwo', rent: 12000, size: 40, needs: 'a job' },
   { id: 'tworoom', name: 'A two-room flat', ru: 'Двухкомнатная квартира', icon: '🏠', dwelling: 'family', rent: 15000, size: 52, needs: 'a job and four weeks of rent in the bank' },
 ];
 const BIG = ['Moscow', 'Saint Petersburg'];
@@ -38,6 +40,7 @@ export function cannotMove(s: State, id: RentalId): string | null {
   if (homeOf(s).rental === id) return 'You already live here.';
   const rent = rentIn(r, s.city);
   if (id === 'studio' && !s.job && s.rep < 40) return 'The landlord wants a job or a good reputation.';
+  if (id === 'eurotwo' && !s.job) return 'The landlord wants a job.';
   if (id === 'tworoom' && (!s.job || s.money < rent * 4)) return 'The landlord wants a job and four weeks of rent in the bank.';
   if (s.money < rent * 2) return `The deposit is two weeks of rent: ${rent * 2} roubles.`;
   return null;

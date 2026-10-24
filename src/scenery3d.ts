@@ -5,7 +5,9 @@ import * as THREE from 'three';
 import type { State } from './engine';
 import { waterFor, waterRects, bridgeFor, fillerFor, parksFor, billboardSpots, FIELD_HALF, WATER_WIDTH } from './city-geo';
 import { sprite, drawBoard } from './sprites3d';
-import { boardsFor, megaScreen } from './billboards';
+import { boardsFor, megaScreen, advertsKey } from './billboards';
+import { landmarksOf } from './landmarks';
+import { buildLandmark, drawnHeight } from './landmarks3d';
 
 type Track = <T extends { dispose: () => void }>(o: T) => T;
 const hashOf = (t: string): number => { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619) >>> 0; return h; };
@@ -46,7 +48,56 @@ varying float vWall; varying vec3 vWPos;`)
   };
 }
 
-export interface Scenery { setReal: (list: RealBuilding[] | null) => void; real: () => number; boards: THREE.Mesh[]; updateBoards: (s: State, date: string) => void; mega: THREE.Mesh | null; attachMega: (centre: THREE.Group, roofY: number) => void; decorate: (g: THREE.Group, placeId: string, h: number) => void }
+
+/* ----- Russian facades (round 151) ----- */
+/** The facade kinds the painter knows, in the order the shader numbers them. */
+export const FACADES = ['khrush', 'panel9', 'panel16', 'stalinka', 'newbuild', 'prerev', 'wooden', 'private', 'shop'] as const;
+export type Facade = typeof FACADES[number];
+export const STOREY: Record<Facade, number> = { khrush: 2.7, panel9: 2.8, panel16: 2.8, stalinka: 3.4, newbuild: 3.0, prerev: 3.8, wooden: 3.0, private: 3.0, shop: 4.0 };
+/** Paints the walls of a building of a Russian kind from the position in the world, with no pictures: the seams and balconies of panel blocks, the brick and
+   small windows of a khrushchyovka, the dark ground floor and light cornice of a stalinka, the two-tone storeys and big glass of a new tower, the pilasters and
+   tall windows of a pre-revolutionary house, the logs and white frames of a wooden house. On an InstancedMesh the kind, the height of a storey and the height of
+   the house come from per-house attributes (aFacade, aStorey, aTop); on a single house from `fixed`. The tops of houses are left plain. */
+export function paintFacade(m: THREE.MeshStandardMaterial, fixed?: { facade: Facade; top: number }): { set: (facade: Facade, top: number) => void } {
+  const u = { uFacade: { value: fixed ? FACADES.indexOf(fixed.facade) : 0 }, uStorey: { value: fixed ? STOREY[fixed.facade] : 3 }, uTop: { value: fixed?.top ?? 10 } };
+  m.onBeforeCompile = sh => {
+    Object.assign(sh.uniforms, u);
+    const inst = !fixed;
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', `#include <common>
+${inst ? 'attribute float aFacade; attribute float aStorey; attribute float aTop;' : 'uniform float uFacade; uniform float uStorey; uniform float uTop;'}
+varying float vFac; varying float vSto; varying float vTop; varying float vWallF; varying vec3 vFPos;`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+{ vec4 wp = vec4(transformed, 1.0);
+#ifdef USE_INSTANCING
+  wp = instanceMatrix * wp;
+#endif
+  wp = modelMatrix * wp; vFPos = wp.xyz; vWallF = 1.0 - step(0.5, abs(normal.y));
+  ${inst ? 'vFac = aFacade; vSto = aStorey; vTop = aTop;' : 'vFac = uFacade; vSto = uStorey; vTop = uTop;'} }`);
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', `#include <common>
+varying float vFac; varying float vSto; varying float vTop; varying float vWallF; varying vec3 vFPos;`)
+      .replace('#include <color_fragment>', `#include <color_fragment>
+if (vWallF > 0.5) {
+  int f = int(vFac + 0.5); float y = vFPos.y, h = vFPos.x + vFPos.z, st = max(vSto, 2.0);
+  float fl = fract(y / st), sp = f == 3 ? 3.0 : f == 4 ? 3.4 : f == 5 ? 2.8 : 2.6, col = fract(h / sp);
+  float lo = f == 5 ? 0.22 : f == 3 ? 0.25 : 0.3, hi = f == 5 ? 0.84 : f == 4 ? 0.86 : 0.75, cw = f == 4 ? 0.1 : 0.22;
+  float win = step(lo, fl) * step(fl, hi) * step(cw, col) * step(col, 1.0 - cw) * step(st * 0.25, y) * step(y, vTop - 0.6);
+  vec3 c = diffuseColor.rgb, glass = vec3(0.24, 0.32, 0.42);
+  if (f == 0) { c *= 0.94 + 0.06 * step(0.5, fract(y * 3.3 + floor(h * 4.0) * 0.5)); }                                     // brick rows of a khrushchyovka
+  if (f == 1 || f == 2) { float seam = (1.0 - step(0.035, fl)) + (1.0 - step(0.025, fract(h / 3.2))); c *= 1.0 - 0.14 * clamp(seam, 0.0, 1.0);    // panel seams
+    float bc = fract(h / (2.0 * sp)); float balc = step(0.04, fl) * step(fl, 0.28) * step(0.08, bc) * step(bc, 0.46) * step(st, y); c = mix(c, c * 1.12 + 0.04, balc); }
+  if (f == 3) { c *= 1.0 - 0.18 * (1.0 - step(st, y)); c = mix(c, c * 1.16, step(vTop - 1.1, y)); }                       // stalinka: dark ground floor, light cornice
+  if (f == 4) { c = mix(c, c * 0.82 + vec3(0.02, 0.05, 0.09), step(0.5, fract(y / (st * 2.0)))); glass = vec3(0.36, 0.5, 0.62); }   // new tower: two-tone storeys, big glass
+  if (f == 5) { c = mix(c, c * 1.12, step(0.9, col) * step(st, y)); c *= 1.0 - 0.12 * (1.0 - step(st, y)); }               // old house: pilasters, a darker shop floor
+  if (f == 6) { c *= 0.86 + 0.14 * step(0.18, fract(y / 0.34)); glass = vec3(0.2, 0.26, 0.34); float rim = step(lo - 0.06, fl) * step(fl, hi + 0.06) * step(cw - 0.06, col) * step(col, 1.06 - cw); c = mix(c, vec3(0.93), rim * (1.0 - win)); }
+  diffuseColor.rgb = mix(c, glass, win * (f == 8 ? 0.0 : 1.0));
+}`);
+  };
+  return { set: (facade, top) => { u.uFacade.value = FACADES.indexOf(facade); u.uStorey.value = STOREY[facade]; u.uTop.value = top; } };
+}
+
+export interface Scenery { sights: { x: number; z: number; r: number; id: string }[]; setReal: (list: RealBuilding[] | null) => void; real: () => number; boards: THREE.Mesh[]; updateBoards: (s: State, date: string) => void; mega: THREE.Mesh | null; attachMega: (centre: THREE.Group, roofY: number) => void; decorate: (g: THREE.Group, placeId: string, h: number) => void }
 
 export function buildScenery(scene: THREE.Scene, track: Track, city: string): Scenery {
   const lit = (hex: string, extra: Partial<THREE.MeshStandardMaterialParameters> = {}): THREE.MeshStandardMaterial => track(new THREE.MeshStandardMaterial({ color: hex, roughness: 0.9, ...extra }));
@@ -76,20 +127,42 @@ export function buildScenery(scene: THREE.Scene, track: Track, city: string): Sc
   const label = sprite(w.name.toUpperCase(), '#ffffff00', '#ffffffcc', 6);
   const r0 = rects[0]; label.position.set(r0.x, 3.2, r0.z); label.scale.multiplyScalar(2.2); scene.add(label);
   const br = bridgeFor(city), vertical = br.side === 'n' || br.side === 's';
-  add(new THREE.BoxGeometry(br.w, 0.6, br.d), lit('#9aa3ad'), br.x, 0.95, br.z);
+  /* ----- the famous sights of the city (round 151): a bridge over the water where the city is known for one, the others beyond the edges of the field ----- */
+  const sights = landmarksOf(city), bridgeSight = sights.find(l => l.kind === 'bridge'), spots: { x: number; z: number; r: number; id: string }[] = [];
+  if (bridgeSight) {
+    const lg = buildLandmark(bridgeSight, track), len = vertical ? br.d : br.w; lg.scale.set(len / 70, 1, 1); lg.rotation.y = vertical ? Math.PI / 2 : 0; lg.position.set(br.x, 0, br.z); scene.add(lg);
+    spots.push({ x: br.x, z: br.z, r: len / 2, id: bridgeSight.id });
+  }
+  {
+    const dry = (['n', 'w', 'e', 's'] as const), wet = new Set(w.sides), far = (side: 'n' | 'w' | 'e' | 's'): number => (wet.has(side) ? FIELD_HALF + width + 24 : FIELD_HALF + 22);
+    const order = [...dry.filter(x => !wet.has(x)), ...dry.filter(x => wet.has(x))];
+    sights.filter(l => l !== bridgeSight).slice(0, 3).forEach((l, i) => {
+      const side = order[i % order.length], dist = far(side) + drawnHeight(l.h) * 0.15, along = i < order.length ? 6 : -30;
+      const x = side === 'n' || side === 's' ? along : side === 'e' ? dist : -dist, z = side === 'n' ? -dist : side === 's' ? dist : along;
+      const lg = buildLandmark(l, track); lg.position.set(x, 0, z); lg.rotation.y = Math.atan2(-x, -z); scene.add(lg);
+      // a paved square under it, so it does not stand in the grass or the water
+      const sq = add(new THREE.PlaneGeometry(46, 40), lit('#cfc7b8'), x, 0.06, z, false); sq.rotation.x = -Math.PI / 2; sq.rotation.z = -lg.rotation.y; sq.userData.landmark = l.id;
+      spots.push({ x, z, r: 26, id: l.id });
+    });
+  }
+  if (!bridgeSight) add(new THREE.BoxGeometry(br.w, 0.6, br.d), lit('#9aa3ad'), br.x, 0.95, br.z);
   const rail = lit('#6b7480');
-  for (const s of [-1, 1]) add(new THREE.BoxGeometry(vertical ? 0.3 : br.w, 0.9, vertical ? br.d : 0.3), rail, br.x + (vertical ? s * (br.w / 2 - 0.15) : 0), 1.7, br.z + (vertical ? 0 : s * (br.d / 2 - 0.15)));
-  for (let i = 0; i <= 4; i++) { const t = (i / 4 - 0.5) * (vertical ? br.d : br.w) * 0.8; add(new THREE.CylinderGeometry(0.8, 1, 1.6, 8), lit('#7d8793'), br.x + (vertical ? 0 : t), 0.4, br.z + (vertical ? t : 0)); }
+  if (!bridgeSight) for (const s of [-1, 1]) add(new THREE.BoxGeometry(vertical ? 0.3 : br.w, 0.9, vertical ? br.d : 0.3), rail, br.x + (vertical ? s * (br.w / 2 - 0.15) : 0), 1.7, br.z + (vertical ? 0 : s * (br.d / 2 - 0.15)));
+  if (!bridgeSight) for (let i = 0; i <= 4; i++) { const t = (i / 4 - 0.5) * (vertical ? br.d : br.w) * 0.8; add(new THREE.CylinderGeometry(0.8, 1, 1.6, 8), lit('#7d8793'), br.x + (vertical ? 0 : t), 0.4, br.z + (vertical ? t : 0)); }
 
   /* ----- ordinary houses, towers and shops (one batch of boxes per kind) ----- */
   const filler = fillerFor(city);
-  const boxes = new THREE.InstancedMesh(track(new THREE.BoxGeometry(1, 1, 1)), track(new THREE.MeshStandardMaterial({ roughness: 0.9 })), filler.length);
+  const boxGeo = track(new THREE.BoxGeometry(1, 1, 1)), boxMat = track(new THREE.MeshStandardMaterial({ roughness: 0.9 })); paintFacade(boxMat);
+  const aFacade = new Float32Array(filler.length), aStorey = new Float32Array(filler.length), aTop = new Float32Array(filler.length);
+  filler.forEach((f, i) => { const fc: Facade = (f.series ?? 'shop') as Facade; aFacade[i] = FACADES.indexOf(fc); aStorey[i] = STOREY[fc]; aTop[i] = f.h; });
+  boxGeo.setAttribute('aFacade', new THREE.InstancedBufferAttribute(aFacade, 1)); boxGeo.setAttribute('aStorey', new THREE.InstancedBufferAttribute(aStorey, 1)); boxGeo.setAttribute('aTop', new THREE.InstancedBufferAttribute(aTop, 1));
+  const boxes = new THREE.InstancedMesh(boxGeo, boxMat, filler.length);
   const roofs = new THREE.InstancedMesh(track(new THREE.ConeGeometry(0.78, 1, 4)), track(new THREE.MeshStandardMaterial({ color: '#b4553a', roughness: 0.9 })), filler.length);
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), roofQ = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 4);
   let nRoofs = 0;
   filler.forEach((f, i) => {
     m.compose(new THREE.Vector3(f.x, f.h / 2, f.z), q, new THREE.Vector3(f.w, f.h, f.d)); boxes.setMatrixAt(i, m); boxes.setColorAt(i, new THREE.Color(f.color));
-    if (f.kind === 'house') { m.compose(new THREE.Vector3(f.x, f.h + 1.1, f.z), roofQ, new THREE.Vector3(f.w * 1.15, 2.4, f.d * 1.15)); roofs.setMatrixAt(nRoofs++, m); }
+    if (f.series === 'prerev' || f.series === 'wooden' || f.series === 'private') { m.compose(new THREE.Vector3(f.x, f.h + 1.1, f.z), roofQ, new THREE.Vector3(f.w * 1.15, 2.4, f.d * 1.15)); roofs.setMatrixAt(nRoofs++, m); }
   });
   roofs.count = nRoofs; boxes.castShadow = roofs.castShadow = true; boxes.receiveShadow = true; scene.add(boxes, roofs);
 
@@ -100,6 +173,7 @@ export function buildScenery(scene: THREE.Scene, track: Track, city: string): Sc
     dropReal();
     boxes.visible = roofs.visible = !list || !list.length;
     if (!list || !list.length) return;
+    list = list.filter(b => { const cx = b.pts.reduce((t, p) => t + p[0], 0) / b.pts.length, cz = b.pts.reduce((t, p) => t + p[1], 0) / b.pts.length; return !spots.some(sp => Math.hypot(cx - sp.x, cz - sp.z) < sp.r); });
     const parts = list.map(b => extrudeOutline(b.pts, b.h, b.color, roofOf(b.color, b.kind)));
     const merged = mergeGeometries(parts, false); parts.forEach(p => p.dispose());
     if (!merged) { boxes.visible = roofs.visible = true; return; }
@@ -141,7 +215,7 @@ export function buildScenery(scene: THREE.Scene, track: Track, city: string): Sc
   });
   let lastKey = '';
   const updateBoards = (s: State, date: string): void => {
-    const key = `${s.day}|${s.slot}|${s.city}|${s.tmp.fines}|${s.docs.reg}`;
+    const key = `${s.day}|${s.slot}|${s.city}|${s.tmp.fines}|${s.docs.reg}|${advertsKey(s)}`;
     if (key === lastKey) return; lastKey = key;
     boardsFor(s, boards.length).forEach((b, i) => { const f = faces[i]; if (f.canvas) { drawBoard(f.canvas, b.title, b.text, b.color); if (f.tex) f.tex.needsUpdate = true; } });
     if (mega?.userData.canvas) { const c = mega.userData.canvas as HTMLCanvasElement; drawBoard(c, 'CITY', megaScreen(s, date), '#e0373f'); (mega.userData.tex as THREE.CanvasTexture).needsUpdate = true; }
@@ -177,7 +251,7 @@ export function buildScenery(scene: THREE.Scene, track: Track, city: string): Sc
     }
   };
 
-  return { setReal, real: () => realCount, boards, updateBoards, get mega() { return mega; }, attachMega, decorate };
+  return { sights: spots, setReal, real: () => realCount, boards, updateBoards, get mega() { return mega; }, attachMega, decorate };
 }
 
 export { FIELD_HALF };

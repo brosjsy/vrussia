@@ -1,3 +1,4 @@
+import { BRAND } from './brand';
 /* A short plain-text summary of a finished game that the player can copy and paste anywhere.
    Plain data in, plain text out: no links are added and nothing is sent anywhere. */
 
@@ -9,7 +10,7 @@ export function shareText(d: ShareData): string {
   const name = d.name.trim().slice(0, 20) || 'Player';
   const end = ENDING[d.ending] ?? d.ending;
   return [
-    `🇷🇺 V Russia: ${name}, ${d.label} (${d.diff})`,
+    `🇷🇺 ${BRAND}: ${name}, ${d.label} (${d.diff})`,
     `Score ${Math.max(0, Math.round(d.score))} · ${d.days} days · ${end}${d.citizen ? ' · became a Russian citizen 🛂' : ''}`,
     `🏆 ${d.achievements} / ${d.achievementsTotal} achievements`,
   ].join('\n');

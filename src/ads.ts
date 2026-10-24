@@ -3,6 +3,7 @@
    days. Everything is opt-in, so the bots never touch it and the balance reports do not change. Small on purpose: an ad is worth about a day's odd job,
    never a salary. Pure and deterministic: no screen, no network. (Ads from real players are a separate, online thing: see cloud.ts.) */
 import type { State } from './engine';
+import { boostsAds } from './adspace';
 
 export type AdKind = 'room' | 'job' | 'sell' | 'service' | 'lost';
 export interface Ad { id: string; kind: AdKind; title: string; text: string; price: number; by: string }
@@ -133,7 +134,7 @@ export function tickAds(s: State): number {
   for (let day = Math.max(a.ticked + 1, s.day - AD_DAYS); day <= s.day; day++) {
     for (const m of a.mine) {
       if (day <= m.day || day - m.day >= AD_DAYS || a.replies.some(r => r.ad === m.id && !r.done)) continue;      // one open reply at a time for each ad
-      const r = rnd(`reply|${s.city}|${day}|${m.id}`); if (r() > 0.55) continue;
+      const r = rnd(`reply|${s.city}|${day}|${m.id}`); if (r() > (boostsAds(s, day) ? 0.85 : 0.55)) continue;      // an advert in the city (adspace.ts) brings more replies
       const from = NAMES[Math.floor(r() * NAMES.length)];
       const reply: Reply = m.kind === 'sell' ? { ad: m.id, day, from, text: `${from} wants to buy it and offers this much.`, offer: Math.max(50, Math.round((m.price * (0.6 + r() * 0.45)) / 50) * 50) }
         : m.kind === 'job' ? { ad: m.id, day, from, text: `${from} needs a pair of hands for a day.`, offer: 800 + Math.round(r() * 26) * 50 }

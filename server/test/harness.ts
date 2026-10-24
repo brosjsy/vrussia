@@ -21,7 +21,8 @@ export interface TestDb {
 }
 
 export async function startDb(): Promise<TestDb> {
-  const pgl = await PGlite.create({ parsers: { 20: (v: string) => Number(v) } });
+  // PT_DB_DIR keeps the database in a folder (the play-test can leave its players behind for testing by hand: npm run local -- --db <folder>)
+  const pgl = await PGlite.create({ dataDir: process.env.PT_DB_DIR || undefined, parsers: { 20: (v: string) => Number(v) } });
   const session: Session = { query: (t, p) => pgl.query(t, p) as never, exec: sql => pgl.exec(sql) };
   await pgl.exec(readFileSync(ROOT + 'ops/db/00_roles.sql', 'utf8'));
   await pgl.exec('set role vr_owner');

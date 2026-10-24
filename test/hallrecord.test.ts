@@ -14,6 +14,7 @@ describe('finishing a game', () => {
     boot();
     (document.getElementById('nameInput') as HTMLInputElement).value = 'Finisher';
     document.querySelectorAll<HTMLButtonElement>('.ocard')[2].click();   // a migrant origin: careless play ends early
+    (document.getElementById('homeStart') as HTMLInputElement).checked = false;      // straight into Russia (the way from home is tested in prearrival.test.ts)
     document.getElementById('startBtn')!.click();
     for (let i = 0; i < 20000 && document.getElementById('end')!.hidden; i++) {
       const next = document.getElementById('nextBtn');

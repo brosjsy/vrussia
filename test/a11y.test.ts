@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import * as G from '../src/engine';
 import '../src/content';
@@ -75,13 +75,13 @@ describe('dialog behaviour', () => {
     const { boot } = await import('../src/ui');
     boot();
     document.getElementById('startBtn')!.click();
-    await new Promise(r => setTimeout(r, 120));           // the first-run guide opens on its own after 50 ms
+    await vi.waitFor(() => expect(document.getElementById('modalBody')!.textContent).toMatch(/How to play/), { timeout: 8000 });   // the first-run guide opens on its own
     document.getElementById('closeModal')!.click();
     await Promise.resolve(); await new Promise(r => setTimeout(r, 0));
     const help = document.getElementById('helpBtn') as HTMLElement;
     help.focus();
     help.click();
-    await new Promise(r => setTimeout(r, 0));
+    await vi.waitFor(() => expect(document.getElementById('modal')!.hidden).toBe(false), { timeout: 8000 });      // the guide loads when it is opened
     expect(document.getElementById('modal')!.hidden).toBe(false);
     expect(document.activeElement).toBe(document.getElementById('closeModal'));
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 
 describe('keyboard shortcuts', () => {
@@ -35,7 +35,7 @@ describe('help', () => {
     const { boot } = await import('../src/ui');
     boot();
     document.getElementById('startBtn')!.click();
-    document.getElementById('helpBtn')!.click();
+    document.getElementById('helpBtn')!.click(); await vi.waitFor(() => expect(document.getElementById('modalBody')!.textContent).toMatch(/How to play|Как играть/), { timeout: 8000 });      // the guide loads when it is opened
     expect(document.getElementById('modal')!.hidden).toBe(false);
     expect(document.getElementById('modalBody')!.textContent).toContain('How to play');
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));

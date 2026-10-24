@@ -14,6 +14,7 @@ const W: Record<string, [string, string]> = {
   fee: ['The board takes {fee} for an ad. It hangs for {days} days; up to {max} at a time, one new ad a day.', 'Доска берёт {fee} за объявление. Оно висит {days} дн.; не больше {max} сразу, одно новое в день.'],
   'k.room': ['Room', 'Жильё'], 'k.job': ['Work', 'Работа'], 'k.sell': ['For sale', 'Продаю'], 'k.service': ['Service', 'Услуги'], 'k.lost': ['Lost and found', 'Потери и находки'],
   'm.sell': ['I sell an old thing', 'Продаю старую вещь'], 'm.job': ['I look for a day of work', 'Ищу работу на день'], 'm.service': ['I offer lessons or help', 'Предлагаю уроки или помощь'], 'm.room': ['I look for a room', 'Ищу комнату'],
+  agency: ['Advertising agency', 'Рекламное агентство'], agencySub: ['Mount a big advert on a billboard, in the metro, on a wall or the city screen — or work as an installer', 'Билборд, метро, стена дома или городской экран — или работа монтажником'],
   free: ['free', 'бесплатно'], pays: ['pays', 'платят'], costs: ['costs', 'стоит'],
 };
 const w = (k: string): string => W[k]?.[lang() === 'ru' ? 1 : 0] ?? k;
@@ -28,7 +29,7 @@ export function adsHtml(s: State): string {
     <div class="adFoot"><i>${ad.price ? `${esc(w(ad.kind === 'job' ? 'pays' : 'costs'))} ${G.money(ad.price)}` : esc(w('free'))}</i>${a.answered.includes(ad.id) ? `<span class="sub">${esc(w('done'))}</span>` : `<button type="button" class="primary" data-answer="${ad.id}"${left <= 0 ? ' disabled' : ''}>${esc(w('answer'))}</button>`}</div></li>`).join('');
   const replies = openReplies(s).map((r, i) => `<li class="adRow reply"><p><b>${esc(r.from)}</b>: ${esc(r.text)}${r.offer ? ` <b>${G.money(r.offer)}</b>` : ''}<br><small>${esc(a.mine.find(m => m.id === r.ad)?.title ?? '')}</small></p><div class="adFoot"><button type="button" class="primary" data-accept="${i}">${esc(w('yes'))}</button><button type="button" class="ghost" data-decline="${i}">${esc(w('no'))}</button></div></li>`).join('');
   const mine = a.mine.map(m => `<li class="adRow"><div class="adTop"><span>${ICON[m.kind]}</span><b>${esc(m.title)}</b><small>${m.price ? G.money(m.price) + ' · ' : ''}${AD_DAYS - (s.day - m.day)} ${esc(w('daysLeft'))}</small></div><div class="adFoot"><button type="button" class="ghost" data-remove="${m.id}">${esc(w('down'))}</button></div></li>`).join('');
-  return `<div class="ads"><h2>📌 ${esc(w('title'))}</h2>
+  return `<div class="ads"><h2>📌 ${esc(w('title'))}</h2><button type="button" class="asOpen" data-adspace>📣 ${esc(w('agency'))}<small>${esc(w('agencySub'))}</small></button>
     ${replies ? `<h3>${esc(w('replies'))}</h3><ul class="adList">${replies}</ul>` : ''}
     <h3>${esc(w('today'))} <small>(${Math.max(0, left)} ${esc(w('left'))})</small></h3><ul class="adList">${board}</ul>
     <h3>${esc(w('mine'))}</h3>${mine ? `<ul class="adList">${mine}</ul>` : `<p class="hint">${esc(w('none'))}</p>`}
@@ -39,7 +40,9 @@ export function adsHtml(s: State): string {
       <button class="primary" type="submit">${esc(w('put'))}</button></form></div>`;
 }
 /** Connects the buttons. `again` is called after anything changed (to save and to draw the screen again). */
-export function wireAds(host: HTMLElement, s: State, d: { notify: (m: string) => void; again: () => void }): void {
+export function wireAds(host: HTMLElement, s: State, d: { notify: (m: string) => void; again: () => void; saved?: () => void }): void {
+  // the advertising agency opens in the same window; `saved` saves without drawing the board again
+  const ag = host.querySelector<HTMLButtonElement>('[data-adspace]'); if (ag) ag.onclick = () => void import('./adspace-ui').then(m => m.openAgency(host, s, { notify: d.notify, again: d.saved ?? (() => undefined) }));
   const run = (r: { ok: boolean; msg: string }): void => { d.notify(r.msg); if (r.ok) d.again(); };
   host.querySelectorAll<HTMLButtonElement>('[data-answer]').forEach(b => { b.onclick = () => run(answer(s, b.dataset.answer as string)); });
   host.querySelectorAll<HTMLButtonElement>('[data-accept]').forEach(b => { b.onclick = () => run(accept(s, Number(b.dataset.accept))); });

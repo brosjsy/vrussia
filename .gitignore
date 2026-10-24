@@ -9,3 +9,9 @@ dist/
 # the server: secrets and local backups never go into git
 server/secrets/
 server/backups/
+
+# the local test database of npm run local
+server/.devdata/
+
+# the play-test database (npm run local -- --db dev/playtest-db)
+dev/playtest-db/

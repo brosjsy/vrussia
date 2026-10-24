@@ -39,7 +39,7 @@ const Schema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
   /** The brand on e-mails (see docs/BACKEND_V2_PLAN.md about the name). */
-  BRAND_NAME: z.string().min(1).max(60).default('V Russia'),
+  BRAND_NAME: z.string().min(1).max(60).default('В России'),
   BRAND_COLOR: z.string().regex(/^#[0-9a-fA-F]{6}$/).default('#2f6fd6'),
   BRAND_LOGO_URL: z.url().optional(),
   BRAND_SUPPORT_EMAIL: z.email().optional(),

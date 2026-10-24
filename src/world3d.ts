@@ -3,6 +3,7 @@
    What people do is decided in world-logic.ts and how they look is built in characters3d.ts; this file draws the scene and connects it to the page.
    It is loaded only when the 3D view is opened (a separate download). If the browser cannot do 3D, it reports that and the flat map stays. */
 import * as THREE from 'three';
+import { placeL } from './i18n-words';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as G from './engine';
 import type { State } from './engine';
@@ -19,7 +20,12 @@ import { toWorld, standPoint, HUB, newAgent, sendTo, stepAgent, pairTalk, separa
 import type { Agent } from './world-logic';
 import { normalizeLook } from './avatar';
 import { sprite, pinSprite } from './sprites3d';
-import { buildScenery, extrudeOutline, paintWindows } from './scenery3d';
+import { buildScenery, extrudeOutline, paintWindows, paintFacade } from './scenery3d';
+import type { Facade } from './scenery3d';
+import { dwellingOf, homeInfo, addressOf } from './homes';
+import type { Building } from './homes';
+import { plateOf } from './address';
+import { lang } from './i18n';
 import { nearestOnPolygon } from './osm';
 import type { RealCity, RealBuilding } from './osm';
 import { statusFor } from './billboards';
@@ -32,10 +38,11 @@ import { Field } from './collide';
 import { buildSite, disposeSite, SITE_W, SITE_D } from './site3d';
 import type { Nav } from './world-logic';
 import { fillerFor, billboardSpots, waterRects } from './city-geo';
-import { interiorFor, doorOf, findPath, wanderSpot, seatsOf, nearestFree } from './interiors';
+import { interiorFor, doorOf, findPath, wanderSpot, seatsOf, nearestFree, useSpot } from './interiors';
 import { homeInterior, furnById, canPlace, sizeOf, centreOf, gridOf } from './furniture';
 import type { P2 } from './interiors';
 import { buildRoom } from './rooms3d';
+import { roomL } from './i18n-rooms';
 import type { RoomHandle } from './rooms3d';
 
 import { getTestRendererFactory } from './world3d-support';
@@ -54,6 +61,8 @@ export interface World3dDeps {
   onFurnish?: (id: string, i: number, j: number, rot: 0 | 1) => void;
   onPickUp?: (uid: number) => void;
   onFurnishFail?: (why: string) => void;
+  /** The player clicked one of the city's famous sights (round 151). */
+  onLandmark?: (id: string) => void;
   /** Lets a test supply a stand-in for the graphics card. */
   rendererFactory?: (canvas: HTMLCanvasElement) => Pick<THREE.WebGLRenderer, 'setSize' | 'setPixelRatio' | 'render' | 'dispose' | 'domElement' | 'shadowMap'>;
 }
@@ -63,7 +72,7 @@ export interface World3dHandle {
   tick: (dt: number) => void;
   scene: THREE.Scene; camera: THREE.PerspectiveCamera;
   /** What is under a point of the screen (client pixels). */
-  pick: (clientX: number, clientY: number) => { kind: 'place' | 'npc' | 'prop' | 'furn' | 'none'; id?: string };
+  pick: (clientX: number, clientY: number) => { kind: 'place' | 'npc' | 'prop' | 'furn' | 'landmark' | 'none'; id?: string };
   /** Goes inside the place the player is at. False if that place has no inside (or the player is on the way). */
   enter: (placeId?: string) => boolean;
   leave: () => void;
@@ -191,11 +200,21 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
   /* ----- buildings (each is a group that knows which place it is) ----- */
   const winTex = windowTexture(); if (winTex) track(winTex);
   const buildings: THREE.Group[] = [];
+  /** The house the player lives in (round 151): its kind (khrushchyovka, panel block, stalinka, new tower, old house, dormitory, izba, cottage), its height and colour. */
+  const HOME_FACADE: Record<Building, Facade> = { khrush: 'khrush', panel9: 'panel9', panel16: 'panel16', stalinka: 'stalinka', newbuild: 'newbuild', prerev: 'prerev', dorm: 'panel9', izba: 'wooden', cottage: 'private' };
+  const HOME_WALL: Record<Building, string> = { khrush: '#d4b49a', panel9: '#d8d8d2', panel16: '#e6e6e0', stalinka: '#e3c89a', newbuild: '#d5dde6', prerev: '#e8c87a', dorm: '#c9b8a0', izba: '#8a6a4a', cottage: '#e6dcc4' };
+  const homeLook = (s: State): { facade: Facade; h: number; wall: string; floor: number; floors: number; key: string; plate: string } => {
+    const b = homeInfo(dwellingOf(s)).series, a = addressOf(s), facade = HOME_FACADE[b], floors = Math.min(a.floors, facade === 'newbuild' ? 11 : 12);
+    const storey = facade === 'stalinka' ? 3.4 : facade === 'prerev' ? 3.8 : facade === 'wooden' ? 3.2 : 2.8, h = Math.max(4.5, floors * storey);
+    return { facade, h, wall: HOME_WALL[b], floor: Math.min(a.floor, floors), floors, key: dwellingOf(s) + '|' + s.city, plate: plateOf(a, lang() === 'ru') };
+  };
   for (const p of G.PLACES) {
     const look = PLACE_LOOK[p.id] ?? { icon: '📍', color: '#6b7bd6', h: 8, flavour: '' };
-    const c = toWorld(p), h = look.h * 0.75 + 3;
+    const hl = p.id === 'home' ? homeLook(d.s) : null;
+    const c = toWorld(p), h = hl ? hl.h : look.h * 0.75 + 3;
     const g = new THREE.Group(); g.position.set(c.x, 0, c.z); g.userData.place = p.id;
-    const wallMat = track(new THREE.MeshStandardMaterial({ color: shade(look.color, 70), roughness: 0.9, map: winTex ?? undefined }));
+    const wallMat = track(new THREE.MeshStandardMaterial({ color: hl ? hl.wall : shade(look.color, 70), roughness: 0.9, map: hl ? undefined : winTex ?? undefined }));
+    if (hl) g.userData.facade = paintFacade(wallMat, { facade: hl.facade, top: h });
     if (winTex) { /* the window pattern repeats once per storey */ }
     const roofMat = track(new THREE.MeshStandardMaterial({ color: look.color, roughness: 0.8 }));
     const bodyGeo = track(new THREE.BoxGeometry(10, h, 10));
@@ -207,11 +226,33 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
     const sx = alongX ? Math.sign(toHub.x) : 0, sz = alongX ? 0 : (p.id === 'home' ? 1 : Math.sign(toHub.z) || 1);
     const door = new THREE.Mesh(track(new THREE.BoxGeometry(alongX ? 0.4 : 2.2, 3.4, alongX ? 2.2 : 0.4)), track(new THREE.MeshStandardMaterial({ color: '#5a3a24' })));
     door.position.set(sx * 5.1, 1.7, sz * 5.1); door.userData.place = p.id; g.add(door);
-    const sign = sprite(p.n, '#ffffffee', '#16203a', 2.0); sign.position.set(0, h + 2.4, 0); sign.userData.place = p.id; g.add(sign);
+    const sign = sprite(placeL(p.n), '#ffffffee', '#16203a', 2.0); sign.position.set(0, h + 2.4, 0); sign.userData.place = p.id; g.add(sign);
     const pin = pinSprite(look.icon, look.color, 4.2); pin.position.set(0, h + 5.4, 0); pin.userData.place = p.id; g.add(pin);
     g.userData.parts = [body, slab, door]; g.userData.sign = sign; g.userData.pin = pin; g.userData.h = h; g.userData.look = look;
+    if (hl) {                                                    // the blue address plate by the entrance and the player's own window, lit in the evening
+      const plate = sprite(hl.plate, '#1f4fa8ee', '#ffffff', 1.0); plate.position.set(2.6, 3.4, 5.4); plate.name = 'address-plate'; plate.userData.place = 'home'; g.add(plate);
+      const myWin = new THREE.Mesh(track(new THREE.PlaneGeometry(1.4, 1.2)), track(new THREE.MeshStandardMaterial({ color: '#ffd27a', emissive: new THREE.Color('#ffb84a'), emissiveIntensity: 0.2 })));
+      myWin.position.set(-2.2, (hl.floor - 0.5) * (h / hl.floors), 5.06); myWin.name = 'my-window'; myWin.userData.place = 'home'; g.add(myWin);
+      const canopy = new THREE.Mesh(track(new THREE.BoxGeometry(3.2, 0.2, 1.4)), track(new THREE.MeshStandardMaterial({ color: '#8a8f99' }))); canopy.position.set(0, 3.6, 5.6); canopy.userData.place = 'home'; g.add(canopy);
+      g.userData.homeKey = hl.key; g.userData.myWin = myWin; g.userData.plate = plate;
+    }
     scene.add(g); buildings.push(g);
   }
+
+  /** After a move (another kind of home, another flat) the house is redrawn: height, facade, plate, the lit window (round 151). In the evening the window glows. */
+  const refreshHome = (s: State): void => {
+    const g = buildings.find(b => b.userData.place === 'home'); if (!g) return;
+    const win = g.userData.myWin as THREE.Mesh | undefined; if (win) (win.material as THREE.MeshStandardMaterial).emissiveIntensity = s.slot === 2 ? 1.6 : 0.2;
+    const hl = homeLook(s); if (hl.key === g.userData.homeKey) return;
+    const body = g.children[0] as THREE.Mesh, slab = g.children[1] as THREE.Mesh, h = hl.h;
+    body.geometry.dispose(); body.geometry = new THREE.BoxGeometry(10, h, 10); body.position.y = h / 2; slab.position.y = h + 0.35;
+    const mats = body.material as THREE.MeshStandardMaterial[]; mats[0].color.set(hl.wall); (g.userData.facade as { set: (f: Facade, t: number) => void } | undefined)?.set(hl.facade, h);
+    (g.userData.sign as THREE.Sprite).position.y = h + 2.4; (g.userData.pin as THREE.Sprite).position.y = h + 5.4; g.userData.h = h;
+    if (win) win.position.y = (hl.floor - 0.5) * (h / hl.floors);
+    const old = g.userData.plate as THREE.Sprite | undefined; if (old) { g.remove(old); old.material.map?.dispose(); old.material.dispose(); }
+    const plate = sprite(hl.plate, '#1f4fa8ee', '#ffffff', 1.0); plate.position.set(2.6, 3.4, 5.4); plate.name = 'address-plate'; plate.userData.place = 'home'; g.add(plate); g.userData.plate = plate;
+    g.userData.homeKey = hl.key;
+  };
 
   /* ----- trees ----- */
   const spots = treeSpots();
@@ -350,7 +391,7 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
   const people: Person[] = [];
   const addTag = (p: Person, text: string, bg: string): void => { p.tag = sprite(text, bg, '#ffffff', 0.85); p.tag.position.set(0, 2.6, 0); p.char.root.add(p.tag); };
   const makePerson = (agent: Agent, look: unknown, worn: unknown, tagText: string, tagBg: string, npc?: Npc): Person => {
-    const char = buildCharacter(look, worn as never);
+    const char = buildCharacter(look, worn as never, npc ? 'lite' : 'full');          // the player in full detail, passers-by lighter
     const p: Person = { agent, char, tag: undefined as unknown as THREE.Sprite, bubble: null, bubbleText: '', npc };
     addTag(p, tagText, tagBg);
     char.root.userData.npc = npc?.id;
@@ -553,7 +594,7 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
     const f = furnById(placing.id);
     if (!f) return;
     if (placing.ok) d.onFurnish?.(placing.id, placing.i, placing.j, placing.rot);
-    else d.onFurnishFail?.(canPlace(state, f, placing.i, placing.j, placing.rot).why ?? 'It does not fit.');
+    else d.onFurnishFail?.(roomL(canPlace(state, f, placing.i, placing.j, placing.rot).why ?? 'It does not fit.'));
   };
   const refreshRoom = (): void => {
     if (!room || room.place !== 'home') return;
@@ -567,8 +608,9 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
     if (action === 'exit') { leave(); return; }
     const at = propSpot(action) ?? { x: 0, z: 0 };
     const door = doorOf(room.h.interior);
-    // stand in front of the thing (towards the door), inside the room
-    const z = Math.min(door.z, at.z + 1.6), x = at.x;
+    // stand in front of the thing, or beside it when a wall is in front (round 151)
+    const prop = room.h.interior.props.find(p => p.action === action && Math.abs(p.x - at.x) < 0.05 && Math.abs(p.z - at.z) < 0.05);
+    const spot = prop ? useSpot(room.h.interior, prop) : { x: at.x, z: Math.min(door.z, at.z + 1.6) }, x = spot.x, z = spot.z;
     const me = room.me.root;
     room.path = findPath(room.h.interior, { x: me.position.x - ROOM_AT.x, z: me.position.z - ROOM_AT.z }, { x, z });
     room.goal = { action };
@@ -581,7 +623,7 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
     const door = doorOf(it);
     // at home the shoes come off at the door and the coat goes on the hook: the player wears house slippers inside
     const home = state.loc === 'home', w0 = state.worn ?? {};
-    const me = buildCharacter(home ? { ...normalizeLook(state.look), shoes: 'slippers' } : normalizeLook(state.look), home ? { ...w0, outer: undefined, hat: undefined, gloves: undefined, scarf: undefined } : w0); me.root.position.set(ROOM_AT.x + door.x, 0, ROOM_AT.z + door.z - 1); scene.add(me.root);
+    const me = buildCharacter(home ? { ...normalizeLook(state.look), shoes: 'slippers' } : normalizeLook(state.look), home ? { ...w0, outer: undefined, hat: undefined, gloves: undefined, scarf: undefined } : w0, 'full'); me.root.position.set(ROOM_AT.x + door.x, 0, ROOM_AT.z + door.z - 1); scene.add(me.root);
     const crowd = crowdFor(state).filter(n => n.place === id).slice(0, it.occupants);
     const rr = seeded(state.day * 13 + state.slot + id.length);
     const people: Dweller[] = crowd.map((n, i) => {
@@ -688,7 +730,7 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
 
   /* ----- clicking ----- */
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
-  const pick = (cx: number, cy: number): { kind: 'place' | 'npc' | 'prop' | 'furn' | 'none'; id?: string } => {
+  const pick = (cx: number, cy: number): { kind: 'place' | 'npc' | 'prop' | 'furn' | 'landmark' | 'none'; id?: string } => {
     const r = renderer.domElement.getBoundingClientRect();
     ndc.set(((cx - r.left) / (r.width || 1)) * 2 - 1, -(((cy - r.top) / (r.height || 1)) * 2 - 1));
     ray.setFromCamera(ndc, camera);
@@ -700,6 +742,7 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
         if (room && o.userData.action) return { kind: 'prop', id: o.userData.action as string };
         if (o.userData.npc) return { kind: 'npc', id: o.userData.npc as string };
         if (o.userData.place) return { kind: 'place', id: o.userData.place as string };
+        if (!room && o.userData.landmark) return { kind: 'landmark', id: o.userData.landmark as string };
         o = o.parent;
       }
     }
@@ -711,7 +754,7 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
   const labelAt = (cx: number, cy: number): string | null => {
     if (!room) return null;
     const r = renderer.domElement.getBoundingClientRect(); ndc.set(((cx - r.left) / (r.width || 1)) * 2 - 1, -(((cy - r.top) / (r.height || 1)) * 2 - 1)); ray.setFromCamera(ndc, camera);
-    for (const h of ray.intersectObject(room.h.group, true)) { let o: THREE.Object3D | null = h.object; while (o) { if (o.userData.label) return o.userData.label as string; o = o.parent; } }
+    for (const h of ray.intersectObject(room.h.group, true)) { let o: THREE.Object3D | null = h.object; while (o) { if (o.userData.label) return roomL(o.userData.label as string); o = o.parent; } }
     return null;
   };
   renderer.domElement.addEventListener('pointermove', e => {
@@ -727,7 +770,7 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
     if (hit.kind === 'furn') { d.onPickUp?.(Number(hit.id)); return; }
     if (hit.kind === 'prop') { const l = labelAt(e.clientX, e.clientY); if (l) { hovered = l; d.onHover?.(l); } if (!furnishing) useProp(hit.id as string); return; }      // a tap also says what the thing is (there is no hovering on a phone)
     if (room) return;
-    if (hit.kind === 'place') d.onPlace(hit.id as string); else if (hit.kind === 'npc') d.onNpc(hit.id as string);
+    if (hit.kind === 'place') d.onPlace(hit.id as string); else if (hit.kind === 'npc') d.onNpc(hit.id as string); else if (hit.kind === 'landmark') d.onLandmark?.(hit.id as string);
   });
 
   const project = (x: number, y: number, z: number): { x: number; y: number } => {
@@ -762,6 +805,7 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
       if (mm !== moment) { moment = mm; buildCrowd(); }
       if (trafficKey !== `${s.slot}|${s.weather}|${saver}`) buildCars();
       coldOut = (warmthMeter(s) ?? 100) < 30;
+      refreshHome(s);
       daylight(); applyLayers();
     },
     destroy: () => {
