@@ -14,7 +14,7 @@ import { cityName } from './i18n-words';
 import { COUNTRIES, REGIONS, flagOf } from './countries';
 import type { Challenge, Chapter, Coop } from './api-client';
 
-export interface OnlineDeps { cloud: Cloud | null; state: () => State | null; notify: (m: string) => void; onLoad: (s: State) => void; onSignedIn?: () => Promise<void>; onSignedOut?: () => void; /** the game changed here (money from a reward, a gift, a co-op activity): save it and redraw the money */ changed?: () => void; home?: () => { city: string; dwelling: string; design: import('./cloud').HomeDesign; stars: number } | null; status?: () => { lastSaved: number | null; pending: boolean } | null }
+export interface OnlineDeps { cloud: Cloud | null; state: () => State | null; notify: (m: string) => void; onLoad: (s: State) => void; onSignedIn?: () => Promise<void>; onSignedOut?: () => void; /** before logging out: upload the game played since the last automatic save (round 152) */ beforeSignOut?: () => Promise<unknown>; /** the game changed here (money from a reward, a gift, a co-op activity): save it and redraw the money */ changed?: () => void; home?: () => { city: string; dwelling: string; design: import('./cloud').HomeDesign; stars: number } | null; status?: () => { lastSaved: number | null; pending: boolean } | null }
 type Tab = 'account' | 'challenges' | 'top' | 'chat' | 'friends' | 'ads' | 'news';
 const esc = (x: string): string => String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
 
@@ -59,9 +59,11 @@ export function mute(id: string, now = Date.now()): void { try { const m = muted
 const GIFTS: { id: Gift; icon: string; price: number }[] = [{ id: 'flowers', icon: '💐', price: 800 }, { id: 'cake', icon: '🍰', price: 600 }, { id: 'tea', icon: '🍵', price: 300 }, { id: 'chocolates', icon: '🍫', price: 500 }];
 /** A drawing of a visited home from above: the floor and a square with an icon for each piece of furniture. */
 function planHtml(h: PublicHome): string {
-  const w = Math.max(6, Math.min(14, h.design.w ?? 12)), dd = Math.max(5, Math.min(12, h.design.d ?? 9));
-  const items = (h.design.placed ?? []).slice(0, 60).map(p => { const f = furnById(p.id); if (!f) return ''; const fw = p.rot ? f.d : f.w, fd = p.rot ? f.w : f.d; return `<span class="plItem" style="left:${(p.i / w) * 100}%;top:${(p.j / dd) * 100}%;width:${(fw / w) * 100}%;height:${(fd / dd) * 100}%;background:${esc(f.color)}" title="${esc(f.name)}">${f.icon}</span>`; }).join('');
-  return `<div class="plan" style="aspect-ratio:${w}/${dd};background:${esc(h.design.floor === 'parquet' ? '#c9935a' : h.design.floor === 'tiles' ? '#e8e2d2' : '#b0865a')};border-color:${esc(h.design.wall ?? '#e8d9c4')}">${items}</div>`;
+  // another player's design: only a real colour and real numbers reach the style attribute (round 152: a crafted "wall" could inject any CSS)
+  const color = (x: unknown, dflt: string): string => (typeof x === 'string' && /^#[0-9a-fA-F]{6}$/.test(x) ? x : dflt), num = (x: unknown, dflt: number): number => (typeof x === 'number' && Number.isFinite(x) ? x : dflt);
+  const w = Math.max(6, Math.min(20, num(h.design.w, 12))), dd = Math.max(5, Math.min(14, num(h.design.d, 9)));
+  const items = (h.design.placed ?? []).slice(0, 60).map(p => { const f = furnById(p.id); if (!f) return ''; const fw = p.rot ? f.d : f.w, fd = p.rot ? f.w : f.d; return `<span class="plItem" style="left:${(num(p.i, 0) / w) * 100}%;top:${(num(p.j, 0) / dd) * 100}%;width:${(fw / w) * 100}%;height:${(fd / dd) * 100}%;background:${esc(f.color)}" title="${esc(f.name)}">${f.icon}</span>`; }).join('');
+  return `<div class="plan" style="aspect-ratio:${w}/${dd};background:${esc(h.design.floor === 'parquet' ? '#c9935a' : h.design.floor === 'checker' ? '#e8e2d2' : '#b0865a')};border-color:${color(h.design.wall, '#e8d9c4')}">${items}</div>`;
 }
 function friendsHtml(c: Cloud): string {
   const me = c.session(); if (!me?.username) return `<p class="hint">${esc(t('olChatLogin'))}</p>`;
@@ -162,7 +164,7 @@ export function mountOnline(host: HTMLElement, d: OnlineDeps): () => void {
     const eo = host.querySelector<HTMLButtonElement>('#olEndOthers'); if (eo) eo.onclick = () => void busy(async () => { say(await c.endOtherSessions!()); });
     const sw = host.querySelector<HTMLButtonElement>('#olSwitch'); if (sw) sw.onclick = () => { view.signup = !view.signup; draw(); };
     const claim = host.querySelector<HTMLFormElement>('#olClaim'); if (claim) claim.onsubmit = e => { e.preventDefault(); const name = val('olName'), adult = checked('olAdult'); void busy(async () => { say(await c.claim(name, adult)); }); };
-    const out = host.querySelector<HTMLButtonElement>('#olOut'); if (out) out.onclick = () => void busy(async () => { say(await c.signOut()); forgetAccount(); setMuteOwner(''); d.onSignedOut?.(); });
+    const out = host.querySelector<HTMLButtonElement>('#olOut'); if (out) out.onclick = () => void busy(async () => { try { await d.beforeSignOut?.(); } catch { /* offline: the game stays saved on this device */ } say(await c.signOut()); forgetAccount(); setMuteOwner(''); d.onSignedOut?.(); });
     const save = host.querySelector<HTMLButtonElement>('#olSave'); if (save) save.onclick = () => { const s = d.state(); if (!s) { d.notify(t('olNoGame')); return; } void busy(async () => { say(await c.save(s)); }); };
     const load = host.querySelector<HTMLButtonElement>('#olLoad'); if (load) load.onclick = () => void busy(async () => { const r = await c.load(); const st = r.ok && r.data ? r.data.state : null;
       // the same check as for a save file from disk: a game from another version of the rules is not loaded

@@ -204,7 +204,13 @@ export async function gameRoutes(app: FastifyInstance, db: Db, need: (req: Fasti
 
   /* ---------- homes, the guest book, the best flat ---------- */
   app.put('/api/home', async req => {
-    const u = need(req), b = parse(z.object({ city, dwelling: z.string().regex(/^[a-z]{3,12}$/), design: z.record(z.string(), z.unknown()), stars: z.number().int().min(0).max(400) }), req.body);
+    // the design is shown to every visitor, so only its known shape is stored: a wall colour, a floor style, the size and the placed pieces (round 152)
+    const design = z.object({
+      placed: z.array(z.object({ id: z.string().regex(/^[a-z0-9-]{2,40}$/), i: z.number().int().min(0).max(40), j: z.number().int().min(0).max(40), rot: z.union([z.literal(0), z.literal(1)]) }).strict()).max(120).default([]),
+      wall: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(), floor: z.string().regex(/^[a-z]{2,12}$/).optional(),
+      w: z.number().min(4).max(40).optional(), d: z.number().min(4).max(40).optional(),
+    }).strict();
+    const u = need(req), b = parse(z.object({ city, dwelling: z.string().regex(/^[a-z]{3,12}$/), design, stars: z.number().int().min(0).max(400) }), req.body);
     await db.query('select app.publish_home($1, $2, $3, $4, $5)', [u.userId, b.city, b.dwelling, JSON.stringify(b.design), b.stars]); return ok;
   });
   /** Which home the player liked this week (one like a week), or null. */

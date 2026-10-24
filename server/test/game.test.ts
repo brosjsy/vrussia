@@ -62,6 +62,8 @@ describe('chat', () => {
   it('adults only; bad words and floods refused; under-18s can neither read nor write', async () => {
     expect((await call(c, 'POST', '/api/messages', { room, body: 'Привет всем' }, A.cookie)).status).toBe(200);
     expect((await call(c, 'POST', '/api/messages', { room, body: 'ты сука' }, A.cookie)).json.error).toBe('language');
+    for (const body of ['пиши в тг', 'my telegram is @ivan_work', 'ivan@mail.ru', 'add me t . me/ivan', '+7 999 123 45 67']) expect((await call(c, 'POST', '/api/messages', { room, body }, A.cookie)).json.error, body).toBe('language');   // round 152: no contacts in chat either
+    expect((await call(c, 'POST', '/api/messages', { room, body: 'Тогда встретимся у МФЦ' }, A.cookie)).status).toBe(200);                     // words that merely contain tg/тг pass
     expect((await call(c, 'POST', '/api/messages', { room, body: 'hi' }, Y.cookie)).json.error).toBe('chat is for adults');
     expect((await call(c, 'GET', `/api/messages?room=${room}`, undefined, Y.cookie)).json).toEqual([]);
     const F = await player(c, 'flooder');
@@ -119,6 +121,7 @@ describe('adverts, homes, the guest book, votes', () => {
   });
   it('homes: shown to players; notes and gifts in the guest book, not in one\'s own; one like a week', async () => {
     expect((await call(c, 'PUT', '/api/home', { city: 'Moscow', dwelling: 'studio', design: { placed: [{ id: 'sofa', i: 1, j: 1, rot: 0 }] }, stars: 12 }, A.cookie)).status).toBe(200);
+    for (const design of [{ wall: 'red;background:url(https://evil.example/x)' }, { placed: [{ id: 'sofa', i: '1;x', j: 1, rot: 0 }] }, { placed: [], html: '<img>' }, { floor: 'x"' }]) expect((await call(c, 'PUT', '/api/home', { city: 'Moscow', dwelling: 'studio', design, stars: 1 }, A.cookie)).status, JSON.stringify(design)).toBe(400);   // round 152: only the known shape of a design is stored
     expect(((await call(c, 'GET', `/api/homes/${A.id}`, undefined, B.cookie)).json).stars).toBe(12);
     expect((await call(c, 'GET', `/api/homes/${A.id}`)).status).toBe(401);
     expect((await call(c, 'POST', `/api/guestbook/${A.id}`, { body: 'Lovely flat!', gift: 'cake' }, B.cookie)).status).toBe(200);

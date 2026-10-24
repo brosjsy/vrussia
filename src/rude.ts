@@ -4,5 +4,13 @@
 export const RUDE = /(хуй|хуе|хуё|пизд|ебат|ебан|ёбан|еблан|блядь|бляд|сука|суки|мудак|мудил|залуп|fuck|shit|cunt|bitch|nigger|faggot)/;
 export const isRude = (text: string): boolean => RUDE.test(String(text ?? '').toLowerCase());
 
-/** A phone number (ten or more digits, with spaces, brackets, dots or dashes between them) or a messenger: the same rule as app.has_contact on the server. */
-export const hasContact = (t: string): boolean => /(\+?[0-9][ ().-]{0,2}){10,}/.test(t) || /(whats ?app|telegram|viber|t\.me|вотсап|ватсап|телеграм|вайбер)/i.test(t);
+/** A way to move a conversation off the moderated game: a phone number (ten or more digits, with spaces, brackets, dots or dashes between them),
+   a messenger or social network (also written "t . me", "tg", "вк"), an @handle or an e-mail address. The same rule as app.has_contact on the server
+   (migration 0009, round 152), which now applies to chat, guest books and adverts alike. */
+export const hasContact = (t: string): boolean => {
+  const x = String(t ?? '').toLowerCase();
+  return /(\+?[0-9][ ().-]{0,2}){10,}/.test(x)
+    || /(whats ?app|telegram|viber|t\s*\.\s*me|wa\s*\.\s*me|vk\s*\.\s*com|вотсап|ватсап|телеграм|вайбер|инстаграм|instagram|вконтакте|signal|discord)/.test(x)
+    || /(^|[^a-zа-яё0-9_])(tg|тг|вк|vk|тлг)([^a-zа-яё0-9_]|$)/.test(x)
+    || /@[a-z0-9_.]{3,}/.test(x);
+};

@@ -10,6 +10,7 @@ import type { KV } from './store';
 import { explain, SESSION_KEY } from './cloud';
 import type { Result, Session, ScoreRow, ChatMessage, Present, PlayerAd, PublicHome, HomeDesign, Note, Gift, Friend, BestHome, Talk, Announcement, CloudConfig } from './cloud';
 import { isRude, hasContact } from './rude';
+const CONTACTS = 'No phone numbers, messenger names, @handles or e-mail addresses: players talk inside the game, where everyone is protected.';
 
 const USERNAME = /^[a-z0-9_]{3,20}$/;
 const PENDING = 'vrussia_pending_name';
@@ -136,6 +137,7 @@ export class ApiCloud {
   async send(room: string, body: string): Promise<Result<number>> {
     const text = body.trim(); if (text.length < 1 || text.length > 280) return { ok: false, msg: explain('bad length') };
     if (isRude(text)) return { ok: false, msg: explain('language') };
+    if (hasContact(text)) return { ok: false, msg: CONTACTS };
     const r = await this.call<{ id: number }>('POST', '/api/messages', { room, body: text }); return r.ok ? { ok: true, msg: '', data: r.data?.id } : { ok: false, msg: r.msg };
   }
   async block(userId: string): Promise<Result> { const r = await this.call('POST', '/api/blocks', { user: userId }); return r.ok ? { ok: true, msg: 'Blocked. You will not see their messages.' } : { ok: false, msg: r.msg }; }
@@ -169,6 +171,7 @@ export class ApiCloud {
   async signGuestbook(owner: string, body: string, gift: Gift | null): Promise<Result<number>> {
     const t = body.trim(); if (t.length < 1 || t.length > 200) return { ok: false, msg: 'A note has 1 to 200 characters.' };
     if (isRude(t)) return { ok: false, msg: explain('language') };
+    if (hasContact(t)) return { ok: false, msg: CONTACTS };
     const r = await this.call<{ id: number }>('POST', `/api/guestbook/${encodeURIComponent(owner)}`, { body: t, gift }); return r.ok ? { ok: true, msg: '', data: r.data?.id } : { ok: false, msg: r.msg };
   }
   /** The Kitchen's online challenge (server/migrations/0007_cooking.sql): today's table for a dish, sending a score. */

@@ -18,7 +18,12 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
       - run: npm ci
+      # the game's tests also run against the real server code (test/backend*.test.ts), so the server's packages are needed too
+      - run: npm ci --prefix server
       - run: npm run typecheck
       - run: npm test
       - run: npm run build

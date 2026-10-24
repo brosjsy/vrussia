@@ -964,11 +964,15 @@ async function reconcileAccount(): Promise<void> {
     const cm = await import('./cloud'); const c = cm.cloud(); const me = c?.session()?.userId; if (!c || !me) return;
     const playing = !$('game').hidden && !!s;
     if (playing && s.owner === me) { void sync?.flush('login'); return; }
-    const r = await c.load(); const st = r.ok && r.data ? r.data.state : null;
-    if (st && st.version === 7 && typeof st.day === 'number' && st.docs) {
-      if (playing) G.save(s);                                           // the other game stays on this device as it was
-      st.owner = me; s = st; G.save(s); $('modal').hidden = true; stopOnline?.(); stopOnline = null; show('game'); turn(); notify(t('olYourGame'));
-    } else if (playing && !s.owner) { s.owner = me; G.save(s); void sync?.flush('login'); }
+    const r = await c.load(); let st = r.ok && r.data ? r.data.state : null;
+    if (!(st && st.version === 7 && typeof st.day === 'number' && st.docs)) st = null;
+    // round 152: the device keeps one saved game, so it is never replaced by surprise.
+    // A guest game being played stays on screen when the account has its own save (the player can load it with Online → Load);
+    // a game of this account saved on the device that is further on than the server copy is kept and uploaded.
+    if (playing && !s.owner) { if (st) { notify(t('olGuestKept')); return; } s.owner = me; G.save(s); void sync?.flush('login'); return; }
+    const local = playing ? null : G.load();
+    if (local && local.owner === me && (!st || local.day >= st.day)) { s = local; $('modal').hidden = true; stopOnline?.(); stopOnline = null; show('game'); turn(); notify(t('olYourGame')); void sync?.flush('login'); return; }
+    if (st) { st.owner = me; s = st; G.save(s); $('modal').hidden = true; stopOnline?.(); stopOnline = null; show('game'); turn(); notify(t('olYourGame')); }
     else if (playing) notify(t('olNotYourGame'));
   } catch { /* offline: the game goes on here */ }
 }
@@ -989,7 +993,7 @@ async function openOnline(link = ''): Promise<void> {
   if (link) ui.openAuthLink(link);
   stopOnline?.();
   stopOnline = ui.mountOnline($('modalBody'), { cloud: cm.cloud(), state: () => ($('game').hidden ? null : s), notify, home: () => homeOfPlayer?.() ?? null, status: () => sync?.status() ?? null, changed: () => { if (s) { G.save(s); header(); } }, onLoad: st => { const me = cm.cloud()?.session()?.userId; if (me) st.owner = me; s = st; G.save(s); $('modal').hidden = true; stopOnline?.(); stopOnline = null; show('game'); turn(); },
-    onSignedIn: () => reconcileAccount(), onSignedOut: () => { lastBeat = 0; $('onlinePill').hidden = true; $('modal').hidden = true; stopOnline?.(); stopOnline = null; show('title'); notify(t('olLoggedOut')); } });
+    onSignedIn: () => reconcileAccount(), beforeSignOut: async () => (s ? sync?.flush('logout') : undefined), onSignedOut: () => { lastBeat = 0; $('onlinePill').hidden = true; $('modal').hidden = true; stopOnline?.(); stopOnline = null; show('title'); notify(t('olLoggedOut')); } });
   $('modal').classList.remove('phoneMode'); $('modal').hidden = false;
 }
 

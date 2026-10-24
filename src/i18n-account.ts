@@ -2,8 +2,8 @@
 import { addStrings } from './i18n';
 
 addStrings(
-  { olYourGame: 'Your own saved game is loaded.', olNotYourGame: 'This game belongs to another account: it is not saved to yours. Start a new game, or log in as its player.', olLoggedOut: 'Logged out. The next player who logs in gets their own game.' },
-  { olYourGame: 'Загружена ваша сохранённая игра.', olNotYourGame: 'Эта игра принадлежит другому аккаунту и не сохраняется в ваш. Начните новую игру или войдите как её игрок.', olLoggedOut: 'Вы вышли. Следующий игрок после входа получит свою игру.' },
+  { olYourGame: 'Your own saved game is loaded.', olNotYourGame: 'This game belongs to another account: it is not saved to yours. Start a new game, or log in as its player.', olLoggedOut: 'Logged out. The next player who logs in gets their own game.', olGuestKept: 'Your account has its own saved game. This game stays as it is and is not saved to the account; to switch, press Load in the Online window.' },
+  { olYourGame: 'Загружена ваша сохранённая игра.', olNotYourGame: 'Эта игра принадлежит другому аккаунту и не сохраняется в ваш. Начните новую игру или войдите как её игрок.', olLoggedOut: 'Вы вышли. Следующий игрок после входа получит свою игру.', olGuestKept: 'В вашем аккаунте есть своя сохранённая игра. Эта игра остаётся как есть и в аккаунт не сохраняется; чтобы переключиться, нажмите «Загрузить» в окне «Онлайн».' },
 );
 
 /** The messages of the online part (api-client.ts, cloud.ts) in Russian; they are written in English there. */
@@ -53,6 +53,7 @@ const MSG_RU: Record<string, string> = {
   'You have enough ads up for now. Take one down or wait.': 'У вас уже достаточно объявлений. Снимите одно или подождите.',
   'You no longer follow them.': 'Вы отписались.',
   'No phone numbers or messenger names: players answer through the private chat of the game.': 'Без телефонов и мессенджеров: игроки отвечают через личный чат игры.',
+  'No phone numbers, messenger names, @handles or e-mail addresses: players talk inside the game, where everyone is protected.': 'Без телефонов, мессенджеров, @никнеймов и адресов почты: игроки общаются внутри игры, где все защищены.',
   'The price cannot be below zero.': 'Цена не может быть меньше нуля.',
   'Your account and everything stored with it are deleted.': 'Аккаунт и всё, что с ним хранилось, удалены.',
   'Your e-mail is confirmed. You can log in now.': 'Почта подтверждена. Теперь можно войти.',
