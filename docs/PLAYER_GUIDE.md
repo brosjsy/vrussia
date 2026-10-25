@@ -78,6 +78,18 @@ Keyboard everywhere: **1–9** choose an answer, **Enter** continues, **Esc** cl
   - **City hall** opens the weekly election;
   - the **real map** (optional, it asks first) shows your city's real streets.
 
+### The real city (🌍 Real city)
+
+- Press **🌍 Real city** above the map. The first time, the game asks before it downloads anything from the internet.
+- You walk your real city at real scale: real streets, real buildings, and every named place on OpenStreetMap. Around the centre of Moscow that is over 16,000 places: metro stations, churches, mosques, MFC offices, banks, clinics, schools, universities, cafés, shops, museums, parks and stations. The map loads around you as you walk.
+- **Find a place:** type in the search box (for example «метро», «храм», «мечеть», «МФЦ», or a café's name), or press a quick button (MFC, Bank, Clinic, University, Groceries, Station) for the nearest one.
+- **The place card** shows the real name, what kind of place it is, how far it is and how many minutes on foot.
+  - **Go here:** your character walks there along the real streets, with a blue line on the ground and step-by-step directions ("Turn right onto Rabochaya Street, 250 m").
+  - **Walk there now:** you arrive at once.
+  - **Do something here:** does the game action that fits the place: papers at an MFC, money at a bank, study at a university, a meal at a café, culture at a church or museum.
+- **Leave the real city** returns to the game's own map.
+- The map data comes from OpenStreetMap. Opening hours are not shown, so check them before a real visit.
+
 ## 6. Work, money and study
 
 - **Jobs:**

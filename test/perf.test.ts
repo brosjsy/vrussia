@@ -47,7 +47,7 @@ describe('performance and size budgets', () => {
     const first = new Set(firstLoad()), lazy = builtJs().filter(f => !first.has(f) && !LIBS.test(f));
     expect(lazy.length).toBeGreaterThanOrEqual(10);
     for (const f of lazy) expect(gz(f), `${f}: ${Math.round(gz(f) / 1024)} KB`).toBeLessThan(40 * 1024);
-    const sum = lazy.reduce((n, f) => n + gz(f), 0); expect(sum, `${Math.round(sum / 1024)} KB together`).toBeLessThan(400 * 1024);                // on-demand code grows with every batch of daily life (140 KB until round 125, 300 KB until round 134: the Kitchen's 1,039 dishes and their Russian); the first download and each file keep their limits
+    const sum = lazy.reduce((n, f) => n + gz(f), 0); expect(sum, `${Math.round(sum / 1024)} KB together`).toBeLessThan(420 * 1024);                // on-demand code grows with every batch of daily life; 400→420 for round 153 3D POI models, trees in parks and sidewalks on real city roads
     for (const name of ['world3d', 'phone-ui', 'shop-ui', 'metro-ui', 'furniture', 'cloud']) expect(lazy.some(f => f.startsWith(name)), name).toBe(true);
   });
   it('the scenario count is in the expected range (a sudden jump or drop means something broke)', () => {

@@ -140,11 +140,12 @@ function renderLayers(): void {
   if (furnOn && worldCtl?.inside() !== 'home') { furnOn = false; document.querySelector('.furnPanel')?.remove(); }
   $('layers').innerHTML = LAYERS.map(l => `<button data-layer="${l.id}" aria-pressed="${l.id === layer}">${l.icon} ${esc(t('layer.' + l.id) === 'layer.' + l.id ? l.label : t('layer.' + l.id))}</button>`).join('');
   { const ev = activeEvent(s); if (ev) $('layers').innerHTML += `<button class="realBtn eventBtn" id="eventBtn" title="${esc(lang() === 'ru' ? ev.ru : ev.name)}">${ev.icon} ${esc(lang() === 'ru' ? ev.ru : ev.name)}${claimable(s) ? ' ●' : ''}</button>`; }
-  $('layers').innerHTML += `<button class="realBtn metroBtn" id="metroBtn" title="${esc(t('mtTitle'))}">${hasMetro(s.city) ? 'Ⓜ' : '🚌'} ${esc(t(hasMetro(s.city) ? 'mtShort' : 'mtBusShort'))}</button><button class="realBtn view3d" id="view3dBtn" aria-pressed="${view === '3d'}" title="${esc(t('w3Tip'))}">🧊 3D</button><button class="realBtn" id="realBtn" aria-pressed="${realOn}" title="${esc(t('realTip'))}">🛰️ ${esc(t('realBtn'))}</button>`;
+  $('layers').innerHTML += `<button class="realBtn metroBtn" id="metroBtn" title="${esc(t('mtTitle'))}">${hasMetro(s.city) ? 'Ⓜ' : '🚌'} ${esc(t(hasMetro(s.city) ? 'mtShort' : 'mtBusShort'))}</button><button class="realBtn view3d" id="view3dBtn" aria-pressed="${view === '3d'}" title="${esc(t('w3Tip'))}">🧊 3D</button><button class="realBtn" id="realBtn" aria-pressed="${realOn}" title="${esc(t('realTip'))}">🛰️ ${esc(t('realBtn'))}</button><button class="realBtn" id="realCityBtn" aria-pressed="${!!realCityClose}" title="${esc(t('rcTip'))}">🌍 ${esc(t('rcBtn'))}</button>`;
   $('layers').querySelectorAll<HTMLButtonElement>('button[data-layer]').forEach(b => { b.onclick = () => { layer = b.dataset.layer as string; renderLayers(); applyLayer(); }; });
   ($('metroBtn') as HTMLButtonElement).onclick = () => void openMetroScreen();
   const evb = document.getElementById('eventBtn'); if (evb) evb.onclick = openEvent;
   ($('realBtn') as HTMLButtonElement).onclick = () => { if (realOn) closeRealMap(); else void openRealMap(); };
+  ($('realCityBtn') as HTMLButtonElement).onclick = () => void toggleRealCity();
   if (view === '3d') {
     { const b = document.createElement('button'); b.className = 'realBtn'; b.id = 'realHousesBtn'; b.setAttribute('aria-pressed', String(realHouses)); b.title = t('osmTip'); b.textContent = t('lyReal'); b.onclick = () => void toggleRealHouses(); $('layers').appendChild(b); }
     { const b = document.createElement('button'); b.className = 'realBtn'; b.id = 'civicBtn'; b.textContent = t('lyGov'); b.title = t('cvTitle'); b.onclick = () => void openCivic(); $('layers').appendChild(b); }
@@ -357,6 +358,7 @@ function showRealMapView(on: boolean): void { applyView(on ? 'real' : 'iso'); }
 
 let w3City = '';
 function close3d(): void {
+  closeRealCity();
   stopWalk?.(); stopWalk = null; worldCtl?.destroy(); worldCtl = null;
   $('world3d').innerHTML = '';
   if (view === '3d') applyView('iso');
@@ -366,15 +368,16 @@ function fail3d(message: string): void { close3d(); notify(`${t('w3Fail')} ${mes
 async function open3d(remember = true): Promise<void> {
   if (worldCtl) return;
   if (!supportsWebGL()) { if (remember) notify(t('w3Fail')); return; }
+  closeRealCity();
   if (realCtl) closeRealMap();
   applyView('3d');
   $('world3d').innerHTML = `<p class="hint realLoading">${esc(t('w3Loading'))}</p>`;
   try {
     const m = await import('./world3d');
-    if (view !== '3d') return;                                    // the player went elsewhere while it loaded
+    if (view !== '3d' || realCityClose || realCityOpening) return;   // the player went elsewhere (or into the real city) while it loaded
     const handle = await m.mountWorld3d({ host: $('world3d'), s, onPlace: travelTo, onNpc: talkToNpc, onFail: fail3d, onAction: roomAction, onHover: showHover, onFurnish: furnished, onPickUp: pickedUp, onFurnishFail: (why) => notify(`${t('fuNoFit')}: ${why}`), onSaver: () => { notify(t('saverOn')); renderW3Quests(); }, onLandmark: id => { void import('./landmarks').then(lm => notify(lm.landmarkText(id, lang() === 'ru'))); } });
     w3City = s.city;
-    if (view !== '3d') { handle.destroy(); $('world3d').innerHTML = ''; return; }
+    if (view !== '3d' || realCityClose || realCityOpening) { handle.destroy(); if (!realCityClose && !realCityOpening) $('world3d').innerHTML = ''; return; }
     worldCtl = handle; applySettings(); realHouses = false; overview3d = false; buildKey = ''; syncBuild(); void autoRealHouses();
     handle.setLayer('names', names3d); handle.setLayer('boards', boards3d); handle.setLayer('traffic', traffic3d); renderW3Quests();
     $('world3d').querySelector('.realLoading')?.remove();
@@ -395,6 +398,7 @@ function failRealMap(message: string): void {
 /** Opens the real map. The first time it asks, in plain words, because it uses the internet. */
 async function openRealMap(): Promise<void> {
   if (realCtl) return;
+  closeRealCity();
   if (worldCtl) close3d();
   showRealMapView(true);
   if (!consentGiven()) {
@@ -475,6 +479,32 @@ function renderOverlays(): void {
     renderOverlays();
     (document.getElementById('chatInput') as HTMLInputElement).focus();
   };
+}
+
+/* ---------- the real city: real streets and places at real scale, with routes and directions (round 153, realworld*.ts) ---------- */
+let realCityClose: (() => void) | null = null, realCityOpening = false;
+/** Closes the real city if it is open (before another view takes the screen). */
+function closeRealCity(): void { if (!realCityClose) return; const c = realCityClose; realCityClose = null; c(); }
+async function toggleRealCity(): Promise<void> {
+  if (realCityClose) { closeRealCity(); applyView('iso'); return; }
+  const osm = await import('./osm');
+  const start = async (): Promise<void> => {
+    if (realCityOpening) return; realCityOpening = true;
+    try {
+    osm.giveOsmConsent(); if (worldCtl) close3d(); if (realOn) closeRealMap(); applyView('3d');
+    const [lat, lon] = (await import('./realmap')).CITY_CENTERS[s.city] ?? [55.7558, 37.6173];
+    const m = await import('./realworld-ui');
+    realCityClose = await m.openRealCity($('world3d'), s, { lat, lon }, { notify, act: a => { if (!idle) { notify(t('busyNow')); return; } act(a); }, close: () => void toggleRealCity(), onFail: msg => notify(`${t('realFail')} ${msg}`) });
+    renderLayers();
+    } finally { realCityOpening = false; }
+  };
+  if (osm.osmConsentGiven()) return start();
+  applyView('3d'); const host = $('world3d'); host.querySelector('.realNotice')?.remove();
+  const box = document.createElement('div'); box.className = 'realNotice'; box.setAttribute('role', 'dialog');
+  box.innerHTML = `<h3>${esc(t('osmTitle'))}</h3><p>${esc(t('osmBody'))}</p><div class="row"><button class="primary" id="osmYes">${esc(t('osmLoad'))}</button><button class="ghost" id="osmNo">${esc(t('realNotNow'))}</button></div>`;
+  host.appendChild(box);
+  ($('osmYes') as HTMLButtonElement).onclick = () => { box.remove(); void start(); };
+  ($('osmNo') as HTMLButtonElement).onclick = () => { box.remove(); applyView('iso'); };
 }
 
 /* ---------- real houses from the map in the 3D city (see osm.ts) ---------- */

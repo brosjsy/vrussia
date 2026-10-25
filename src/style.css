@@ -674,3 +674,23 @@ button.primary[disabled],button.secondary[disabled]{opacity:.45;filter:grayscale
 .ckGuests{border:1px solid #dde2ea;border-radius:12px;padding:6px 10px;background:#fff}.ckGuests summary{cursor:pointer;font-weight:600;min-height:32px;display:flex;align-items:center}
 .ckGuests ul{margin:4px 0;padding-left:18px;font-size:13px}.ckCheck{display:flex;gap:6px;align-items:center;font-size:13px;min-height:36px}
 .ckOnline{border:1px solid #e0c060;background:#fffbea;border-radius:12px;padding:8px 10px;display:grid;gap:4px}.ckOnline ol{margin:0;padding-left:20px;font-size:13px}.ckOnline p{margin:0}
+
+/* ---------- the real city (round 153): real streets and places, search, place card and directions ---------- */
+.realView, .realView canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.realUi { position: absolute; top: 12px; left: 12px; width: min(380px, calc(100% - 24px)); max-height: calc(100% - 24px); overflow: auto; display: flex; flex-direction: column; gap: 8px; z-index: 5; }
+.realTop { display: flex; gap: 8px; }
+/* in the game the top bar and the layer buttons float over the top, the place card sits on the left and the dock at the bottom: the real-city panel goes to the right, below them */
+#game.immersive .realUi { top: 112px; left: auto; right: 8px; max-height: calc(100% - 200px); }
+@media (max-width: 700px) { #game.immersive .realUi { top: 150px; left: 8px; right: 8px; width: auto; max-height: calc(100% - 240px); } #game.immersive:has(#world3d.realCity) .placeCard { display: none; } }
+.realTop input { flex: 1; min-height: 44px; border-radius: 12px; border: 1px solid #c9c2b4; padding: 0 12px; font: inherit; background: #fff; }
+.realUi .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.realStatus, .realCredit { margin: 0; background: #ffffffe6; border-radius: 10px; padding: 6px 10px; font-size: 13px; color: #3a4250; }
+.realCredit { font-size: 12px; }
+.realChips { display: flex; flex-wrap: wrap; gap: 6px; }
+.realChip { min-height: 36px; border-radius: 999px; border: 0; padding: 6px 12px; background: #1f4fa8; color: #fff; font: inherit; font-size: 14px; cursor: pointer; }
+.realList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.realList button { width: 100%; text-align: left; min-height: 44px; border: 0; border-radius: 12px; background: #fff; padding: 8px 12px; display: flex; flex-direction: column; gap: 2px; font: inherit; cursor: pointer; }
+.realList span, .realCard span { font-size: 13px; color: #5a6372; }
+.realCard { background: #fff; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 8px 24px rgba(30, 36, 48, .18); }
+.realCard .row { display: flex; flex-wrap: wrap; gap: 6px; }
+.realSteps { margin: 0; background: #fff; border-radius: 16px; padding: 12px 12px 12px 30px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }

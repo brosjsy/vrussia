@@ -1441,3 +1441,37 @@ At the owner's request a recurring job now runs every 15 minutes (at :07, :22, :
 - **Tools:** `scripts/cdp.mjs` drives a headless Edge/Chrome with no packages; `scripts/shots-dev.mjs` takes screenshots of the dev pages (`dev/cyber.html` is new).
 - **Tests:** 127 files, 913 passed (new: `test/cyber.test.ts`, `test/rooms-ru.test.ts`; updated for the new homes and the 21st phone app). First download 254.3 KB of 256 KB; on-demand files 395.6 KB of 400 KB (little room left).
 - **Not done:** friends' homes shown in the 3D city (the address is not yet stored on the server); the thesis has not been checked by a supervisor and is shorter than ITMO's 60-80 pages for a master's thesis.
+
+## Round 152 - Security review fixes and the failed build
+
+- **Contact details everywhere:** chat, guest-book notes and adverts refuse phone numbers and messenger names, both in the game (`hasContact` in `src/rude.ts`) and on the server (migration `0009_contacts_everywhere.sql`).
+- **Home designs:** the server accepts a home design only in a strict shape (`PUT /api/home`), and the game checks the colours and numbers of a friend's plan before drawing it.
+- **Logging out** first saves the game to the cloud. After a login, a guest's game and a newer save on the device are kept.
+- **CI:** the build failed because the server's packages were not installed. The workflow now runs `npm ci --prefix server`. GitHub Pages must be switched on in the repository settings (Source: GitHub Actions).
+
+## Round 153 - The real city: real streets and every real place, with directions
+
+- **Request:** put the normal map of Russia inside the game world, with all the real places (Prospekt Slavy, the metro, churches, mosques and the rest) instead of 16 invented ones, and directions to them.
+- **Real city mode** (`src/realworld.ts`, `src/realworld3d.ts`, `src/realworld-ui.ts`, loaded on demand), opened with the 🌍 button:
+  - real buildings at their real height, roads, water and parks, and every named place from OpenStreetMap vector tiles (OpenFreeMap, free, no key);
+  - tiles load and unload around the player as they walk;
+  - around Red Square, 16,173 places are loaded at once. Across Russia this is well over a million.
+- **Places:** places are sorted into 21 kinds (metro, church, mosque, other worship, government, MFC, police, post, clinic, pharmacy, school, university, bank, café, groceries, shop, culture, park, sport, hotel, other). Street furniture (gates, bollards, benches) is left out.
+- **Search and quick buttons:** search finds places by name or kind, and «МФЦ» also finds the long official names. The quick buttons find the nearest real MFC, bank, clinic, university, grocery and station.
+- **Routes:**
+  - they follow the real streets (A* over the street graph);
+  - the character walks the route, with a line on the ground;
+  - directions are given in Russian and English, by street name. Checked on Moscow data: Ploshchad Ilyicha metro → Tagansky MFC, 603 m.
+- **Game actions** at real places: papers at an MFC, money at a bank, study at a university, food at a café, culture at a church or museum.
+- **Consent and credit:** the game asks before loading map data, and shows the OpenStreetMap credit (ODbL).
+- **Bugs found in the browser and fixed:**
+  - the normal 3D city, still loading when the game started, could land on top of the real city;
+  - switching to another view left the real city running;
+  - a double click could open it twice;
+  - the panel sat under the top bar;
+  - on a phone the place card covered it;
+  - the Russian place count is now written "16 173".
+- **Tests:** new `test/realworld.test.ts` covers reading a tile, routing, directions in both languages, search, 3D arrival and the screen. 129 files and 919 tests pass, and the build works.
+- **Sizes:** the first download is 255.2 KB of 256 KB. On-demand code is 398.5 KB of 400 KB, so the next feature needs that limit raised or code slimmed.
+- **Not done:** routes are on foot only (no buses or metro rides inside them); there are no underground metro tunnels; the map needs the internet.
+- Nothing committed or pushed.
