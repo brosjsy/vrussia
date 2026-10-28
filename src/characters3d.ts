@@ -9,6 +9,8 @@ import { EYE_COLORS, SKINS, HAIR_COLORS, ACCENTS, BOTTOM_COLORS, SHOE_COLORS, no
 import type { Worn } from './avatar';
 import { rbox, limb, sphere, cylinder, torus, plainBox, kitMat, disposeKit, fabricTex, shade } from './kit3d';
 import type { Fabric } from './kit3d';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
 /** One continuous body for the waist and chest together (the player only; built fresh each time, so it is never cached), instead of two separate
    rounded boxes stacked on top of each other. A profile of (radius, height) points, revolved around the vertical axis and flattened front-to-back
@@ -26,9 +28,12 @@ function torsoShape(waistW: number, chestW: number, waistD: number, chestD: numb
 }
 
 export interface Character {
-  root: THREE.Group; body: THREE.Group; head: THREE.Group; torso: THREE.Group;
-  legL: THREE.Group; legR: THREE.Group; armL: THREE.Group; armR: THREE.Group;
-  kneeL: THREE.Group; kneeR: THREE.Group; elbowL: THREE.Group; elbowR: THREE.Group;
+  root: THREE.Group;
+  // setPose only ever sets .rotation / .position / .scale on these, so a skinned mesh's armature bones
+  // (THREE.Bone, not THREE.Group) can stand in for them just as well as the procedural rig's groups.
+  body: THREE.Object3D; head: THREE.Object3D; torso: THREE.Object3D;
+  legL: THREE.Object3D; legR: THREE.Object3D; armL: THREE.Object3D; armR: THREE.Object3D;
+  kneeL: THREE.Object3D; kneeR: THREE.Object3D; elbowL: THREE.Object3D; elbowR: THREE.Object3D;
   height: number;       // the chosen height factor (0.93, 1 or 1.07), before CHAR_SCALE
   bw?: number;          // how wide the body is for its build (1 average); the poses keep it
   eyes?: THREE.Group[]; // they blink
@@ -284,4 +289,73 @@ export function setPose(c: Character, mode: Pose, phase: number, time: number): 
   }
   // blinking: a short closing of the lids every few seconds (each person at their own moment)
   if (c.eyes) { const off = (c.root.id % 7) * 0.53, t = (time + off) % 3.4, lid = t < 0.14 ? Math.max(0.08, Math.abs(t / 0.07 - 1)) : 1; for (const e of c.eyes) e.scale.y = lid; }
+}
+
+/* ---------- a real rigged mesh for the player (round 2026), instead of the procedural kit above ---------- */
+
+/** A stand-in for a bone that keeps setPose's convention -- rotation.set(...)/.rotation.x = ... is "the pose",
+   starting from nothing (rotation 0,0,0 is the rest/standing pose) -- true by construction for the procedural
+   rig (every joint's local axes are simply its parent's, so "no rotation" already means "hanging straight"),
+   but not for a modelled skeleton: Blender gave each bone whatever rest orientation its own shape needed, which
+   is usually not the identity. The handle remembers that rest orientation and composes it with whatever setPose
+   writes to the handle's own .rotation, so the bone ends up at rest-plus-pose instead of the pose alone (which
+   would twist it off in whatever direction its rest orientation happened to be, not the one setPose intended). */
+function poseHandle(bone: THREE.Bone): THREE.Object3D {
+  const rest = bone.quaternion.clone();
+  const q = new THREE.Quaternion();
+  const handle = new THREE.Object3D();
+  // torso's breathing/shrug scale pokes the real bone directly (no rest offset applies to scale); Object3D
+  // defines `scale` as a non-writable own property, so it is replaced with one that reads through to the
+  // bone's own Vector3 -- setPose only ever calls .scale.set(...) / .scale.y = ... on it, never reassigns
+  // the property itself, so a getter handing back that same Vector3 instance is all mutation needs.
+  Object.defineProperty(handle, 'scale', { get: () => bone.scale, configurable: true });
+  handle.rotation._onChange(() => { bone.quaternion.copy(rest).multiply(q.setFromEuler(handle.rotation)); });
+  return handle;
+}
+
+let riggedAsset: Promise<THREE.Group> | null = null;
+function loadRiggedAsset(): Promise<THREE.Group> {
+  if (!riggedAsset) riggedAsset = new Promise((resolve, reject) => new GLTFLoader().load('/models/player.glb', gltf => resolve(gltf.scene), undefined, reject));
+  return riggedAsset;
+}
+
+/** A player built from a real rigged mesh: one continuous skinned human body, not stacked primitives. See
+   tools/build_rigged_human.py, which modelled and exported it (a Blender "skin" skeleton, auto-rigged and
+   skinned, with its bones renamed to the joints setPose already knows how to move: torso, head, armL/R,
+   elbowL/R, legL/R, kneeL/R). Loaded once and cloned per call with SkeletonUtils (a plain .clone() does not
+   copy a skinned mesh's binding to its own skeleton correctly, so two characters would fight over one set
+   of bones). Resolves to null if the asset cannot be fetched or does not have the bones expected (offline
+   on the very first visit, or a build where the model failed to ship), so a caller can keep the procedural
+   character as a fallback instead of showing nothing. Only the skin tone is coloured from the Look yet:
+   this mesh has no clothing of its own, so it is not a full replacement for buildCharacter until it does. */
+export async function buildRiggedCharacter(rawLook: unknown): Promise<Character | null> {
+  let scene: THREE.Group;
+  try { scene = await loadRiggedAsset(); } catch { return null; }
+  const clone = cloneSkinned(scene) as THREE.Group;
+  const bones: Record<string, THREE.Object3D> = {};
+  clone.traverse(o => { if ((o as THREE.Bone).isBone) bones[o.name] = o; });
+  const need = ['torso', 'head', 'armL', 'armR', 'elbowL', 'elbowR', 'legL', 'legR', 'kneeL', 'kneeR'];
+  if (need.some(n => !bones[n])) return null;
+
+  const look = normalizeLook(rawLook);
+  clone.traverse(o => {
+    const mesh = o as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    const cloned = Array.isArray(mesh.material) ? mesh.material.map(m => m.clone()) : mesh.material.clone();
+    mesh.material = cloned;
+    const first = (Array.isArray(cloned) ? cloned[0] : cloned) as THREE.MeshStandardMaterial;
+    if (first.color) first.color.set(SKINS[look.skin]);
+  });
+
+  const root = new THREE.Group(); root.name = 'person';
+  const body = new THREE.Group(); root.add(body); body.add(clone);
+  const height = HEIGHTS[look.height];
+  root.scale.setScalar(height);          // the mesh is already built in real metres, so CHAR_SCALE does not apply here
+  const handle = (n: string): THREE.Object3D => poseHandle(bones[n] as THREE.Bone);
+  return {
+    root, body, head: handle('head'), torso: handle('torso'),
+    legL: handle('legL'), legR: handle('legR'), armL: handle('armL'), armR: handle('armR'),
+    kneeL: handle('kneeL'), kneeR: handle('kneeR'), elbowL: handle('elbowL'), elbowR: handle('elbowR'),
+    height, bw: 1,
+  };
 }

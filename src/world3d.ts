@@ -9,7 +9,7 @@ import * as G from './engine';
 import type { State } from './engine';
 import { crowdFor, treeSpots, PLACE_LOOK } from './city';
 import type { Npc } from './city';
-import { buildCharacter, setPose, disposeCharacterMaterials } from './characters3d';
+import { buildCharacter, buildRiggedCharacter, setPose, disposeCharacterMaterials } from './characters3d';
 import type { Pose } from './characters3d';
 import { warmthMeter } from './warmth';
 import { seasonLook } from './season3d';
@@ -407,6 +407,17 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
   let moment = -1;
   const rng = seeded(state.day * 7 + 1);
 
+  // Swaps the player's procedural body for the real rigged mesh once it has loaded, carrying the name tag,
+  // status chip and speech bubble over to the new root so nothing above this has to know it happened.
+  let playerMeshGen = 0;
+  const swapPlayerMesh = (next: Character): void => {
+    const old = playerPerson.char, chip = old.root.children.find(c => c.userData.status);
+    old.root.remove(playerPerson.tag); next.root.add(playerPerson.tag);
+    if (chip) { old.root.remove(chip); next.root.add(chip); }
+    if (playerPerson.bubble) { old.root.remove(playerPerson.bubble); next.root.add(playerPerson.bubble); }
+    next.root.position.copy(old.root.position); next.root.rotation.copy(old.root.rotation); next.root.visible = old.root.visible;
+    scene.remove(old.root); scene.add(next.root); playerPerson.char = next;
+  };
   const buildPlayer = (): void => {
     const keep = playerPerson?.agent;
     if (playerPerson) removePerson(playerPerson);
@@ -416,6 +427,10 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
     const st = statusFor(state);
     if (st) { const chip = sprite(st.text, st.color, '#ffffff', 0.8); chip.position.set(0, 4.4, 0); chip.userData.status = true; playerPerson.char.root.add(chip); }
     playerKey = JSON.stringify([state.look, state.worn, statusFor(state)?.text]);
+    // the rigged mesh has no clothing yet, so it only replaces the body; the procedural one stays as the
+    // instant, always-available character while it loads (or forever, if the asset cannot be fetched)
+    const gen = ++playerMeshGen;
+    void buildRiggedCharacter(state.look).then(rigged => { if (rigged && gen === playerMeshGen) swapPlayerMesh(rigged); });
   };
   const buildCrowd = (): void => {
     people.forEach(removePerson); people.length = 0;
