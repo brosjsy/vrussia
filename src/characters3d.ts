@@ -10,6 +10,21 @@ import type { Worn } from './avatar';
 import { rbox, limb, sphere, cylinder, torus, plainBox, kitMat, disposeKit, fabricTex, shade } from './kit3d';
 import type { Fabric } from './kit3d';
 
+/** One continuous body for the waist and chest together (the player only; built fresh each time, so it is never cached), instead of two separate
+   rounded boxes stacked on top of each other. A profile of (radius, height) points, revolved around the vertical axis and flattened front-to-back
+   to the torso's own proportions, so the ribcage tapers smoothly from the waist up to the shoulders instead of showing a seam at the waistline. */
+function torsoShape(waistW: number, chestW: number, waistD: number, chestD: number, seg: number): THREE.BufferGeometry {
+  const wr = waistW / 2, cr = chestW / 2;
+  const pts = [
+    new THREE.Vector2(wr * 0.94, -0.02), new THREE.Vector2(wr, 0.04), new THREE.Vector2((wr + cr) / 2 * 1.03, 0.16),
+    new THREE.Vector2(cr, 0.3), new THREE.Vector2(cr * 0.84, 0.4), new THREE.Vector2(cr * 0.5, 0.43),
+  ];
+  const g = new THREE.LatheGeometry(pts, seg);
+  g.scale(1, 1, (waistD / waistW + chestD / chestW) / 2);
+  g.computeVertexNormals();
+  return g;
+}
+
 export interface Character {
   root: THREE.Group; body: THREE.Group; head: THREE.Group; torso: THREE.Group;
   legL: THREE.Group; legR: THREE.Group; armL: THREE.Group; armR: THREE.Group;
@@ -69,7 +84,8 @@ export function buildCharacter(rawLook: unknown, worn: Worn = {}, detail: Detail
 
   const torso = new THREE.Group(); torso.name = 'Abdomen'; torso.position.y = 0.07; hips.add(torso);        // setPose bends and turns it
   const chest = new THREE.Group(); chest.position.y = 0.16; torso.add(chest);
-  mk(torso, rbox(P.waistW, 0.2, 0.19, 0.05, BSEG), topM, 0, 0.08, 0); mk(chest, rbox(P.chestW, 0.3, 0.22, 0.06, BSEG), topM, 0, 0.12, 0);
+  if (full) mk(torso, torsoShape(P.waistW, P.chestW, 0.19, 0.22, JS), topM);
+  else { mk(torso, rbox(P.waistW, 0.2, 0.19, 0.035, BSEG), topM, 0, 0.08, 0); mk(chest, rbox(P.chestW, 0.3, 0.22, 0.045, BSEG), topM, 0, 0.12, 0); }
   if (F) for (const s of [-1, 1]) mk(chest, sphere(0.072, 16, 12), topM, s * 0.068, 0.12, 0.085).scale.set(1, 0.85, 0.7);
   if (look.style === 'smart') {
     for (const s of [-1, 1]) { const w = mk(chest, plainBox(0.07, 0.05, 0.012), kitMat('#ffffff', { r: 0.6 }), s * 0.04, 0.265, 0.1); w.rotation.z = s * 0.6; w.rotation.x = -0.3; }
