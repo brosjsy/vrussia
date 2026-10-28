@@ -62,14 +62,14 @@ export function buildCharacter(rawLook: unknown, worn: Worn = {}, detail: Detail
   const root = new THREE.Group(); root.name = 'person';
   const body = new THREE.Group(); root.add(body);                                   // setPose moves it up and down (sitting, bobbing)
   const hips = new THREE.Group(); hips.position.y = 0.945; body.add(hips);
-  mk(hips, rbox(F ? 0.36 : 0.34, 0.17, 0.21, 0.07, BSEG), dress ? topM : botM, 0, -0.02, 0);
+  mk(hips, rbox(F ? 0.36 : 0.34, 0.17, 0.21, 0.045, BSEG), dress ? topM : botM, 0, -0.02, 0);
   if (!F && look.style === 'smart') { mk(hips, rbox(0.345, 0.035, 0.215, 0.015), kitMat('#2a211b', { r: 0.5 }), 0, 0.06, 0); if (full) mk(hips, plainBox(0.045, 0.03, 0.01), kitMat('#d4af37', { r: 0.3, m: 0.8 }), 0, 0.06, 0.11); }
   if (look.bottom === 'skirt' && !dress) mk(hips, cylinder(0.18, 0.27, 0.38, 18), botM, 0, -0.2, 0);
   if (dress) mk(hips, cylinder(0.17, 0.32, 0.62, 18), topM, 0, -0.25, 0);
 
   const torso = new THREE.Group(); torso.name = 'Abdomen'; torso.position.y = 0.07; hips.add(torso);        // setPose bends and turns it
   const chest = new THREE.Group(); chest.position.y = 0.16; torso.add(chest);
-  mk(torso, rbox(P.waistW, 0.2, 0.19, 0.08, BSEG), topM, 0, 0.08, 0); mk(chest, rbox(P.chestW, 0.3, 0.22, 0.095, BSEG), topM, 0, 0.12, 0);
+  mk(torso, rbox(P.waistW, 0.2, 0.19, 0.05, BSEG), topM, 0, 0.08, 0); mk(chest, rbox(P.chestW, 0.3, 0.22, 0.06, BSEG), topM, 0, 0.12, 0);
   if (F) for (const s of [-1, 1]) mk(chest, sphere(0.072, 16, 12), topM, s * 0.068, 0.12, 0.085).scale.set(1, 0.85, 0.7);
   if (look.style === 'smart') {
     for (const s of [-1, 1]) { const w = mk(chest, plainBox(0.07, 0.05, 0.012), kitMat('#ffffff', { r: 0.6 }), s * 0.04, 0.265, 0.1); w.rotation.z = s * 0.6; w.rotation.x = -0.3; }
