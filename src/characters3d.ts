@@ -47,24 +47,29 @@ export function buildCharacter(rawLook: unknown, worn: Worn = {}, detail: Detail
   const fabric: Fabric = look.style === 'folk' ? 'Khokhloma' : 'Plain';
   const tex = fabric === 'Plain' ? null : fabricTex(fabric, topHex);
 
-  const skin = kitMat(skinHex, { r: 0.6 }), skinDark = kitMat(shade(skinHex, -0.08), { r: 0.6 }), hairM = kitMat(hairHex, { r: 0.9 }), browM = kitMat(shade(hairHex, -0.05), { r: 0.9 });
+  const skin = kitMat(skinHex, { r: 0.52 }), skinDark = kitMat(shade(skinHex, -0.08), { r: 0.52 }), hairM = kitMat(hairHex, { r: 0.85 }), browM = kitMat(shade(hairHex, -0.05), { r: 0.85 });
   const topM = tex ? kitMat('#ffffff', { map: tex, r: 0.85 }) : kitMat(topHex, { r: 0.85 }), botM = kitMat(botHex, { r: 0.85 });
   const sleeveM = coatHex ? kitMat(coatHex, { r: 0.8 }) : topM, white = kitMat('#f3f3f3', { r: 0.5 }), black = kitMat('#141414', { r: 0.6 });
   const eyeW = kitMat('#fbfbf8', { r: 0.3 }), iris = kitMat(EYE_COLORS[look.eyeColor] ?? '#4a2e1c', { r: 0.2 });
   const P = { shoulderW: F ? 0.165 : 0.2, hipW: F ? 0.105 : 0.095, chestW: F ? 0.34 : 0.4, waistW: F ? 0.26 : 0.32 };
   const mk = (parent: THREE.Object3D, g: THREE.BufferGeometry, m: THREE.Material, x = 0, y = 0, z = 0): THREE.Mesh => { const o = new THREE.Mesh(g, m); o.position.set(x, y, z); o.castShadow = true; parent.add(o); return o; };
+  // A crowd of passers-by stays cheap (boxy, low-poly); the player (and anyone built in full detail) gets a rounder, smoother body
+  // and limbs, closer to an actual human silhouette than the stylised block figure the lighter detail keeps.
+  const BSEG = full ? 6 : 3;                 // rounding segments on the torso, hips and head
+  const LSEG = full ? 22 : 12;                // segments on arms and legs
+  const JS = full ? 22 : 14, JH = full ? 16 : 10;   // sphere segments at joints, the head and the eyes
 
   const root = new THREE.Group(); root.name = 'person';
   const body = new THREE.Group(); root.add(body);                                   // setPose moves it up and down (sitting, bobbing)
   const hips = new THREE.Group(); hips.position.y = 0.945; body.add(hips);
-  mk(hips, rbox(F ? 0.36 : 0.34, 0.17, 0.21, 0.06), dress ? topM : botM, 0, -0.02, 0);
+  mk(hips, rbox(F ? 0.36 : 0.34, 0.17, 0.21, 0.07, BSEG), dress ? topM : botM, 0, -0.02, 0);
   if (!F && look.style === 'smart') { mk(hips, rbox(0.345, 0.035, 0.215, 0.015), kitMat('#2a211b', { r: 0.5 }), 0, 0.06, 0); if (full) mk(hips, plainBox(0.045, 0.03, 0.01), kitMat('#d4af37', { r: 0.3, m: 0.8 }), 0, 0.06, 0.11); }
   if (look.bottom === 'skirt' && !dress) mk(hips, cylinder(0.18, 0.27, 0.38, 18), botM, 0, -0.2, 0);
   if (dress) mk(hips, cylinder(0.17, 0.32, 0.62, 18), topM, 0, -0.25, 0);
 
   const torso = new THREE.Group(); torso.name = 'Abdomen'; torso.position.y = 0.07; hips.add(torso);        // setPose bends and turns it
   const chest = new THREE.Group(); chest.position.y = 0.16; torso.add(chest);
-  mk(torso, rbox(P.waistW, 0.2, 0.19, 0.07), topM, 0, 0.08, 0); mk(chest, rbox(P.chestW, 0.3, 0.22, 0.08), topM, 0, 0.12, 0);
+  mk(torso, rbox(P.waistW, 0.2, 0.19, 0.08, BSEG), topM, 0, 0.08, 0); mk(chest, rbox(P.chestW, 0.3, 0.22, 0.095, BSEG), topM, 0, 0.12, 0);
   if (F) for (const s of [-1, 1]) mk(chest, sphere(0.072, 16, 12), topM, s * 0.068, 0.12, 0.085).scale.set(1, 0.85, 0.7);
   if (look.style === 'smart') {
     for (const s of [-1, 1]) { const w = mk(chest, plainBox(0.07, 0.05, 0.012), kitMat('#ffffff', { r: 0.6 }), s * 0.04, 0.265, 0.1); w.rotation.z = s * 0.6; w.rotation.x = -0.3; }
@@ -89,18 +94,19 @@ export function buildCharacter(rawLook: unknown, worn: Worn = {}, detail: Detail
   if (worn.bag) { mk(hips, plainBox(0.06, 0.2, 0.22), kitMat('#3a2a1e'), -0.24 * BW, -0.02, 0); const strap = mk(chest, plainBox(0.02, 0.6, 0.02), kitMat('#3a2a1e'), -0.04, 0.1, 0.12); strap.rotation.z = -0.65; }
 
   /* neck and head */
-  const neck = new THREE.Group(); neck.position.y = 0.28; chest.add(neck); mk(neck, limb(0.09, 0.045, 0.05), skin, 0, 0.09, 0);
+  const neck = new THREE.Group(); neck.position.y = 0.28; chest.add(neck); mk(neck, limb(0.09, 0.045, 0.05, LSEG), skin, 0, 0.09, 0);
   const head = new THREE.Group(); head.position.y = 0.085; neck.add(head);
   const FACE = [[1, 1, 1], [1.05, 0.97, 1.08], [1.04, 1, 1.15], [1, 1.02, 0.88], [0.96, 1.07, 0.96], [0.98, 1.04, 0.92]][look.face] ?? [1, 1, 1];
-  mk(head, rbox(0.2 * FACE[0], 0.25 * FACE[1], 0.22, 0.085, 4), skin, 0, 0.125, 0); mk(head, rbox((F ? 0.15 : 0.165) * FACE[2], 0.07, 0.16, 0.04), skin, 0, 0.03, 0.025);
+  mk(head, rbox(0.2 * FACE[0], 0.25 * FACE[1], 0.22, full ? 0.105 : 0.085, BSEG), skin, 0, 0.125, 0); mk(head, rbox((F ? 0.15 : 0.165) * FACE[2], 0.07, 0.16, full ? 0.058 : 0.04, BSEG), skin, 0, 0.03, 0.025);
+  if (full) { mk(head, sphere(0.085, JS, JH), skin, 0, 0.02, 0.02).scale.set(1.08, 0.78, 1.0); mk(head, sphere(0.072, JS, JH), skin, 0, 0.165, -0.02).scale.set(1.05, 0.95, 0.95); }   // a rounder jaw and crown blended under the box, so the head reads as an ellipsoid, not a brick
   // the ears are left out of a crowd: too small to see there
-  for (const s of [-1, 1]) { if (full) mk(head, sphere(0.03, 12, 10), skin, s * 0.103, 0.12, 0).scale.set(0.45, 1, 0.75); if (F && full) mk(head, torus(0.012, 0.003, 6, 14), kitMat('#d4af37', { r: 0.3, m: 0.8 }), s * 0.108, 0.075, 0.005).rotation.y = Math.PI / 2; }
+  for (const s of [-1, 1]) { if (full) mk(head, sphere(0.03, JS, JH), skin, s * 0.103, 0.12, 0).scale.set(0.45, 1, 0.75); if (F && full) mk(head, torus(0.012, 0.003, 6, 14), kitMat('#d4af37', { r: 0.3, m: 0.8 }), s * 0.108, 0.075, 0.005).rotation.y = Math.PI / 2; }
   const EYE = [[0.85, 0], [0.62, 0.22], [1.0, 0], [0.5, 0.05], [0.58, 0], [0.7, 0.32], [0.7, -0.25], [0.48, 0.12]][look.eyes] ?? [0.85, 0];
   const eyes: THREE.Group[] = [];
   for (const s of [-1, 1]) {
     const eg = new THREE.Group(); eg.position.set(s * 0.045, 0.14, 0.105); eg.rotation.z = -s * EYE[1]; head.add(eg);
-    mk(eg, sphere(0.022, 16, 12), eyeW).scale.set(1, 0.85 * Math.min(1.15, EYE[0] + 0.25), 0.5);
-    mk(eg, sphere(0.0125, 14, 10), iris, 0, 0, 0.008).scale.set(1, 1, 0.6);
+    mk(eg, sphere(0.022, JS, JH), eyeW).scale.set(1, 0.85 * Math.min(1.15, EYE[0] + 0.25), 0.5);
+    mk(eg, sphere(0.0125, full ? 18 : 14, full ? 14 : 10), iris, 0, 0, 0.008).scale.set(1, 1, 0.6);
     if (full) mk(eg, sphere(0.004, 8, 6), white, 0.005, 0.005, 0.016);
     if (F && full) for (let k = -1; k <= 1; k++) { const l = mk(eg, plainBox(0.004, 0.012, 0.002), black, k * 0.01 + s * 0.012, 0.02, 0.01); l.rotation.z = -s * (0.4 + k * 0.2); }
     eyes.push(eg);
@@ -110,9 +116,14 @@ export function buildCharacter(rawLook: unknown, worn: Worn = {}, detail: Detail
     if (look.rosy) mk(head, sphere(0.024, 8, 6), kitMat('#e8737a', { r: 0.7 }), s * 0.065, 0.09, 0.1).scale.set(1, 0.7, 0.35);
   }
   const NOSE = [[0.85, 1], [0.95, 1.2], [1.25, 1.05], [0.95, 1.45]][look.nose] ?? [0.95, 1.2];
-  mk(head, rbox(0.04 * NOSE[0], 0.05 * NOSE[1], 0.04, 0.016), skinDark, 0, 0.105, 0.118);
-  if (full) for (const s of [-1, 1]) mk(head, sphere(0.009, 8, 6), skinDark, s * 0.014, 0.085, 0.124);
-  const mouth = mk(head, torus(0.026, 0.0055, 6, 16, Math.PI), kitMat('#5a2420', { r: 0.4 }), 0, 0.062, 0.113); mouth.rotation.z = Math.PI;
+  mk(head, rbox(0.04 * NOSE[0], 0.05 * NOSE[1], 0.04, full ? 0.018 : 0.016, BSEG), skinDark, 0, 0.105, 0.118);
+  if (full) for (const s of [-1, 1]) mk(head, sphere(0.009, JS, JH), skinDark, s * 0.014, 0.085, 0.124);
+  // fuller lips get their own small upper and lower ridge instead of a bare outline, so a mouth reads as flesh, not a wire
+  const LIP = [0.6, 0.85, 1.15, 1.3][look.lips] ?? 0.85, lipHex = shade(skinHex, -0.14), lipM = kitMat(lipHex, { r: 0.45 });
+  if (full && LIP > 0.7) {
+    mk(head, rbox(0.03 * LIP, 0.013, 0.012, 0.006, BSEG), lipM, 0, 0.068, 0.115);
+    mk(head, rbox(0.027 * LIP, 0.016, 0.013, 0.007, BSEG), lipM, 0, 0.052, 0.116);
+  } else { const mouth = mk(head, torus(0.024 * LIP, 0.0055, 6, 16, Math.PI), kitMat('#5a2420', { r: 0.4 }), 0, 0.062, 0.113); mouth.rotation.z = Math.PI; }
   if (F) mk(head, rbox(0.05, 0.012, 0.012, 0.005), kitMat(shade(skinHex, -0.18), { r: 0.5 }), 0, 0.054, 0.112);
   // beards and moustaches
   const facial = look.beard && !look.facial ? 3 : look.facial;
@@ -158,9 +169,9 @@ export function buildCharacter(rawLook: unknown, worn: Worn = {}, detail: Detail
 
   /* arms */
   const arm = (s: number): { up: THREE.Group; lo: THREE.Group } => {
-    const sh = new THREE.Group(); sh.position.set(s * P.shoulderW, 0.23, 0); chest.add(sh); mk(sh, sphere(0.058, 14, 10), sleeveM).scale.set(1, 0.9, 1);
-    const up = new THREE.Group(); sh.add(up); mk(up, limb(0.15, 0.05, 0.046), sleeveM); mk(up, limb(0.13, 0.04, 0.036), longSleeve ? sleeveM : skin, 0, -0.14, 0);
-    const lo = new THREE.Group(); lo.position.y = -0.27; up.add(lo); mk(lo, sphere(0.037, 12, 8), longSleeve ? sleeveM : skin); mk(lo, limb(0.25, 0.036, 0.03), longSleeve ? sleeveM : skin);
+    const sh = new THREE.Group(); sh.position.set(s * P.shoulderW, 0.23, 0); chest.add(sh); mk(sh, sphere(0.058, JS, JH), sleeveM).scale.set(1, 0.9, 1);
+    const up = new THREE.Group(); sh.add(up); mk(up, limb(0.15, 0.05, 0.046, LSEG), sleeveM); mk(up, limb(0.13, 0.04, 0.036, LSEG), longSleeve ? sleeveM : skin, 0, -0.14, 0);
+    const lo = new THREE.Group(); lo.position.y = -0.27; up.add(lo); mk(lo, sphere(0.037, JS, JH), longSleeve ? sleeveM : skin); mk(lo, limb(0.25, 0.036, 0.03, LSEG), longSleeve ? sleeveM : skin);
     const wr = new THREE.Group(); wr.position.y = -0.26; lo.add(wr);
     const hand = worn.gloves ? kitMat('#c0282f', { r: 0.9 }) : skin;
     if (full) { mk(wr, rbox(0.06, 0.075, 0.03, 0.012), hand, 0, -0.04, 0); for (let f = 0; f < 4; f++) { const fg = mk(wr, rbox(0.012, 0.045, 0.014, 0.005), hand, -0.021 + f * 0.014, -0.095, 0.002); fg.scale.y = [0.85, 1, 0.95, 0.8][f]; fg.rotation.x = 0.25; } mk(wr, rbox(0.014, 0.038, 0.014, 0.005), hand, s * -0.035, -0.045, 0.012).rotation.z = s * 0.6; }
@@ -173,8 +184,8 @@ export function buildCharacter(rawLook: unknown, worn: Worn = {}, detail: Detail
   /* legs */
   const leg = (s: number): { ul: THREE.Group; ll: THREE.Group } => {
     const bare = dress || look.bottom === 'skirt';
-    const ul = new THREE.Group(); ul.position.set(s * P.hipW, -0.06, 0); hips.add(ul); mk(ul, limb(0.24, F ? 0.075 : 0.07, 0.058), bare ? skin : botM); mk(ul, limb(0.22, 0.058, 0.052), bare || shorts ? skin : botM, 0, -0.22, 0); if (shorts) mk(ul, limb(0.05, 0.068, 0.066), botM, 0, -0.2, 0);
-    const ll = new THREE.Group(); ll.position.y = -0.44; ul.add(ll); mk(ll, sphere(0.053, 12, 8), bare || shorts ? skin : botM); mk(ll, limb(0.42, 0.052, 0.04), bare || shorts ? skin : botM);
+    const ul = new THREE.Group(); ul.position.set(s * P.hipW, -0.06, 0); hips.add(ul); mk(ul, limb(0.24, F ? 0.075 : 0.07, 0.058, LSEG), bare ? skin : botM); mk(ul, limb(0.22, 0.058, 0.052, LSEG), bare || shorts ? skin : botM, 0, -0.22, 0); if (shorts) mk(ul, limb(0.05, 0.068, 0.066, LSEG), botM, 0, -0.2, 0);
+    const ll = new THREE.Group(); ll.position.y = -0.44; ul.add(ll); mk(ll, sphere(0.053, JS, JH), bare || shorts ? skin : botM); mk(ll, limb(0.42, 0.052, 0.04, LSEG), bare || shorts ? skin : botM);
     if (look.style === 'tracksuit' && !bare && !shorts) mk(ll, plainBox(0.012, 0.36, 0.012), white, s * 0.045, -0.19, 0.01);
     const ft = new THREE.Group(); ft.position.y = -0.43; ll.add(ft);
     const sm = kitMat(shoeHex, { r: 0.6 });
