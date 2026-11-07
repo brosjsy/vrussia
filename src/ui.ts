@@ -37,6 +37,7 @@ import type { Look } from './avatar';
 import { DREAMS, dreamOf } from './dreams';
 import { MSG_RU } from './msg-ru';
 import { nextStep } from './nextstep';
+import { journeyForChecklist } from './journeys';
 import { play, playOk, soundOn, setSound, soundForNotes } from './sound';
 import { ambientChat, chatReply, cleanMessage, LAYERS, inLayer } from './social';
 import type { ChatLine } from './social';
@@ -938,11 +939,18 @@ function recentHtml(): string {
   return `<div class="recent"><h3>${t('recent')}</h3><ul>${s.log.slice(0, 3).map(l => { const x = logText(s, l); return `<li><b>${t('dayWord')} ${l.day + 1}</b> ${esc(x.length > 140 ? x.slice(0, 137) + '…' : x)}</li>`; }).join('')}</ul></div>`;
 }
 
+/** The routes screen (journeys.ts): a map of the city with the way to do a task, and the steps. `id` opens one route, none the list. */
+async function openRoute(id: string | null): Promise<void> {
+  const m = await import('./journeys-ui');
+  m.openJourneys($('modalBody'), s, { close: () => { $('modal').hidden = true; }, go: pid => { $('modal').hidden = true; travelTo(pid); }, canGo: () => idle }, id);
+  $('modal').classList.remove('phoneMode'); $('modal').hidden = false;
+}
+
 /** A card with the next thing to do from the newcomer's checklist, and how (src/nextstep.ts). Empty when everything is done. */
 function nextStepHtml(): string {
   const n = nextStep(s, lang() === 'ru'); if (!n) return '';
   const ru = lang() === 'ru';
-  return `<div class="nextStep" role="note"><b>👉 ${ru ? 'Следующий шаг' : 'Next step'} (${ru ? 'осталось' : 'left'}: ${n.left})</b><br><strong>${esc(n.title)}</strong>${n.how ? `<br><small>${esc(n.how)}</small>` : ''}</div>`;
+  return `<div class="nextStep" role="note"><b>👉 ${ru ? 'Следующий шаг' : 'Next step'} (${ru ? 'осталось' : 'left'}: ${n.left})</b><br><strong>${esc(n.title)}</strong>${n.how ? `<br><small>${esc(n.how)}</small>` : ''}<br><button type="button" class="secondary" data-route="${journeyForChecklist(n.id) ?? ''}">🗺️ ${ru ? 'Показать маршрут' : 'Show the route'}</button> <button type="button" class="ghost" data-route="">${ru ? 'Все маршруты' : 'All routes'}</button></div>`;
 }
 
 /** The "what now?" screen: prompt plus the action buttons. Safe to call again (for example after a language change). */
@@ -951,6 +959,7 @@ function renderIdle(): void {
   $('stage').dataset.cat = ''; $('stage').style.removeProperty('--accent');
   $('stage').innerHTML = `<div class="cat">${t('slot.' + s.slot)}</div><h2>${t('whatNow')}</h2><p>${probs.length ? '⚠ ' + t('warning') + ': ' + probs.join('; ') + '.' : t('pick')}</p>${vitalsWarning()}${nextStepHtml()}${recentHtml()}`;
   idle = true;
+  $('stage').querySelectorAll<HTMLButtonElement>('button[data-route]').forEach(b => { b.onclick = () => void openRoute(b.dataset.route || null); });
   $('actions').innerHTML = G.actions.map(a => { const x = actionText(a); return `<button data-a="${a.id}"><span class="ic" aria-hidden="true">${a.icon}</span> <span class="lb">${x.label}</span><small>${x.hint}</small></button>`; }).join('');
   $('actions').querySelectorAll<HTMLButtonElement>('button').forEach(b => { b.onclick = () => act(b.dataset.a as string); });
 }
