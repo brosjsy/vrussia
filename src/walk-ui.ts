@@ -41,7 +41,7 @@ export function mountWalk(host: HTMLElement, ctl: Walker, o: WalkOpts): () => vo
   document.addEventListener('keydown', down); document.addEventListener('keyup', up); window.addEventListener('blur', blur);
 
   // the stick: shown on touch screens (or when asked); a finger pressed on it walks, lifting it stops
-  const coarse = o.stick ?? (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches);
+  const coarse = o.stick ?? (typeof matchMedia === 'function' && (matchMedia('(pointer: coarse)').matches || matchMedia('(max-width: 760px)').matches));
   let pad: HTMLElement | null = null;
   if (coarse) {
     pad = document.createElement('div'); pad.className = 'walkStick'; pad.setAttribute('role', 'application'); pad.setAttribute('aria-label', t('walkStick'));

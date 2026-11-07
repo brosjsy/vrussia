@@ -4,6 +4,7 @@ import * as G from './engine';
 import type { State, Note } from './engine';
 import { flows, validateStep, codeFor, submitFlow } from './forms';
 import { flowText } from './flows-ru';
+import { frx, frxPart, loadFlowRu } from './flows-ru-text';
 import type { Flow, Field, Data } from './forms';
 import { play, soundForNotes } from './sound';
 
@@ -32,9 +33,9 @@ export function openFlow(s: State, host: HTMLElement, flow: Flow, onClose: (done
     const fields = st.fields(s, data);
     codeFor(fields, data);
     const body = fields.map(f => fieldHtml(f, data)).join('');
-    host.innerHTML = `<div class="cat">${esc(flowText(flow).site)}</div><div class="site"><div class="siteBar"><b>${flow.icon} ${esc(flowText(flow).title)}</b><span>${esc(st.title)} · step ${step + 1}/${flow.steps.length}</span></div>
-      <div class="siteBody">${error ? `<div class="err">${esc(error)}</div>` : ''}${body}</div>
-      <div class="siteBtns">${btn('ffBack', step === 0 ? 'Close the site' : 'Back', 'ghost')}${btn('ffNext', step === flow.steps.length - 1 ? 'Submit' : 'Continue', 'primary')}</div></div>`;
+    host.innerHTML = `<div class="cat">${esc(flowText(flow).site)}</div><div class="site"><div class="siteBar"><b>${flow.icon} ${esc(flowText(flow).title)}</b><span>${esc(frx(st.title))} · ${esc(frx('step'))} ${step + 1}/${flow.steps.length}</span></div>
+      <div class="siteBody">${error ? `<div class="err">${esc(frx(error))}</div>` : ''}${body}</div>
+      <div class="siteBtns">${btn('ffBack', frx(step === 0 ? 'Close the site' : 'Back'), 'ghost')}${btn('ffNext', frx(step === flow.steps.length - 1 ? 'Submit' : 'Continue'), 'primary')}</div></div>`;
     error = '';
     (document.getElementById('ffBack') as HTMLElement).onclick = () => { if (step === 0) onClose(false); else { step--; render(); } };
     (document.getElementById('ffNext') as HTMLElement).onclick = () => {
@@ -61,26 +62,27 @@ export function openFlow(s: State, host: HTMLElement, flow: Flow, onClose: (done
     const { msg, notes, dayNotes } = submitFlow(s, flow, data);       // the rules of sending a form (forms.ts)
     const res = { msg };
     play(soundForNotes(notes));
-    host.innerHTML = `<div class="cat">${esc(flowText(flow).site)}</div><div class="site"><div class="siteBar"><b>${flow.icon} ${esc(flowText(flow).title)}</b><span>Result</span></div>
-      <div class="siteBody"><p>${esc(res.msg)}</p>${notes.length ? '<div class="notes">' + notes.map(n => `<span class="note ${n.v < 0 && n.k !== 'stress' ? 'neg' : 'pos'}">${esc(n.label)} ${n.v ? (n.v > 0 ? '+' : '') + (n.k === 'money' ? G.money(n.v) : n.v) : ''}</span>`).join('') + '</div>' : ''}
-      ${dayNotes.map(t => `<p class="sub">${esc(t)}</p>`).join('')}</div>
+    host.innerHTML = `<div class="cat">${esc(flowText(flow).site)}</div><div class="site"><div class="siteBar"><b>${flow.icon} ${esc(flowText(flow).title)}</b><span>${esc(frx('Result'))}</span></div>
+      <div class="siteBody"><p>${esc(frxPart(res.msg))}</p>${notes.length ? '<div class="notes">' + notes.map(n => `<span class="note ${n.v < 0 && n.k !== 'stress' ? 'neg' : 'pos'}">${esc(n.label)} ${n.v ? (n.v > 0 ? '+' : '') + (n.k === 'money' ? G.money(n.v) : n.v) : ''}</span>`).join('') + '</div>' : ''}
+      ${dayNotes.map(t => `<p class="sub">${esc(frxPart(t))}</p>`).join('')}</div>
       <div class="siteBtns">${btn('ffDone', 'Done', 'primary')}</div></div>`;
     (document.getElementById('ffDone') as HTMLElement).onclick = () => onClose(true);
   };
 
   render();
+  void loadFlowRu().then(() => { if (host.isConnected && step === 0 && !host.querySelector('.err')) render(); });          // the Russian words arrive a moment later: draw again with them
 }
 
 function fieldHtml(f: Field, data: Data): string {
   const val = data[f.id] ?? f.init ?? '';
-  const hint = f.hint ? `<span class="hint">${esc(f.hint)}</span>` : '';
+  const hint = f.hint ? `<span class="hint">${esc(frx(f.hint))}</span>` : '';
   switch (f.type) {
-    case 'note': return `<p class="hint">${esc(f.label)}</p>`;
-    case 'select': return `<label>${esc(f.label)}<select id="${f.id}">${(f.options || []).map(([v, l]) => `<option value="${esc(v)}" ${v === val ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>${hint}</label>`;
-    case 'radio': return `<div><div class="hint">${esc(f.label)}</div>${(f.options || []).map(([v, l], i) => `<label class="fare"><input type="radio" name="${f.id}" value="${esc(v)}" ${(val ? v === val : i === 0) ? 'checked' : ''}> ${esc(l)}</label>`).join('')}${hint}</div>`;
-    case 'checkbox': return `<label class="fare"><input type="checkbox" id="${f.id}" ${val ? 'checked' : ''}> ${esc(f.label)}</label>`;
-    case 'code': return `<p class="sms">📱 SMS: “Your confirmation code is <b>${esc(data._code)}</b>. Never share it with anyone.”</p><label>${esc(f.label)}<input id="${f.id}" inputmode="numeric" maxlength="4" autocomplete="off" value=""></label>`;
-    case 'date': return `<label>${esc(f.label)}<input id="${f.id}" type="date" value="${esc(val)}">${hint}</label>`;
-    default: return `<label>${esc(f.label)}<input id="${f.id}" value="${esc(val)}" autocomplete="off">${hint}</label>`;
+    case 'note': return `<p class="hint">${esc(frx(f.label))}</p>`;
+    case 'select': return `<label>${esc(frx(f.label))}<select id="${f.id}">${(f.options || []).map(([v, l]) => `<option value="${esc(v)}" ${v === val ? 'selected' : ''}>${esc(frx(l))}</option>`).join('')}</select>${hint}</label>`;
+    case 'radio': return `<div><div class="hint">${esc(frx(f.label))}</div>${(f.options || []).map(([v, l], i) => `<label class="fare"><input type="radio" name="${f.id}" value="${esc(v)}" ${(val ? v === val : i === 0) ? 'checked' : ''}> ${esc(frx(l))}</label>`).join('')}${hint}</div>`;
+    case 'checkbox': return `<label class="fare"><input type="checkbox" id="${f.id}" ${val ? 'checked' : ''}> ${esc(frx(f.label))}</label>`;
+    case 'code': return `<p class="sms">📱 SMS: “${esc(frx('Your confirmation code is'))} <b>${esc(data._code)}</b>. ${esc(frx('Never share it with anyone.'))}”</p><label>${esc(frx(f.label))}<input id="${f.id}" inputmode="numeric" maxlength="4" autocomplete="off" value=""></label>`;
+    case 'date': return `<label>${esc(frx(f.label))}<input id="${f.id}" type="date" value="${esc(val)}">${hint}</label>`;
+    default: return `<label>${esc(frx(f.label))}<input id="${f.id}" value="${esc(val)}" autocomplete="off">${hint}</label>`;
   }
 }

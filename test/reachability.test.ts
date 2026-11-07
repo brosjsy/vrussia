@@ -41,12 +41,12 @@ describe('no dead content', () => {
       s => { s.flags.childCitizen = true; s.flags.rutest = true; }, s => { s.flags.rvp = true; s.marks.rvp = s.day - 200; },
       s => { s.flags.rvp = true; s.flags.vnzh = true; s.marks.rvp = s.day - 400; s.marks.vnzh = s.day - 300; }, s => { s.flags.rvp = true; s.marks.rvp = s.day - 10; },
       s => { s.tmp.fines = 2000; s.tmp.fineDay = s.day - 30; }, s => { s.tmp.fines = 2000; s.tmp.fineDay = s.day - 70; }, s => { s.tmp.fines = 2000; s.tmp.fineDay = s.day - 2; },
-      s => { s.flags.enrolled = true; s.marks.enrolled = s.day - 30; s.flags.license = false; }, s => { s.flags.license = true; s.car = null; },
+      s => { s.flags.enrolled = true; s.marks.enrolled = s.day - 30; s.flags.license = false; s.flags.theory = true; }, s => { s.flags.theory = true; s.flags.license = false; }, s => { s.flags.license = true; s.car = null; },
       s => { s.pet = null; s.partner = { name: 'P', kind: 'citizen', love: 70 }; }, s => { s.tmp.matCap = 730000; }, s => { s.flags.microloan = true; s.money = 40000; },
       s => { s.bank = { vtb: true }; }, s => { s.bank = { tbank: true }; }, s => { s.bank = { sber: true, vtb: true, tbank: true }; },
       s => { s.biz = { kind: 'bakery', name: 'B', level: 1, staff: 1, rep: 50, regime: 'npd', profit: 200000, weeks: 20, revenueYear: 1 }; },
       s => { s.biz = { kind: 'bakery', name: 'B', level: 1, staff: 0, rep: 50, regime: 'ip', profit: -5000, weeks: 20, revenueYear: 1 }; },
-      s => { s.flags.pregnant = true; s.marks.pregnant = s.day - 60; }, s => { s.flags.admitted = false; s.flags.expelled = true; },
+      s => { s.flags.pregnant = true; s.marks.pregnant = s.day - 60; }, s => { s.flags.admitted = false; s.flags.expelled = true; }, s => { s.flags.admitted = true; while (G.dateOf(s).getDay() < 1 || G.dateOf(s).getDay() > 5) s.day++; }, s => { s.flags.sexM = true; s.flags.admitted = true; s.day = 60; },
       s => { s.health = 10; }, s => { s.tmp.flatmates = 2; }, s => { s.booking = { dest: 'sochi', intl: false, dep: s.day + 3, stay: 3, price: 1, pnr: 'A', passenger: 'X', passport: 'Y', baggage: false, done: false }; },
     ];
     for (const origin of G.origins.map(o => o.id)) for (const rich of [false, true]) for (const f of specials) for (const m of [3, 7, 8, 12]) for (const w of ['clear', 'frost', 'rain', 'heat', 'snow'] as const) {

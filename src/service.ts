@@ -347,7 +347,7 @@ export const LOT_CLOSES = 8 * H + 15;             // the staff car park is full 
 export const STREET_RATE = 150;                    // paid street parking, roubles an hour
 export const PAVEMENT_FINE = 3000;
 const METRO = ['Moscow', 'Saint Petersburg', 'Nizhny Novgorod', 'Novosibirsk', 'Kazan', 'Samara', 'Yekaterinburg'];
-export const modesFor = (s: State): Mode[] => [METRO.includes(s.city) ? 'metro' : 'bus', 'walk', ...(s.car ? ['car' as Mode] : []), 'taxi'];
+export const modesFor = (s: State): Mode[] => [METRO.includes(s.city) ? 'metro' : 'bus', 'walk', ...(s.car && s.flags.license ? ['car' as Mode] : []), 'taxi'];
 /** How long the way to work takes, by the mode, the hour (the later, the more traffic) and the weather; the same for the same day. */
 export function travel(s: State, mode: Mode, depart: number): number {
   const r = hash(`way|${s.day}|${mode}|${s.city}`) % 15, bad = s.weather === 'snow' || s.weather === 'rain' ? 1 : 0, rush = depart >= 7 * H + 30 ? 1 : 0;

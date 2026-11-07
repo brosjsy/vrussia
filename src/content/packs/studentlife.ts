@@ -3,6 +3,8 @@
    Others (kursovaya = coursework, khvost = an exam debt, propusk = entrance pass, starosta = group leader) are standard words explained loosely. */
 import { S, O } from '../../engine';
 import type { Effects, State } from '../../engine';
+import { dateOf } from '../../engine';
+import { onRoll, schoolDay, attendedToday, attend } from '../../attendance';
 
 type Pick2 = [label: string, msg: string, fx: Effects];
 const U = (id: string, title: string, text: string, a: Pick2, b: Pick2, o: { w?: number; req?: (s: State) => unknown; months?: number[] } = {}): void => {
@@ -13,6 +15,18 @@ const U = (id: string, title: string, text: string, a: Pick2, b: Pick2, o: { w?:
   });
 };
 
+/* Attendance (src/attendance.ts): on a weekday the student is expected in class; the dean's office counts the truancies. */
+S({ id: 'uni_class', cat: 'edu', w: 3.5, title: 'Class today', text: 'It is a weekday and your group has classes. The attendance sheet goes round at the start of the lecture, and the group leader checks it.',
+  req: (s: State) => onRoll(s) && schoolDay(dateOf(s).getDay()) && !attendedToday(s),
+  choices: [
+    { t: 'Go to class', r: () => O('You sit through the lecture and sign the sheet. Boring, but your name is on the list.', { energy: -8, know: 1, stress: 1, run: (st: State) => attend(st) }) },
+    { t: 'Skip it', r: () => O('You stay away. Nobody says anything today, but the sheet has an empty box next to your name.', { energy: 6, stress: -2 }) },
+  ] });
+S({ id: 'uni_dean_call', cat: 'edu', free: true, w: 0, title: 'The dean wants to see you', text: 'A message from the dean\'s office: "Come to room 214 about your attendance." The register shows many empty boxes next to your name.',
+  choices: [
+    { t: 'Go, apologise and promise to attend', r: () => O('The dean listens, writes it down and gives you one more chance. Go to every class from now on.', { stress: 4, rep: 1 }) },
+    { t: 'Bring a doctor\'s note', r: () => O('The note covers part of the absences. The dean sighs but lets it pass this time.', { money: -1500, stress: -2, run: (st: State) => { st.marks.absences = Math.max(0, (st.marks.absences ?? 0) - 3); } }) },
+  ] });
 U('zachetka', 'The gradebook (zachetka)', 'The dean\'s office hands you a small booklet, your zachetka. Every credit and every exam grade goes into it, signed by the teacher.',
   ['Keep it carefully and bring it to every exam', 'A tidy booklet means no panic at the dean\'s office. You are a person of order.', { know: 1, stress: -3, rep: 1 }],
   ['Leave it in a drawer', 'A week before the session you find it under a pile of notes, a bit crumpled.', { stress: 3 }]);

@@ -18,6 +18,7 @@ describe('storylines', () => {
       s.know = arc === 'olga' ? 20 : 40;
       if (['petrov', 'rustam', 'ginger'].includes(arc)) s.rent = 3000;
       if (arc === 'sergey' || arc === 'zarina') s.job = 'courier';
+      if (arc === 'zarina') s.flags.sexM = true;      // the storyline is for a man (the sex is told in the meeting app)
       if (arc === 'professor') s.flags.admitted = true;
       for (let i = 0; i < 5; i++) {
         expect(eligibleArcs(s), `${arc} step ${i}`).toContain(stepId(arc, i));

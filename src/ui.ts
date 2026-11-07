@@ -35,6 +35,8 @@ import { RUSSIAN_NAMES, FACIAL, LIPS, NOSES, BROWS, FACES, BUILDS, EYE_COLOR_NAM
 import type { Worn } from './avatar';
 import type { Look } from './avatar';
 import { DREAMS, dreamOf } from './dreams';
+import { MSG_RU } from './msg-ru';
+import { nextStep } from './nextstep';
 import { play, playOk, soundOn, setSound, soundForNotes } from './sound';
 import { ambientChat, chatReply, cleanMessage, LAYERS, inLayer } from './social';
 import type { ChatLine } from './social';
@@ -395,6 +397,7 @@ async function open3d(remember = true): Promise<void> {
     const handle = await m.mountWorld3d({ host: $('world3d'), s, onPlace: travelTo, onNpc: talkToNpc, onFail: fail3d, onAction: roomAction, onHover: showHover, onFurnish: furnished, onPickUp: pickedUp, onFurnishFail: (why) => { play('error'); notify(`${t('fuNoFit')}: ${why}`); }, onSaver: () => { notify(t('saverOn')); renderW3Quests(); }, onLandmark: id => { void import('./landmarks').then(lm => notify(lm.landmarkText(id, lang() === 'ru'))); } });
     w3City = s.city;
     if (view !== '3d' || realCityClose || realCityOpening) { handle.destroy(); if (!realCityClose && !realCityOpening) $('world3d').innerHTML = ''; return; }
+    if (import.meta.env.DEV) (window as unknown as { __w3d?: unknown }).__w3d = handle;                       // for trying the world by hand in the browser console (never in a build)
     worldCtl = handle; applySettings(); realHouses = false; overview3d = false; buildKey = ''; syncBuild(); void autoRealHouses();
     handle.setLayer('names', names3d); handle.setLayer('boards', boards3d); handle.setLayer('traffic', traffic3d); renderW3Quests();
     $('world3d').querySelector('.realLoading')?.remove();
@@ -935,11 +938,18 @@ function recentHtml(): string {
   return `<div class="recent"><h3>${t('recent')}</h3><ul>${s.log.slice(0, 3).map(l => { const x = logText(s, l); return `<li><b>${t('dayWord')} ${l.day + 1}</b> ${esc(x.length > 140 ? x.slice(0, 137) + '…' : x)}</li>`; }).join('')}</ul></div>`;
 }
 
+/** A card with the next thing to do from the newcomer's checklist, and how (src/nextstep.ts). Empty when everything is done. */
+function nextStepHtml(): string {
+  const n = nextStep(s, lang() === 'ru'); if (!n) return '';
+  const ru = lang() === 'ru';
+  return `<div class="nextStep" role="note"><b>👉 ${ru ? 'Следующий шаг' : 'Next step'} (${ru ? 'осталось' : 'left'}: ${n.left})</b><br><strong>${esc(n.title)}</strong>${n.how ? `<br><small>${esc(n.how)}</small>` : ''}</div>`;
+}
+
 /** The "what now?" screen: prompt plus the action buttons. Safe to call again (for example after a language change). */
 function renderIdle(): void {
   const probs = G.problems(s);
   $('stage').dataset.cat = ''; $('stage').style.removeProperty('--accent');
-  $('stage').innerHTML = `<div class="cat">${t('slot.' + s.slot)}</div><h2>${t('whatNow')}</h2><p>${probs.length ? '⚠ ' + t('warning') + ': ' + probs.join('; ') + '.' : t('pick')}</p>${vitalsWarning()}${recentHtml()}`;
+  $('stage').innerHTML = `<div class="cat">${t('slot.' + s.slot)}</div><h2>${t('whatNow')}</h2><p>${probs.length ? '⚠ ' + t('warning') + ': ' + probs.join('; ') + '.' : t('pick')}</p>${vitalsWarning()}${nextStepHtml()}${recentHtml()}`;
   idle = true;
   $('actions').innerHTML = G.actions.map(a => { const x = actionText(a); return `<button data-a="${a.id}"><span class="ic" aria-hidden="true">${a.icon}</span> <span class="lb">${x.label}</span><small>${x.hint}</small></button>`; }).join('');
   $('actions').querySelectorAll<HTMLButtonElement>('button').forEach(b => { b.onclick = () => act(b.dataset.a as string); });
@@ -995,9 +1005,10 @@ function showScenario(sc: Scenario, notes: Note[], pre: string): void {
   $('stage').querySelectorAll<HTMLButtonElement>('.choices button').forEach(b => {
     b.onclick = () => {
       const res = G.choose(s, sc, Number(b.dataset.i));
+      G.save(s);                                                                     // the result is kept at once: closing the page and coming back does not give a second throw of the dice
       header();
       const after = R?.choices[Number(b.dataset.i)]?.[1];
-      $('stage').innerHTML = `<div class="cat">${t('result')}</div><h2>${esc(title)}</h2><p>${esc(after ? G.fill(home(after), s) : res.msg)}</p>${noteHtml(res.notes)}${res.dayNotes.map(t => `<p class="sub">${esc(t)}</p>`).join('')}
+      $('stage').innerHTML = `<div class="cat">${t('result')}</div><h2>${esc(title)}</h2><p>${esc(after ? G.fill(home(after), s) : (lang() === 'ru' ? MSG_RU[res.msg] : undefined) ?? res.msg)}</p>${noteHtml(res.notes)}${res.dayNotes.map(t => `<p class="sub">${esc(t)}</p>`).join('')}
         <div class="choices"><button class="primary" id="nextBtn">${t('next')}</button></div>`;
       $('nextBtn').onclick = res.ui === 'booking' ? showBooking : turn;
       play(soundForNotes(res.notes));

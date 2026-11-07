@@ -24,7 +24,7 @@ addArc({
 
 /* ---------------- 10. Zarina, a possible partner ---------------- */
 addArc({
-  id: 'zarina', start: s => s.day > 40 && !s.partner && (!!s.job || !!s.flags.admitted), gap: 8, steps: [
+  id: 'zarina', start: s => s.day > 40 && !s.partner && !!s.flags.sexM && (!!s.job || !!s.flags.admitted), gap: 8, /* a man and a woman only (the sex is told in the meeting app) */ steps: [
     { title: 'A person you keep meeting', text: 'In the corridor, at the coffee machine and at the bus stop you keep meeting Zarina, who always has a book. Today she says: "We should stop pretending we do not know each other."', choices: [
       { t: 'Say hello and ask what she reads', msg: 'She reads poetry, mostly Akhmatova and Mandelstam. You spend ten minutes on a bench.', fx: { stress: -6, know: 1 }, flag: 'zarina_open' },
       { t: 'Nod politely and go on', msg: 'She smiles and returns to her book.', fx: {} }] },

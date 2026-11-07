@@ -6,6 +6,7 @@
 import { bump } from './events';
 import type { State, Scenario } from './engine';
 import { kitchenOf } from './cooking';
+import { attend } from './attendance';
 
 export type Skill = 'cooking' | 'fitness' | 'russian' | 'programming' | 'charisma' | 'music';
 export const SKILLS: { id: Skill; name: string; ru: string; icon: string }[] = [
@@ -65,7 +66,7 @@ export const current = (s: State): Course | undefined => COURSES.find(c => c.id 
 export function lectureScenario(s: State, ru = false): Scenario | null {
   const c = current(s), e = studyOf(s).course; if (!c || !e || e.lectures >= c.lectures) return null;
   return { id: `lecture_${c.id}`, cat: 'study', title: `🎓 ${ru ? c.ru : c.name}`, text: ru ? `Лекция ${e.lectures + 1} из ${c.lectures} в университете.` : `Lecture ${e.lectures + 1} of ${c.lectures} at the university.`, dynamic: true,
-    choices: [{ t: ru ? 'Слушать и записывать' : 'Listen and take notes', r: () => ({ msg: ru ? 'Полезная лекция.' : 'A useful lecture.', fx: { energy: -8, know: 1, run: st => { const ee = studyOf(st).course; if (ee) ee.lectures++; raise(st, c.skill, 2); bump(st, 'lecture'); } } }) }] };
+    choices: [{ t: ru ? 'Слушать и записывать' : 'Listen and take notes', r: () => ({ msg: ru ? 'Полезная лекция.' : 'A useful lecture.', fx: { energy: -8, know: 1, run: st => { const ee = studyOf(st).course; if (ee) ee.lectures++; attend(st); raise(st, c.skill, 2); bump(st, 'lecture'); } } }) }] };
 }
 /** Homework at the desk: no time, once in each part of the day. */
 export function homework(s: State): Result {

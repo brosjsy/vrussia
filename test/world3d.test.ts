@@ -85,6 +85,7 @@ describe('clicking in the 3D world', () => {
   it('a place is found under a point of its roof, and a person under their head', async () => {
     const s = fresh(); const { h } = await mount(s);
     for (let i = 0; i < 20; i++) h.tick(0.05);
+    const pl = h.player(); h.camera.position.set(pl.x + 13, 18, pl.z + 21); h.camera.lookAt(pl.x, 4, pl.z);          // the game now starts close behind the player; this test looks over the city as before
     h.scene.updateMatrixWorld(true); h.camera.updateMatrixWorld(true);
     let ok = 0;
     for (const g of places(h)) { const body = g.children[0] as THREE.Mesh; const top = (body.geometry as THREE.BoxGeometry).parameters.height; const pt = h.project(g.position.x, top + 0.4, g.position.z); const hit = h.pick(pt.x, pt.y); if (hit.kind === 'place' && hit.id === g.userData.place) ok++; }

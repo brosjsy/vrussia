@@ -67,15 +67,19 @@ export class ApiCloud {
   session(): Session | null { return this.sess; }
   private keep(s: Session | null): void { this.sess = s; try { if (s) this.kv?.setItem(SESSION_KEY, JSON.stringify({ ...s, access: '', refresh: '' })); else this.kv?.removeItem(SESSION_KEY); } catch { /* the screen then forgets on reload; the cookie still works */ } }
 
+  /** After a failed connection the background reads (GET) rest for a while (15 s, doubling to 5 min) instead of failing again every few seconds; actions the player takes are always tried. */
+  private downUntil = 0; private downFor = 15000;
   private async call<T>(method: string, path: string, body?: unknown): Promise<Result<T>> {
+    if (method === 'GET' && Date.now() < this.downUntil) return { ok: false, msg: 'No connection. The game goes on offline.' };
     try {
       const res = await this.f(this.base + path, { method, credentials: 'include', headers: body === undefined ? {} : { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) });
       const json = await res.json().catch(() => null) as unknown;
+      this.downUntil = 0; this.downFor = 15000;
       if (res.ok) return { ok: true, msg: '', data: json as T };
       const code = String((json as { error?: string } | null)?.error ?? res.status);
       if (res.status === 401 && code === 'not signed in') this.keep(null);       // the cookie ran out: the screen shows the log-in form again
       return { ok: false, msg: res.status === 429 ? explain('rate limit') : explainApi(code) };
-    } catch { return { ok: false, msg: 'No connection. The game goes on offline.' }; }
+    } catch { this.downUntil = Date.now() + this.downFor; this.downFor = Math.min(300000, this.downFor * 2); return { ok: false, msg: 'No connection. The game goes on offline.' }; }
   }
   private adopt(me: { id: string; email: string; username: string | null; adult: boolean }): void {
     this.keep({ access: '', refresh: '', expires: 0, userId: me.id, email: me.email, username: me.username, adult: me.adult });

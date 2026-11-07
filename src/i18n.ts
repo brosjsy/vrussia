@@ -17,6 +17,7 @@ export function setLang(l: Lang): void {
 
 /** Interface strings. Every key must exist in both languages (tested). */
 export const EN: Record<string, string> = {
+  "key.W A S D": "walk (or the arrow keys); at a door a button goes in", "key.R": "turn the view", "key.B": "buy mode (at home) or the shop", "key.M": "the metro map", "key.P": "the phone", "key.H": "hide or show the interface", "key.F": "photo mode", "key.1–9": "choose an option", "key.Enter": "continue", "key.Esc": "close a pop-up",
   panelShow: 'Show choices', panelHide: 'Hide choices',
   tag: 'Start with a name, a passport and a dream. Survive your first winter, get your papers, build a career, and see how far you can go in two years.',
   pageTitle: 'В России: who can you become in Russia?', notEnoughMoney: 'not enough money',

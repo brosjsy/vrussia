@@ -759,3 +759,18 @@ button.primary[disabled],button.secondary[disabled]{opacity:.45;filter:grayscale
 #game.immersive.peek main>#stage,#game.immersive.peek main>#actions{display:none}
 #game.immersive:not(.peek) main>#stage{background:color-mix(in srgb,var(--card) 90%,transparent)}
 @media (max-width:560px){#game.immersive main{max-height:26vh}#game.immersive .peekBtn{bottom:132px}}
+/* Phones: touch-sized buttons, no accidental zoom in fields, nothing wider than the screen, and the 3D controls kept clear of the thumbs. */
+@media (max-width:760px){
+  html{-webkit-text-size-adjust:100%}
+  button,.chipBtn,.realBtn,.ghost,select{min-height:44px}
+  input,select,textarea{font-size:16px}
+  .layers{scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+  .layers .realBtn{min-width:max-content}
+  .modal,.modalBody,.phone{max-width:100vw;box-sizing:border-box}
+  img,canvas,svg{max-width:100%}
+  .walkStick{width:128px;height:128px;left:12px;bottom:110px}
+  .walkNear{min-height:48px;font-size:16px}
+  #tour{left:8px;right:8px;bottom:8px;max-width:none}
+}
+.nextStep{margin:10px 0;padding:10px 12px;border-radius:10px;border:1px solid var(--line);border-left:4px solid var(--ok,#2fa36b);background:var(--card2)}
+.nextStep small{color:var(--mute)}

@@ -18,7 +18,7 @@ import { bustHtml } from './figure';
 import { phoneNight, setPhoneNight, seenApps, markSeen } from './prefs';
 import { newMemory, flip, memoryWon, newScramble, checkScramble, reward } from './games';
 import type { Memory, Scramble } from './games';
-import { dating, profilesFor, swipesLeft, swipe, compat, playerInterests, dateReply, askOnDate, makeCouple, DATE_COST } from './dating';
+import { dating, profilesFor, swipesLeft, swipe, compat, playerInterests, dateReply, askOnDate, makeCouple, DATE_COST, playerSex, setPlayerSex } from './dating';
 import type { Contact } from './phone';
 import { messagesFor } from './social';
 import { t, locale, lang } from './i18n';
@@ -97,7 +97,7 @@ export function openPhone(d: PhoneDeps): void {
     const apps = flows.map((f, i) => { const w = broken ? 'Your phone is broken.' : f.available(s); return `<button class="app ${w ? 'off' : ''}" data-flow="${i}" ${w ? `title="${esc(w)}" aria-disabled="true"` : ''}><span class="appIcon" aria-hidden="true">${f.icon}</span><span class="appName">${esc(flowText(f).title)}</span></button>`; });
     const urgent = messagesFor(s).filter(m => m.tag === 'urgent').length + requestsFor(s).length;
     const sys: [string, string, string, boolean, number][] = [
-      ['💼', t('phoneJobs'), 'jobs', broken, 0], ['🏛️', t('svApp'), 'service', broken, 0], ['🚨', t('lwTitle'), 'law', false, 0], ['🧹', t('hlTitle'), 'household', broken, 0], ['🏙️', t('laTitle'), 'citylife', broken, 0], ['🍳', t('ckApp'), 'kitchen', broken, 0], ['🎓', t('phoneStudy'), 'study', broken, 0], ['🏘️', t('phoneHousing'), 'housing', broken, unpaid(s).length], ['🧺', t('phoneLife'), 'chores', broken, choresOf(s).clothes <= 15 ? 1 : 0], ['🚆', t('trTitle'), 'trains', broken, 0], ['🛍️', t('shopTitle'), 'shop', broken, 0], ['💬', t('phoneMessages'), 'messages', !!why, urgent], ['💘', t('phoneDating'), 'dating', broken, 0], ['🎮', t('phoneGames'), 'games', broken, 0], ['📞', t('phoneCalls'), 'phone', !!why, 0], ['👥', ru() ? 'Игроки' : 'Players', 'players', !!why, 0], ['🏗️', ru() ? 'Земля и магазин' : 'Land & shop', 'land', broken, 0], ...(extrasOpen() ? [['⭐', ru() ? 'Дополнения' : 'Extras', 'extras', broken, 0] as [string, string, string, boolean, number]] : []), ...(!partnersHidden() && partnersFor(PARTNERS, s.city).length ? [['🤝', ru() ? 'Партнёры города' : 'Partner services', 'partners', broken, 0] as [string, string, string, boolean, number]] : []), ['🏦', t('phoneBank'), 'bank', broken, 0],
+      ['💼', t('phoneJobs'), 'jobs', broken, 0], ['🏛️', t('svApp'), 'service', broken, 0], ['🚨', t('lwTitle'), 'law', false, 0], ['🧹', t('hlTitle'), 'household', broken, 0], ['🏙️', t('laTitle'), 'citylife', broken, 0], ['🍳', t('ckApp'), 'kitchen', broken, 0], ['🎓', t('phoneStudy'), 'study', broken, 0], ['🚘', lang() === 'ru' ? 'Экзамен на права' : 'Driving exam', 'driving', broken, 0], ['🏘️', t('phoneHousing'), 'housing', broken, unpaid(s).length], ['🧺', t('phoneLife'), 'chores', broken, choresOf(s).clothes <= 15 ? 1 : 0], ['🚆', t('trTitle'), 'trains', broken, 0], ['🛍️', t('shopTitle'), 'shop', broken, 0], ['💬', t('phoneMessages'), 'messages', !!why, urgent], ['💘', t('phoneDating'), 'dating', broken, 0], ['🎮', t('phoneGames'), 'games', broken, 0], ['📞', t('phoneCalls'), 'phone', !!why, 0], ['👥', ru() ? 'Игроки' : 'Players', 'players', !!why, 0], ['🏗️', ru() ? 'Земля и магазин' : 'Land & shop', 'land', broken, 0], ...(extrasOpen() ? [['⭐', ru() ? 'Дополнения' : 'Extras', 'extras', broken, 0] as [string, string, string, boolean, number]] : []), ...(!partnersHidden() && partnersFor(PARTNERS, s.city).length ? [['🤝', ru() ? 'Партнёры города' : 'Partner services', 'partners', broken, 0] as [string, string, string, boolean, number]] : []), ['🏦', t('phoneBank'), 'bank', broken, 0],
       ['✈️', t('phoneFlights'), 'flights', false, 0], ['📜', t('phoneJournal'), 'journal', false, 0], ['👤', t('phoneProfile'), 'profile', false, 0], ['🛡️', lang() === 'ru' ? 'Кибербезопасность' : 'Cyber safety', 'cyber', broken, 0], ['💡', t('phoneHelp'), 'help', false, 0],
     ];
     const seen = seenApps();
@@ -234,6 +234,11 @@ export function openPhone(d: PhoneDeps): void {
     const tabs = `<div class="tabs" role="tablist"><button role="tab" data-dtab="discover" aria-selected="${dTab === 'discover'}">${esc(t('dateDiscover'))}</button><button role="tab" data-dtab="matches" aria-selected="${dTab === 'matches'}">${esc(t('dateMatches'))} (${dating(s).matches.length})</button></div>`;
     let body = '';
     if (why) body = `<p class="phWarn">${esc(why)}</p>`;
+    else if (!playerSex(s)) {
+      const ru = lang() === 'ru';
+      body = `<p>${esc(ru ? 'Для начала скажите, кто вы. Приложение показывает пары из мужчины и женщины.' : 'First tell the app who you are. It shows couples of a man and a woman.')}</p>
+        <div class="cBtns"><button class="primary" data-sex="m">${esc(ru ? 'Я мужчина' : 'I am a man')}</button><button class="primary" data-sex="f">${esc(ru ? 'Я женщина' : 'I am a woman')}</button></div>`;
+    }
     else if (dTab === 'matches') body = `<ul class="msgs">${dating(s).matches.length ? dating(s).matches.map(p => `<li><button class="thread" data-dchat="${p.id}"><span class="miniFace">${bustHtml(p.look, {}, p.name)}</span><div><b>${esc(p.name)}, ${p.age}</b><small>${esc(p.city)}</small></div></button></li>`).join('') : `<li class="hint">${esc(t('dateNoMatches'))}</li>`}</ul>`;
     else if (!next) body = `<p class="hint">${esc(t('dateDone'))}</p>`;
     else {
@@ -334,6 +339,7 @@ export function openPhone(d: PhoneDeps): void {
         else if (id === 'bank') go({ name: 'bank' });
         else if (id === 'players') { go({ name: 'players' }); void online.number().then(r => { if (r.ok && G.phoneOf(s).number !== r.value) { G.phoneOf(s).number = r.value; G.save(s); if (alive()) draw(); } }); }
         else if (id === 'study' || id === 'housing' || id === 'chores' || id === 'trains') (id === 'study' ? openStudy : id === 'housing' ? openHousing : id === 'chores' ? openChores : openTrains)(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, scenario: sc => { d.close(); d.scenario?.(sc); } });
+        else if (id === 'driving') void import('./driving-ui').then(m => m.openDriving(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, scenario: sc => { d.close(); d.scenario?.(sc); } }));
         else if (id === 'kitchen') void import('./cook-ui').then(m => m.openCook(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, notify: m2 => { flash = m2; } }));
         else if (id === 'citylife') void import('./lifeacts-ui').then(m => m.openLife(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, notify: m2 => { flash = m2; } }));
         else if (id === 'household') void import('./homelife-ui').then(m => m.openHomeLife(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, notify: m2 => { flash = m2; } }));
@@ -398,6 +404,7 @@ export function openPhone(d: PhoneDeps): void {
     }
 
     /* dating */
+    host.querySelectorAll<HTMLButtonElement>('button[data-sex]').forEach(b => { b.onclick = () => { setPlayerSex(s, b.dataset.sex === 'f' ? 'f' : 'm'); G.save(s); draw(); }; });
     host.querySelectorAll<HTMLButtonElement>('button[data-dtab]').forEach(b => { b.onclick = () => { dTab = b.dataset.dtab === 'matches' ? 'matches' : 'discover'; draw(); }; });
     host.querySelectorAll<HTMLButtonElement>('button[data-swipe]').forEach(b => {
       b.onclick = () => {

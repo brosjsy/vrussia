@@ -66,22 +66,22 @@ S({
   ],
 });
 S({
-  id: 'driving_exchange', cat: 'car', who: ['foreigner'], req: (s: State) => !s.flags.license, w: 8, title: 'Your licence from home',
+  id: 'driving_exchange', cat: 'car', who: ['foreigner'], req: (s: State) => !s.flags.license && !!s.flags.theory, w: 8, title: 'Your licence from home',
   text: 'You have a valid driving licence from your home country. A friend says that a foreigner with a valid licence can get a Russian one by passing only the theory exam at the traffic police, with a medical certificate, instead of a full driving school (a simplified summary; check the current rules).',
   choices: [
     F('Prepare and sit the theory exam (₽5,500 with the medical certificate)', (s: State) => {
       if (s.money < 5500) return O('You cannot afford the fees and the medical certificate yet.', { stress: 4 });
       if (isForeigner(s) && !s.flags.rvp && s.docs.reg <= 0) return O('The traffic police need valid registration for your application. You do not have it.', { stress: 6 });
-      return gamble(Math.min(0.9, 0.35 + s.know / 150), O('You pass the theory exam. A Russian licence is issued instead of your foreign one.', { money: -5500, flag: 'license', stress: -12, rep: 3, know: 2 }), O('You miss the pass mark on the theory test. You may try again.', { money: -2500, stress: 8, know: 1 }));
+      return O('You pass the theory exam. A Russian licence is issued instead of your foreign one.', { money: -5500, flag: 'license', stress: -12, rep: 3, know: 2 });
     }),
     C('Keep driving school for later', 'You put the licence in your wallet and move on.', {}),
   ],
 });
 S({
-  id: 'driving_exam', cat: 'car', req: (s: State) => !!s.flags.enrolled && !s.flags.license && s.day >= (s.marks.enrolled ?? 0) + 14, w: 40, title: 'Traffic police exam',
+  id: 'driving_exam', cat: 'car', req: (s: State) => !!s.flags.enrolled && !!s.flags.theory && !s.flags.license && s.day >= (s.marks.enrolled ?? 0) + 14, w: 40, title: 'Traffic police exam',
   text: 'Theory test on a touch screen, then the practical exam on a closed track and in town.',
   choices: [
-    F('Take the exam', s => gamble(0.5 + s.know / 200, O('You pass. A plastic card with your photo and a very large smile.', { flag: 'license', stress: -15, rep: 3 }), O('You lose points on the parallel parking. Retake next time.', { stress: 10, money: -2000 }))),
+    F('Take the exam', s => s.flags.practical ? O('You pass. A plastic card with your photo and a very large smile.', { flag: 'license', stress: -15, rep: 3 }) : O('The examiner sends you to the portal first: the practical exam is taken in the Driving exam app on your phone.', { stress: 2 })),
     C('Postpone', 'You promise to revise more.', { stress: 3 }),
   ],
 });

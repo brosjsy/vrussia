@@ -43,14 +43,26 @@ export function swipesLeft(s: State): number {
   return Math.max(0, SWIPES_PER_DAY - used);
 }
 
-/** Five people for today: not seen before, with names and portraits that never change for the same day. */
+/** The player's sex, told once in the meeting app: 'm', 'f', or null until it is chosen. The app shows only people of the other sex (Russian law and the
+ *  game's setting: the meeting app is for couples of a man and a woman). */
+export const playerSex = (s: State): 'm' | 'f' | null => (s.flags.sexF ? 'f' : s.flags.sexM ? 'm' : null);
+export function setPlayerSex(s: State, sex: 'm' | 'f'): void {
+  s.flags.sexF = sex === 'f'; s.flags.sexM = sex === 'm';
+  const d = dating(s);
+  d.matches = d.matches.filter(p => MEN.includes(p.name) === (sex === 'f'));         // earlier matches of the same sex are dropped
+}
+
+/** Five people for today: not seen before, with names and portraits that never change for the same day. Only the other sex; none until the player has said theirs. */
 export function profilesFor(s: State): Profile[] {
   const d = dating(s);
   const out: Profile[] = [];
+  const me = playerSex(s);
+  if (!me) return out;
   const left = swipesLeft(s);
-  for (let i = 0; out.length < left && i < 60; i++) {
+  for (let i = 0; out.length < left && i < 120; i++) {
     const h = hash(`p|${s.day}|${i}`);
-    const male = h % 2 === 0;
+    const male = me === 'f';
+    if ((h % 2 === 0) !== male) continue;
     const name = (male ? MEN : WOMEN)[(h >>> 3) % 10];
     const id = `${name.toLowerCase()}-${s.day}-${i}`;
     if (d.seen[id] || out.some(o => o.name === name)) continue;

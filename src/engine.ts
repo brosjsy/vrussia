@@ -7,6 +7,7 @@ import { boostOf, recordShift } from './career';
 import { payOffice } from './election';
 import { tickBuild } from './build';
 import { coldPress } from './warmth';
+import { settleAttendance } from './attendance';
 
 export type Status = 'citizen' | 'migrant' | 'eaeu' | 'student';
 export type Weather = 'snow' | 'frost' | 'rain' | 'heat' | 'clear';
@@ -360,7 +361,7 @@ dyn.trip_method = s => {
       { t: `Take a taxi (about ${money(cost + 250)})`, r: () => s.money < cost + 250
         ? O('You do not have enough money for the fare. You walk instead and get tired.', { loc: to.id, dest: null, energy: -20, stress: 6 })
         : arrive('The driver talks the entire ride about politics, prices and his son. You arrive fast.', { money: -(cost + 250), energy: -2 }) },
-      ...(s.car ? [{ t: 'Drive your own car', r: (): Outcome => (s.weather === 'snow' || s.weather === 'frost') && Math.random() < 0.3 ? O('The engine coughs in the cold and the road is a skating rink. You arrive late and frazzled.', { loc: to.id, dest: null, energy: -14, stress: 10, money: -300 }) : arrive('You park, lock the car, and walk the last metres.', { money: -150, energy: -3, rep: 1 }) }] : []),
+      ...(s.car && s.flags.license ? [{ t: 'Drive your own car', r: (): Outcome => (s.weather === 'snow' || s.weather === 'frost') && Math.random() < 0.3 ? O('The engine coughs in the cold and the road is a skating rink. You arrive late and frazzled.', { loc: to.id, dest: null, energy: -14, stress: 10, money: -300 }) : arrive('You park, lock the car, and walk the last metres.', { money: -150, energy: -3, rep: 1 }) }] : []),
       { t: 'Metro / bus with a ticket (₽90)', r: () => lost(Math.max(0.05, 0.1 + bad * 0.7 + unk), 'Right line, right exit.', 'You exit at the wrong metro exit and pop up in an unknown street.', { money: -90 }) },
     ],
   };
@@ -558,6 +559,7 @@ export function advance(s: State): string[] {
 export function endDay(s: State): string[] {
   const out: string[] = [];
   const goalsMet = settleGoals(s); goalsMet.fx.forEach(f => apply(s, f)); goalsMet.lines.forEach(l => out.push(`Daily goal done: ${l}.`));      // the three goals of the day, paid before the day turns
+  out.push(...settleAttendance(s, dateOf(s).getDay()));      // a weekday without class is a truancy
   s.day++;
   const allowance = payOffice(s); if (allowance) out.push(`Your deputy's allowance: ${money(allowance)}.`);
   const built = tickBuild(s); if (built) out.push(built);

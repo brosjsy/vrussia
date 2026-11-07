@@ -169,6 +169,7 @@ const FEATURES: Feature[] = [
   { id: 'phone: dating app', area: 'Phone', run: p => {
     const m = dating(p.s).matches[0];
     if (m && Math.random() < 0.5) { for (let k = 0; k < 3; k++) { G.addChat(p.s, 'date:' + m.id, 'me', pick(['Привет!', 'How was your day?', 'Do you like the metro?'])); G.addChat(p.s, 'date:' + m.id, 'them', 'Hi!'); } const r = askOnDate(p.s, m); if (r.ok) { G.apply(p.s, r.fx); if (r.becameCouple) makeCouple(p.s, m); } return r.ok ? yes : no(r.message); }
+    if (!p.s.flags.sexF && !p.s.flags.sexM) p.s.flags.sexM = true;
     const pr = profilesFor(p.s)[0]; if (!pr) return no('no profiles left today'); swipe(p.s, pr, Math.random() < 0.6); return yes;
   } },
   { id: 'phone: memory game', area: 'Phone', run: p => { let m = newMemory(p.name + p.s.day); for (let i = 0; i < 400 && !memoryWon(m); i++) m = flip(m, R(m.cards.length)); if (!memoryWon(m)) return no('not finished in 400 flips'); G.apply(p.s, reward(p.s, 'memory').fx); return yes; } },

@@ -63,7 +63,7 @@ describe('a working day', () => {
     expect(V.serviceOf(s).role).toBeNull(); expect(V.cannotApply(s, 'pps')).toMatch(/dismissal/);
   });
   it('by car: the staff car park until 08:15, then paid street parking; the pavement may bring a fine', () => {
-    const s = citizen(); s.city = 'Kazan'; s.car = { id: 'lada' } as never; hire(s, 'fns');
+    const s = citizen(); s.city = 'Kazan'; s.car = { id: 'lada' } as never; s.flags.license = true; hire(s, 'fns');
     expect(V.modesFor(s)).toContain('car');
     V.goToWork(s, 7 * 60, 'car', 'lot'); expect(V.serviceOf(s).today!.park).toBe('lot');
     lawful(s); const m1 = s.money; V.leaveWork(s, 'ontime'); expect(s.money - m1).toBe(V.payOf(s, V.roleOf('fns')!));

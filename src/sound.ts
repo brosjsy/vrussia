@@ -39,6 +39,17 @@ export function soundForNotes(notes: { k: string; v: number }[]): SoundName {
 export const playOk = (ok: boolean, good: SoundName = 'pop'): boolean => play(ok ? good : 'error');
 
 let ctx: AudioContext | null = null;
+/** The one shared audio context for the effects (made on first use, resumed when suspended). Null when sound is off or not possible. */
+export function audioContext(): AudioContext | null {
+  if (!soundOn() || sfxLevel <= 0) return null;
+  try {
+    const C = ctx ?? (ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)());
+    if (C.state === 'suspended') void C.resume();
+    return C;
+  } catch { return null; }
+}
+/** The player's effects volume, 0 to 1. */
+export const sfxVolume = (): number => sfxLevel;
 /** Plays a sound if sound is on and the browser can. Never throws. `audio` and `on` can be supplied by tests. */
 export function play(name: SoundName, audio?: AudioContext | null, on: boolean = soundOn()): boolean {
   if (!on || sfxLevel <= 0) return false;

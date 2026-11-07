@@ -3,9 +3,23 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import * as G from '../src/engine';
 import '../src/content';
-import { profilesFor, swipe, compat, swipesLeft, playerInterests, askOnDate, makeCouple, dateReply, SWIPES_PER_DAY, MIN_MESSAGES, DATE_COST, INTERESTS } from '../src/dating';
+import { playerSex, setPlayerSex, dating, profilesFor, swipe, compat, swipesLeft, playerInterests, askOnDate, makeCouple, dateReply, SWIPES_PER_DAY, MIN_MESSAGES, DATE_COST, INTERESTS } from '../src/dating';
 
-const fresh = (): G.State => { const s = G.newState('Tester', 'moscow'); s.queue = []; s.money = 20000; return s; };
+const fresh = (): G.State => { const s = G.newState('Tester', 'moscow'); s.queue = []; s.money = 20000; s.flags.sexF = true; return s; };
+
+describe('who the app shows', () => {
+  const MEN = ['Artyom', 'Ivan', 'Dmitry', 'Timur', 'Rustam', 'Kirill', 'Maxim', 'Nikita', 'Aleksey', 'Farhod'];
+  it('shows nobody until the player says who they are, then only the other sex', () => {
+    const s = fresh(); s.flags.sexF = false;
+    expect(profilesFor(s)).toEqual([]);
+    setPlayerSex(s, 'f'); for (let d = 0; d < 20; d++) { s.day = 300 + d; for (const p of profilesFor(s)) expect(MEN).toContain(p.name); }
+    setPlayerSex(s, 'm'); for (let d = 0; d < 20; d++) { s.day = 400 + d; for (const p of profilesFor(s)) expect(MEN).not.toContain(p.name); }
+  });
+  it('drops matches of the same sex when the sex is set', () => {
+    const s = fresh(); const p = profilesFor(s)[0]; dating(s).matches.push(p);
+    setPlayerSex(s, 'f'); expect(dating(s).matches.length).toBe(1); setPlayerSex(s, 'm'); expect(dating(s).matches.length).toBe(0);
+  });
+});
 
 describe('profiles', () => {
   it('five adults a day, the same people all day, with portraits, interests and no repeated names', () => {
@@ -90,7 +104,7 @@ describe('the meet app in the page', () => {
     (document.getElementById('nameInput') as HTMLInputElement).value = 'Dater';
     document.getElementById('startBtn')!.click();
     for (let i = 0; i < 40 && !document.querySelector('#actions button'); i++) (document.getElementById('nextBtn') || document.querySelector<HTMLButtonElement>('#stage .choices button'))?.click();
-    (window as unknown as { __state: () => { flags: Record<string, unknown> } | null }).__state()!.flags.sim = true;          // nobody has a number until they have bought a SIM card
+    (window as unknown as { __state: () => { flags: Record<string, unknown> } | null }).__state()!.flags.sim = true; (window as unknown as { __state: () => { flags: Record<string, unknown> } }).__state().flags.sexF = true;          // nobody has a number until they have bought a SIM card
     const body = (): HTMLElement => document.getElementById('modalBody') as HTMLElement;
     document.getElementById('dockPhone')!.click();
     (body().querySelector('[data-sys="dating"]') as HTMLButtonElement).click();

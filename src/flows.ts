@@ -326,6 +326,6 @@ addFlow({
   ],
   finish: (s, d): Outcome => {
     if (s.money < 2500) return O('You cannot pay for the notarised translation yet.', { stress: 4 });
-    return O(`Your identification is complete (${d.bio === 'bank' ? 'at a bank branch' : 'with ruID'}). You can now buy a SIM card at an operator shop.`, { money: -2500, flag: 'simId', stress: -4, know: 2 });
+    return O(`Your identification is complete (${d.bio === 'bank' ? 'at a bank branch' : 'with ruID'}). You can now buy a SIM card at an operator shop.`, { money: -2500, flag: 'simId', stress: -4, know: 2, queue: 'shop_sim' });
   },
 });

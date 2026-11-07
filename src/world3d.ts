@@ -32,6 +32,7 @@ import { statusFor } from './billboards';
 import { levelFor } from './traffic';
 import { footRoute, newVehicles, stepVehicle, poseOf, streetDistance, STREET_HALF, onRoadway } from './street';
 import type { Vehicle } from './street';
+import { footstep, groundFor, door as doorSound, StreetAudio } from './worldsound';
 import { buildStreets, vehicleParts } from './streets3d';
 import { clearLine } from './collide';
 import { Field } from './collide';
@@ -179,7 +180,7 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(DAY[0].sky);
   scene.fog = new THREE.Fog(DAY[0].sky, 200, 420);
-  const camera = new THREE.PerspectiveCamera(38, 16 / 9, 1, 900);
+  const camera = new THREE.PerspectiveCamera(38, 16 / 9, 2.2, 900);          // near 2.2: a flag or a wire hanging right in front of a close camera is cut away and does not fill the screen
   const hemi = new THREE.HemisphereLight('#ffffff', '#7a9a6a', 0.9); scene.add(hemi);
   const sun = new THREE.DirectionalLight('#fff6e0', 1.0);
   sun.position.set(60, 90, 40); sun.castShadow = !lowPower;
@@ -522,10 +523,14 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
 
   /* ----- camera ----- */
   const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true; controls.enablePan = false; controls.minDistance = 10; controls.maxDistance = 120; controls.maxPolarAngle = 1.38; controls.minPolarAngle = 0.35;
-  const focus = new THREE.Vector3(playerPerson.agent.pos.x, 4, playerPerson.agent.pos.z);
-  controls.target.copy(focus);
-  camera.position.set(focus.x + 13, focus.y + 14, focus.z + 21);
+  controls.enableDamping = true; controls.enablePan = false; controls.minDistance = 4; controls.maxDistance = 120; controls.maxPolarAngle = 1.38; controls.minPolarAngle = 0.35;
+  const FADE_NEAR = 9, FOCUS_Y = 2.2, CHASE = 8.8, CHASE_D = 9.4;                  // the close third-person view: the camera hangs behind the player's shoulder, looking over it
+  const focus = new THREE.Vector3(playerPerson.agent.pos.x, FOCUS_Y, playerPerson.agent.pos.z);
+  /** Puts the camera behind the player, a little above the head, as in a street game. */
+  const chaseCam = (): void => { const a = playerPerson.agent; focus.set(a.pos.x, FOCUS_Y, a.pos.z); controls.target.copy(focus); camera.position.set(a.pos.x - Math.sin(a.heading) * CHASE, FOCUS_Y + 3.2, a.pos.z - Math.cos(a.heading) * CHASE); };
+  chaseCam();
+  const streetAudio = new StreetAudio();
+  let stepK = 0, roomStepK = 0; const npcStep = new Map<unknown, number>();
 
   const size = (): void => {
     const w = Math.max(200, d.host.clientWidth || 600), h = Math.max(200, d.host.clientHeight || 380);
@@ -553,32 +558,71 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
       if (want) { p.bubble = sprite(want, '#ffffff', '#16203a', 0.9); p.bubble.position.set(0, 3.5, 0); p.char.root.add(p.bubble); }
     }
   };
+  /* ----- the sounds of the street: the player's and passers-by's footsteps, traffic that grows as a car comes close, birds and horns ----- */
+  const streetSounds = (dt: number): void => {
+    const pa = playerPerson.agent, ground = groundFor(state.weather, false), k = Math.floor(pa.phase / Math.PI);
+    if (pa.state === 'walk' && k !== stepK) footstep(ground, 1);
+    stepK = k;
+    for (const p of people) {
+      const a = p.agent, dist = Math.hypot(a.pos.x - pa.pos.x, a.pos.z - pa.pos.z);
+      if (a.state !== 'walk' || dist > 16) continue;
+      const n = Math.floor(a.phase / Math.PI);
+      if (npcStep.get(a) !== n) { npcStep.set(a, n); footstep(ground, 0.4 * (1 - dist / 16)); }
+    }
+    let nearest = Infinity, halted = false;
+    for (const c of cars) { if (c.v.kind !== 'car' || !c.node.visible) continue; const dd = Math.hypot(c.node.position.x - pa.pos.x, c.node.position.z - pa.pos.z); if (dd < nearest) { nearest = dd; halted = c.v.halt > 1.5; } }
+    streetAudio.update(dt, nearest, state.weather !== 'rain' && state.weather !== 'snow' && state.weather !== 'frost', state.slot < 2, halted);
+  };
+  /* ----- with the camera close behind the player, signs and pins made for a far view would loom over the screen: those near the camera fade out ----- */
+  let fadeT = 0; const spPos = new THREE.Vector3();
+  const fadeNear = (dt: number): void => {
+    fadeT -= dt; if (fadeT > 0) return; fadeT = 0.15;
+    scene.traverse(o => {
+      if (!(o instanceof THREE.Sprite)) return;
+      for (let p: THREE.Object3D | null = o.parent; p; p = p.parent) if (p.name === 'person') return;          // people's name tags and speech bubbles stay
+      const m = o.material as THREE.SpriteMaterial, base = (o.userData.baseOp as number | undefined) ?? (o.userData.baseOp = m.opacity);
+      o.getWorldPosition(spPos); const dist = spPos.distanceTo(camera.position);
+      const want = Math.max(0, Math.min(1, (dist - FADE_NEAR) / (FADE_NEAR * 1.4))) * base;
+      if (Math.abs(m.opacity - want) > 0.02) m.opacity = want;
+    });
+  };
   const tick = (dt: number): void => {
     const slow = Math.min(0.25, Math.max(0, dt));                   // inside a room a slow device still gets the walk done in a sensible time
     dt = Math.min(0.05, Math.max(0, dt)); clock += dt;
-    if (room) { stepRoom(slow); return; }
+    if (room) { streetAudio.hush(); stepRoom(slow); return; }
     if (steerDir) walkBy(dt); else stepAgent(playerPerson.agent, dt, rng, hasJob(), nav);
     for (const p of people) stepAgent(p.agent, dt, rng, hasJob(), nav);
     pairTalk(people.map(p => p.agent), rng, 0.02);
     separate([playerPerson.agent, ...people.map(p => p.agent)], dt, nav.slide);
     place(playerPerson); people.forEach(place); moveCars(dt);
+    streetSounds(dt);
+    fadeNear(dt);
     const wasTravelling = travelling;
     travelling = playerPerson.agent.state === 'walk' && !steerDir;           // walking by hand keeps the camera close
     if (wasTravelling && !travelling) settle = 2.5;                  // the trip is over: come back down for a moment, then leave the camera to the player
     if (!freeCam) {
-      focus.lerp(new THREE.Vector3(playerPerson.agent.pos.x, 4, playerPerson.agent.pos.z), Math.min(1, dt * 2.2));
+      focus.lerp(new THREE.Vector3(playerPerson.agent.pos.x, FOCUS_Y, playerPerson.agent.pos.z), Math.min(1, dt * 2.2));
       const delta = focus.clone().sub(controls.target); controls.target.add(delta); camera.position.add(delta);
     }
     // while the player is on the way the camera rises to show the city, then comes back down
-    const off = camera.position.clone().sub(controls.target), want = travelling ? 78 : overview ? 105 : 36;
+    const off = camera.position.clone().sub(controls.target), want = travelling ? 78 : overview ? 105 : CHASE_D;
     if (travelling || settle > 0 || overview) { settle = Math.max(0, settle - dt); off.setLength(off.length() + (want - off.length()) * Math.min(1, dt * 1.2)); camera.position.copy(controls.target).add(off); }
     controls.update();
+    keepCameraOutOfWalls();
     if (weather.visible) {
       const fall = state.weather === 'rain' ? 38 : 5;
       for (let i = 0; i < PARTS; i++) { partPos[i * 3 + 1] -= fall * dt; if (partPos[i * 3 + 1] < 0) partPos[i * 3 + 1] = 50; }
       partGeo.attributes.position.needsUpdate = true; weather.position.set(controls.target.x, 0, controls.target.z);
     }
   };
+
+  /** The close camera never sits inside a house or a tree: when something solid is where it would be, it is brought in towards the player. */
+  function keepCameraOutOfWalls(): void {
+    if (freeCam || overview || travelling || room) return;
+    const off = camera.position.clone().sub(controls.target);
+    for (let i = 0; i < 8 && off.length() > 3.2 && solid.blocked(controls.target.x + off.x, controls.target.z + off.z, 0.6); i++) off.multiplyScalar(0.85);
+    camera.position.copy(controls.target).add(off);
+  }
 
   /* ----- walking by hand: the direction is taken from the camera, and at the kerb the player waits while a car or a bicycle is close ----- */
   function walkBy(dt: number): void {
@@ -681,7 +725,7 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
     });
     const saved = { min: controls.minDistance, max: controls.maxDistance };
     controls.minDistance = 6; controls.maxDistance = 34; controls.maxPolarAngle = 1.45;
-    playerPerson.char.root.visible = false; people_hide(true);
+    playerPerson.char.root.visible = false; people_hide(true); doorSound(true);
     room = { fx: null, seats: seatsOf(it).map(s => ({ ...s, taken: false })), h, people, me, path: [], goal: null, rr, place: id, saved };
     focus.set(ROOM_AT.x, 1.5, ROOM_AT.z);
     controls.target.copy(focus); camera.position.set(ROOM_AT.x + 2, 13, ROOM_AT.z + it.d * 0.95);
@@ -695,8 +739,8 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
     const r = room; room = null;
     scene.remove(r.h.group); r.h.dispose(); scene.remove(r.me.root); r.people.forEach(p => scene.remove(p.c.root));
     controls.minDistance = r.saved.min; controls.maxDistance = r.saved.max; controls.maxPolarAngle = 1.38;
-    playerPerson.char.root.visible = true; people_hide(false);
-    focus.set(playerPerson.agent.pos.x, 4, playerPerson.agent.pos.z); controls.target.copy(focus); camera.position.set(focus.x + 13, focus.y + 14, focus.z + 21);
+    playerPerson.char.root.visible = true; people_hide(false); doorSound(false);
+    chaseCam();
   };
   /** Moves a person along their waypoints; true while still walking. */
   const follow = (c: Character, path: P2[], speed: number, dt: number): boolean => {
@@ -714,7 +758,7 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
     if (!room) return;
     const r = room, it = r.h.interior;
     const walking = follow(r.me, r.path, 4.2, dt);
-    if (walking) setPose(r.me, 'walk', clock * 6, clock);
+    if (walking) { setPose(r.me, 'walk', clock * 6, clock); const sk = Math.floor(clock * 6 / Math.PI); if (sk !== roomStepK) { roomStepK = sk; footstep('floor', 0.9); } }
     else if (r.fx && clock < r.fx.until) setPose(r.me, r.fx.mode, 0, clock);
     else { r.fx = null; setPose(r.me, 'idle', 0, clock); if (r.goal) { const a = r.goal.action; r.goal = null; if (a !== 'exit') d.onAction?.(a); } }
     const posOf = (p: Dweller): P2 => ({ x: p.c.root.position.x - ROOM_AT.x, z: p.c.root.position.z - ROOM_AT.z });
@@ -837,7 +881,7 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
     setFpsCap: fps => { minFrame = fps > 0 ? 1000 / fps : 0; },
     walk: dir => { steerDir = dir && Math.hypot(dir.x, dir.z) >= 0.15 && !room ? dir : null; if (!steerDir) { waiting = false; steer(playerPerson.agent, { x: 0, z: 0 }, 0); } },
     walkInfo: () => ({ near: room ? null : placeNear(playerPerson.agent.pos), waiting }),
-    setFreeCam: on => { freeCam = on; controls.enablePan = on; controls.minDistance = on ? 3 : room ? 6 : 10; controls.maxPolarAngle = on ? 1.52 : room ? 1.45 : 1.38; if (!on) focus.copy(controls.target); },
+    setFreeCam: on => { freeCam = on; controls.enablePan = on; controls.minDistance = on ? 3 : room ? 6 : 4; controls.maxPolarAngle = on ? 1.52 : room ? 1.45 : 1.38; if (!on) focus.copy(controls.target); },
     emote: (mode, secs = 3) => { if (room) room.fx = { mode, until: clock + secs }; else playerFx = { mode, until: clock + secs }; },
     scene, camera, tick, pick, project, setSaver, setOverview: on => { if (overview && !on) settle = 2.5; overview = on; }, setRealBuildings: c => { scenery.setReal(c ? c.buildings : null); anchorPlaces(c ? c.anchors : null); realCity = c; buildField(); fixAgent(playerPerson.agent); people.forEach(p => fixAgent(p.agent)); }, blockedAt: (x, z, r = 0.4) => solid.blocked(x, z, r), solids: () => solid.size, realBuildings: () => scenery.real(), anchoredPlaces: () => anchorObjs.map(a => a.g.userData.place as string), saver: () => saver, fps: () => measured,
     setBuild, buildSpot: () => (site ? { x: site.position.x, z: site.position.z } : null), setLayer: (name, on) => { if (name === 'names') showNames = on; else if (name === 'boards') showBoards = on; else { showTraffic = on; cars.forEach(c => { c.node.visible = on; }); } applyLayers(); }, traffic: () => ({ count: cars.filter(c => c.v.kind === 'car').length, factor: level.factor, jam: level.jam }), vehicles: () => cars.map(c => ({ kind: c.v.kind, ...poseOf(c.v), halt: c.v.halt })), dwellers: () => (room ? room.people.map(p => ({ sitting: p.sitting, talking: !!p.chat && !p.sitting && p.wait > 0 && p.tryTo === null, x: p.c.root.position.x - ROOM_AT.x, z: p.c.root.position.z - ROOM_AT.z })) : []), enter, leave, inside: () => room?.place ?? null, roomActions: () => (room ? Array.from(new Set(room.h.usable.map(o => o.userData.action as string))) : []),
@@ -857,7 +901,7 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
       daylight(); applyLayers();
     },
     destroy: () => {
-      dead = true; cancelAnimationFrame(raf); setPlacing(null); clearCars(); if (site) { scene.remove(site); disposeSite(site); site = null; } leave(); scenery.setReal(null); unanchor(); ro?.disconnect(); io?.disconnect(); controls.dispose();
+      dead = true; cancelAnimationFrame(raf); setPlacing(null); clearCars(); if (site) { scene.remove(site); disposeSite(site); site = null; } leave(); scenery.setReal(null); unanchor(); ro?.disconnect(); io?.disconnect(); controls.dispose(); streetAudio.dispose();
       people.forEach(removePerson); people.length = 0; removePerson(playerPerson);
       trunks.dispose(); spruces.dispose(); decids.dispose();
       owned.forEach(o => o.dispose());
