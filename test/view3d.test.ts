@@ -127,6 +127,7 @@ describe('the full-screen city', () => {
 
 describe('the Phase 1 HUD over the 3D city', () => {
   it('the need bars are buttons that explain themselves; the tool column has a photo, turning, keys and a door; the quests fold away', async () => {
+    localStorage.setItem('vrussia_tour', JSON.stringify({ status: 'skipped', step: 0 }));       // Escape would skip the first-run tour; this test is about photo mode
     fakeGraphics();
     await startGame();
     await vi.waitFor(() => expect(document.querySelectorAll('#world3d .w3m').length).toBeGreaterThanOrEqual(8), { timeout: 10000 });

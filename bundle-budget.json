@@ -1,0 +1,7 @@
+{
+  "entryJs": 320,
+  "entryCss": 24,
+  "libraries": { "three": 165, "maplibre": 320 },
+  "chunk": 40,
+  "totalRawMB": 6
+}

@@ -6,6 +6,7 @@ import * as G from './engine';
 import * as V from './service';
 import type { RoleId, Mode, Park, Leave } from './service';
 import { lang } from './i18n';
+import { playOk } from './sound';
 
 const W: Record<string, [string, string]> = {
   title: ['State service', 'Госслужба'], vac: ['Vacancies', 'Вакансии'], day: ['Workday', 'Рабочий день'], prof: ['Profile', 'Профиль'],
@@ -90,7 +91,7 @@ export function serviceHtml(s: State): string {
 }
 /** Connects the screen; `again` saves and draws again. */
 export function wireService(host: HTMLElement, s: State, d: { notify: (m: string) => void; again: () => void }): void {
-  const run = (r: { ok: boolean; msg: string }): void => { d.notify(r.msg); d.again(); };
+  const run = (r: { ok: boolean; msg: string }): void => { d.notify(r.msg); playOk(r.ok); d.again(); };
   host.querySelectorAll<HTMLInputElement>('input[name^="svIv"]').forEach(r => { r.onchange = () => { view.iv[Number(r.name.slice(4))] = Number(r.value); d.again(); }; });
   host.querySelectorAll<HTMLInputElement>('input[name="svPark"]').forEach(r => { r.onchange = () => { view.park = r.value as Park; }; });
   host.querySelectorAll<HTMLButtonElement>('[data-sv]').forEach(btn => { btn.onclick = () => {

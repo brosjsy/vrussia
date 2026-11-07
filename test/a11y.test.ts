@@ -73,6 +73,7 @@ describe('dialog behaviour', () => {
     document.documentElement.innerHTML = readFileSync('index.html', 'utf8').replace(/<script[\s\S]*?<\/script>/g, '');
     HTMLCanvasElement.prototype.getContext = (() => null) as never;
     const { boot } = await import('../src/ui');
+    localStorage.setItem('vrussia_tour', JSON.stringify({ status: 'skipped', step: 0 }));      // a player who has seen the tutorial gets the first-run guide instead (src/platform/onboarding.ts)
     boot();
     document.getElementById('startBtn')!.click();
     await vi.waitFor(() => expect(document.getElementById('modalBody')!.textContent).toMatch(/How to play/), { timeout: 8000 });   // the first-run guide opens on its own

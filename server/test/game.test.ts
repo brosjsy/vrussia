@@ -142,6 +142,10 @@ describe('adverts, homes, the guest book, votes', () => {
     expect((await call(c, 'POST', '/api/counters/visits', {})).json.value).toBe(1);
     expect((await call(c, 'POST', '/api/counters/daily_found', {})).status).toBe(401);
     expect((await call(c, 'POST', '/api/counters/anything', {})).status).toBe(400);
+    expect((await call(c, 'POST', '/api/counters/interest_exam', {})).json.value).toBe(1);        // the planned extras: an anonymous count, no account needed
+    expect((await call(c, 'POST', '/api/counters/interest_exam', {})).json.value).toBe(2);
+    expect((await call(c, 'POST', '/api/counters/interest_gift', {})).json.value).toBe(1);
+    expect((await call(c, 'POST', '/api/counters/interest_other', {})).status).toBe(400);
     await c.t.admin("insert into app.announcements (title, body) values ('Hello', 'The server is open')");
     expect(((await call(c, 'GET', '/api/announcements')).json as unknown as { title: string }[])[0].title).toBe('Hello');
   });

@@ -14,6 +14,16 @@ describe('home-culture scenes', () => {
     });
   }
 
+  for (const origin of ['kazakh', 'armenian', 'belarusian', 'azeri', 'moldovan', 'turkmen']) {
+    it(`${origin}: six scenes, all and only their own`, () => {
+      const s = G.newState('T', origin); s.queue = [];
+      const ids = homeIds(s);
+      expect(ids.length).toBe(6);
+      for (const id of ids) expect(id.startsWith(`home-${origin}-`), id).toBe(true);
+      for (const sc of G.eligible(s, ['culture']).filter(x => x.id.startsWith('home-'))) for (let i = 0; i < sc.choices.length; i++) expect(() => G.choose(structuredClone(s), sc, i), sc.id).not.toThrow();
+    });
+  }
+
   it('other origins see none and the culture action can reach them', () => {
     const m = G.newState('T', 'moscow'); m.queue = [];
     expect(homeIds(m).length).toBe(0);

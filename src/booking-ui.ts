@@ -2,6 +2,7 @@
    Nothing real is collected: all fields are fictional game data. */
 import * as G from './engine';
 import type { State } from './engine';
+import { play } from './sound';
 import { DESTS, destById, EXTRAS, warnings, passportFor, FARE_TIMES, fareOf, extrasOf, totalOf, book, leadMultiplier } from './flights';
 
 const esc = (t: string): string => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
@@ -118,7 +119,7 @@ export function openBooking(s: State, host: HTMLElement, onClose: (booked: boole
     on('back', () => { f.step = 5; step5(); });
     on('next', () => {
       if (val('code').trim() === f.sms) return finish();
-      f.tries++;
+      f.tries++; play('error');
       if (f.tries >= 3) { f.error = 'Payment declined: too many wrong codes.'; f.step = 5; return step5(); }
       f.error = 'Wrong code. Check the SMS and try again.'; step6();
     });
@@ -127,7 +128,8 @@ export function openBooking(s: State, host: HTMLElement, onClose: (booked: boole
   const finish = (): void => {
     const d = destById(f.dest);
     const r = book(s, f);
-    if (!r.ok) { f.error = r.msg; f.step = 5; return step5(); }
+    if (!r.ok) { play('error'); f.error = r.msg; f.step = 5; return step5(); }
+    play('chime');
     const pnr = r.pnr as string, cost = r.cost as number;
     f.step = 7;
     host.innerHTML = `<div class="cat">Airline website</div><div class="site"><div class="siteBar"><b>✈️ SkyRoute</b><span>Booking confirmed</span></div>

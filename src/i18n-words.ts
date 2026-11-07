@@ -1,19 +1,19 @@
 /* The words of the interface in the player's language (round 149): the character creator, the dreams, the cities, the places, the checklist, the
    decrees and the story scenes. The Russian lists are their own small download (i18n-words-ru.ts, scenes-ru.ts), loaded when the game is in Russian, so
    the first download stays small; until they arrive, and in English, the English is shown. */
-import { lang, addStrings } from './i18n';
+import { lang, addStrings, loadInterfaceRu } from './i18n';
 import type { SceneRu } from './scenes-ru';
 
 interface Lists {
   WORDS_RU: Record<string, string>; EYE_RU: Record<string, string>; CITY_RU: Record<string, string>; GROUP_RU: Record<string, Record<string, string>>; PLACE_RU: Record<string, string>;
-  FLAVOUR_RU: Record<string, string>; CHECK_RU: Record<string, string>; DECREE_RU: Record<string, string>; SCENES_RU: Record<string, SceneRu>; HOME_RU: Record<string, string>; CAT_RU: Record<string, string>;
+  FLAVOUR_RU: Record<string, string>; CHECK_RU: Record<string, string>; ACH_RU: Record<string, [string, string]>; CHAT_RU: Record<string, string>; DECREE_RU: Record<string, string>; SCENES_RU: Record<string, SceneRu>; HOME_RU: Record<string, string>; CAT_RU: Record<string, string>;
 }
 let D: Lists | null = null;
 let loading: Promise<boolean> | null = null;
 /** Loads the Russian lists (once). True when they were not there before (the screen should be drawn again). */
 export function loadRussian(): Promise<boolean> {
   if (D) return Promise.resolve(false);
-  loading ??= Promise.all([import('./i18n-words-ru'), import('./scenes-ru')]).then(([w, sc]) => { D = { ...w, SCENES_RU: sc.SCENES_RU, HOME_RU: sc.HOME_RU, CAT_RU: sc.CAT_RU }; addStrings({}, w.HERO_RU); return true; });
+  loading ??= Promise.all([import('./i18n-words-ru'), import('./scenes-ru'), import('./scenes-ru-more'), loadInterfaceRu()]).then(async ([w, sc, more]) => { const gen = await more.loadGenerated(); D = { ...w, SCENES_RU: { ...sc.SCENES_RU, ...gen, ...more.SCENES_RU_MORE }, HOME_RU: sc.HOME_RU, CAT_RU: sc.CAT_RU }; addStrings({}, w.HERO_RU); return true; });
   return loading;
 }
 const ru = (): boolean => lang() === 'ru' && !!D;
@@ -27,6 +27,10 @@ export const eyeL = (en: string): string => (ru() ? D!.EYE_RU[en] ?? en : en);
 export const cityName = (en: string): string => (ru() ? D!.CITY_RU[en] ?? en : en);
 export const placeL = (en: string): string => (ru() ? D!.PLACE_RU[en] ?? en : en);
 export const flavourL = (id: string, en: string): string => (ru() ? D!.FLAVOUR_RU[id] ?? en : en);
+/** An achievement's title and text in the player's language. */
+export const achL = (a: { id: string; title: string; text: string }): [string, string] => (ru() ? D!.ACH_RU[a.id] ?? [a.title, a.text] : [a.title, a.text]);
+/** A line of the places' small talk in the player's language (what the player types is not in the list and stays as it is). */
+export const chatL = (en: string): string => (ru() ? D!.CHAT_RU[en] ?? en : en);
 export const checkL = (en: string): string => (ru() ? D!.CHECK_RU[en] ?? en : en);
 export const decreeL = (en: string): string => (ru() ? D!.DECREE_RU[en] ?? (en.startsWith("Farmers'") ? 'Фермерский рынок в выходные на центральной площади' : en) : en);
 export const firstMonthL = (): string => (ru() ? 'Первый месяц' : 'First month');

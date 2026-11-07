@@ -1,3 +1,5 @@
+/* Entry point of the browser app (the one script index.html loads first). It only loads the fonts and the styles and calls boot() in ui.ts.
+   Keep it tiny: everything else is loaded when the player opens it, so that the first download stays under the budget in test/perf.test.ts. */
 import '@fontsource/fredoka/latin-600.css';
 import '@fontsource/fredoka/latin-700.css';
 import '@fontsource/nunito/latin-400.css';
@@ -8,6 +10,7 @@ import '@fontsource/nunito/latin-800.css';
 import '@fontsource/nunito/cyrillic-800.css';
 import './style.css';
 import './theme-kit.css';
+import './platform/platform.css';
 import { boot } from './ui';
 
 boot();

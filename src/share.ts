@@ -1,3 +1,4 @@
+/* Share text: a short plain-text summary of a finished game that the player can copy. Plain data in, plain text out; see below. */
 import { BRAND } from './brand';
 /* A short plain-text summary of a finished game that the player can copy and paste anywhere.
    Plain data in, plain text out: no links are added and nothing is sent anywhere. */

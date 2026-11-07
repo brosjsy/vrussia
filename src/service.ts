@@ -295,7 +295,6 @@ function G_problems(s: State): string[] {
   if (s.status === 'citizen' || s.flags.rvp) return p;
   if (s.docs.reg <= 0) p.push('registration');
   if (s.status === 'migrant' && s.docs.patent <= 0) p.push('patent');
-  if (s.status === 'student' && !s.flags.workPermit) p.push('student work permit');
   return p;
 }
 export function apply(s: State, id: RoleId): Result {

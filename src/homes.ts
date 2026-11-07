@@ -42,7 +42,7 @@ export function dwellingOf(s: State): Dwelling {
     case 'moscow': return 'family';
     case 'region': return 'panelka';
     case 'student': case 'dagestan': return 'dorm';
-    case 'tajik': case 'uzbek': case 'kyrgyz': return 'shared';
+    case 'tajik': case 'uzbek': case 'kyrgyz': case 'kazakh': case 'armenian': case 'belarusian': case 'azeri': case 'moldovan': case 'turkmen': case 'worker': return 'shared';
     default: return 'panelka';
   }
 }

@@ -94,6 +94,28 @@ Node.js 24 LTS: install from NodeSource or with the distribution's package if it
 127.0.0.1:8080, read-only filesystem, no Linux capabilities). It is simpler to start but harder to tune and back up by hand; if you choose it,
 run the roles script and the migrations with `docker compose exec db psql ...` and adapt the backup timer to `docker compose exec db pg_dump`.
 
+### Database setup in one command (`npm run db:setup`)
+
+Instead of the roles script and `npm run migrate` by hand, one command does the whole first-time set-up of an **empty** database:
+
+```bash
+cd /opt/vrussia/server
+ADMIN_DATABASE_URL='postgres://postgres:ADMIN_PASSWORD@127.0.0.1:5432/vrussia' DATABASE_SSL=off \
+  OWNER_PASSWORD='...' APP_PASSWORD='...' BACKUP_PASSWORD='...' npm run db:setup
+```
+
+It (1) creates the roles `vr_owner`, `vr_app` and `vr_backup`, (2) gives each the password you passed (skip a variable to leave that password alone),
+(3) applies every migration as `vr_owner`. Expected output: `roles ready`, `password set for ...`, one `applied 00NN_....sql` line per migration, then `Done: 12 migration(s) applied.`
+Run again later (after an update) it applies only the new migrations; `Nothing to apply` means the database is up to date.
+`ADMIN_DATABASE_URL` needs an administrator (`postgres`, or the owner of the database); nothing here is read from the game's own `server.env`.
+
+Then check the server as `vr_app` (`DATABASE_URL` in `server.env`) and try an account:
+
+1. Start the server (`systemctl start vrussia-api`, or `node dist/src/main.js`). If the database is not ready yet, it waits and says why in plain words (wrong password, missing database, missing tables: run `npm run db:setup`).
+2. Sign up in the game. With `EMAIL_TRANSPORT=console` (development) the e-mail is printed in the server's log instead of being sent: copy the `#verify=...` link from it and open it. A login before the link is opened is refused with "email not confirmed"; after it, login works.
+
+How this was checked (local, development only): on an empty in-memory PostgreSQL-compatible database, `db:setup` created the roles and applied all 12 migrations; the server started as `vr_app`; signing up printed the confirmation link in the console; the link confirmed the account and the login worked. It was not run against a real PostgreSQL 17 (this computer has none), and running it a second time could not be checked: the test database shares one session between connections, so the second run failed with "permission denied to alter role" there (very likely that, not a fault of the command); on a VPS, read the output once to be sure.
+
 ## 5. HTTPS and the game
 
 ```bash

@@ -18,6 +18,8 @@ export const SOUNDS: Record<SoundName, Note[]> = {
 
 export const SOUND_KEY = 'vrussia_sound';
 const MASTER = 0.07;          // quiet on purpose
+let sfxLevel = 1;             // the player's effects volume, 0 to 1 (src/platform/audio.ts keeps it)
+export const setSfxLevel = (v: number): void => { sfxLevel = Math.max(0, Math.min(1, Number.isFinite(v) ? v : 1)); };
 
 const defaultKV = (): KV | null => { try { return typeof localStorage === 'undefined' ? null : localStorage; } catch { return null; } };
 /** Sound is on unless the player has switched it off. */
@@ -33,19 +35,22 @@ export function soundForNotes(notes: { k: string; v: number }[]): SoundName {
   return 'tap';
 }
 
+/** The sound of an action's result: a soft pop when it worked, the error tone when it did not. */
+export const playOk = (ok: boolean, good: SoundName = 'pop'): boolean => play(ok ? good : 'error');
+
 let ctx: AudioContext | null = null;
 /** Plays a sound if sound is on and the browser can. Never throws. `audio` and `on` can be supplied by tests. */
 export function play(name: SoundName, audio?: AudioContext | null, on: boolean = soundOn()): boolean {
-  if (!on) return false;
+  if (!on || sfxLevel <= 0) return false;
   try {
     const C = audio ?? ctx ?? (ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)());
     if (C.state === 'suspended') void C.resume();
     const t0 = C.currentTime;
     for (const n of SOUNDS[name]) {
       const o = C.createOscillator(), g = C.createGain();
-      o.type = n.wave; o.frequency.value = n.f;
+      o.type = n.wave; o.frequency.value = n.f * (1 + (Math.random() - 0.5) * 0.06);       // a little different each time, so a sound heard hundreds of times does not grate
       g.gain.setValueAtTime(0.0001, t0 + n.at);
-      g.gain.exponentialRampToValueAtTime(MASTER * n.vol, t0 + n.at + 0.008);
+      g.gain.exponentialRampToValueAtTime(MASTER * n.vol * sfxLevel, t0 + n.at + 0.008);
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + n.at + n.dur);
       o.connect(g); g.connect(C.destination);
       o.start(t0 + n.at); o.stop(t0 + n.at + n.dur + 0.02);

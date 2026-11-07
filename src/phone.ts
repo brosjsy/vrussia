@@ -2,6 +2,7 @@
    Everyone the player can call or write to is invented. The phone number is a made-up Russian mobile number; nothing is ever sent anywhere. */
 import * as G from './engine';
 import type { State, Effects } from './engine';
+import { lang } from './i18n';
 
 export type ContactKind = 'family' | 'friend' | 'partner' | 'landlord' | 'work' | 'bank' | 'neighbour' | 'service' | 'emergency';
 export interface Contact { id: string; name: string; icon: string; kind: ContactKind; number: string }
@@ -21,10 +22,12 @@ export function contactsFor(s: State): Contact[] {
   return out;
 }
 
-/** Why the phone cannot be used for calls and messages right now, or null. Newcomers need a Russian SIM card; everybody needs a working phone. */
+/** Why the phone cannot be used for calls and messages right now, or null. Everybody needs a working phone and a SIM card of their own: nobody has a number until they have bought one (the operator shop, with a passport; newcomers also need identification first). */
 export function phoneBlock(s: State): string | null {
-  if (s.phone <= 0) return 'Your phone is broken. Buy a new one at the electronics mall.';
-  if (s.status !== 'citizen' && !s.flags.sim) return 'You have no Russian SIM card yet. Buy one at an operator shop (newcomers need identification first).';
+  const ru = lang() === 'ru';
+  if (s.phone <= 0) return ru ? 'Телефон сломан. Купите новый в магазине электроники.' : 'Your phone is broken. Buy a new one at the electronics mall.';
+  if (!s.flags.sim && ru) return s.status === 'citizen' ? 'У вас ещё нет SIM-карты, поэтому нет номера для звонков и сообщений. Купите её в салоне оператора (возьмите паспорт).' : 'У вас ещё нет российской SIM-карты. Купите её в салоне оператора (приезжим сначала нужна идентификация).';
+  if (!s.flags.sim) return s.status === 'citizen' ? 'You have no SIM card yet, so no number to call or text from. Buy one at an operator shop (take your passport).' : 'You have no Russian SIM card yet. Buy one at an operator shop (newcomers need identification first).';
   return null;
 }
 

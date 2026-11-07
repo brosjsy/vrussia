@@ -101,3 +101,18 @@ describe('the home screen in the page', () => {
     expect(document.getElementById('errbar')!.hidden).toBe(true);
   });
 });
+
+describe('the ticker in Russian (round 160)', () => {
+  it('says the same things in Russian, with the right form of "day", and no English left', () => {
+    const s = G.newState('T', 'tajik');
+    s.day = dayIn(5, 6);
+    s.docs.reg = 4; s.tmp.fines = 3000; s.tmp.debt = 100;
+    const ru = newsItems(s, true), en = newsItems(s);
+    expect(ru.length).toBe(en.length);
+    expect(ru.some(x => x.includes('День Победы'))).toBe(true);
+    expect(ru.some(x => x.includes('закончится через 4 дня'))).toBe(true);
+    for (const x of ru) expect(/[A-Za-z]{3,}\s+[A-Za-z]{2,}\s+[A-Za-z]{2,}/.test(x), x).toBe(false);
+    s.docs.reg = 1; expect(newsItems(s, true).some(x => x.includes('через 1 день'))).toBe(true);
+    s.docs.reg = 5; expect(newsItems(s, true).some(x => x.includes('через 5 дней'))).toBe(true);
+  });
+});

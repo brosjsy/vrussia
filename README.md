@@ -7,6 +7,8 @@ and live two years (730 days) of work, study, paperwork, family, culture and eve
 
 **Over 4,000 scenarios**, 14 online services you fill in step by step, a live city map, weather, banking, flights, businesses, storylines with memory, and a path from newcomer to citizen.
 
+**Working on the code?** Read [CONTRIBUTING.md](CONTRIBUTING.md), then [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the file-by-file map [docs/MODULES.md](docs/MODULES.md).
+
 ## Quick start
 
 ```bash
@@ -42,7 +44,7 @@ Each day has three parts (morning, afternoon, evening); every action uses one. R
 - 🗺️ a map-first home screen: a small isometric city (16 places) you click to travel, with a news ticker, quest cards, a place card with shortcuts, a bottom menu and a phone whose apps are the online services; snow, frost and rain make you lose your way; a good phone helps
 - 💻 **14 online services** on one form engine: job application, doctor, marketplace, flat rental, bank account, university portal, marriage application, kindergarten queue, train tickets, residence/citizenship portal, register a business, health insurance, pay fines, mobile identification
 - ✈️ a full flight booking site (search → fare → passenger → extras → payment → SMS code → e-ticket), then the airport day and the border
-- 🏪 build a company: 7 kinds of business, self-employed or individual entrepreneur, weekly accounts, hiring, inspections, expansion
+- 🏪 build a company: 8 kinds of business, self-employed or individual entrepreneur, weekly accounts, hiring, inspections, expansion
 - 🎓 admission → exam sessions → GPA → scholarship or expulsion
 - 🏦 Sber, VTB, T-Bank, remittances, loans and mortgages; phone, car (driving school, dealer), flats
 - 🏥 hospital, 🐕 stray dogs and adoption, 💞 dating, marriage, children, family decisions
@@ -51,7 +53,7 @@ Each day has three parts (morning, afternoon, evening); every action uses one. R
 - 🎚️ three difficulty levels (Easy, Normal, Realistic) that change starting money, how often police checks come, living costs and how fast violations expire
 - 🌐 English / Russian interface toggle (menus and labels; story texts are still English)
 - 🍳 **the Kitchen**: over 1,000 dishes of 28 cuisines to cook step by step - pick the ingredients from the shelf, prepare them safely (do not wash raw chicken, thaw in the fridge), answer the steps of cooking, keep the leftovers - with a drawing of every dish, suggestions, diets, guests with allergies, a fridge where food goes off, the market and haggling, and a daily online challenge with a table of the best (`docs/DISHES.md`)
-- 🏆 45 achievements, a first-month checklist, goals, a journal, export/import of saves
+- 🏆 107 achievements, a first-month checklist, goals, a journal, export/import of saves
 - 📱 a working phone: your own Russian mobile number (newcomers need a SIM card first, a broken phone blocks everything), contacts that depend on your life, text chats with replies and small effects, calls, and a bank app with balance, cards, history and transfers to family and friends
 - 🧊 a **3D world** (the default when your device can draw 3D): people walk the roads, talk and work, your city has its river or sea, a bridge, parks and notice boards, and **Go inside** opens a furnished room for the place you are at (flat, workplace, bank, MFC, clinic, lecture hall and more). Click the fridge, desk or counter and your character walks there and does the same thing as the matching button. Low-poly, not photoreal; loaded only when opened.
 - 🏠 **A home that fits your life**: a worker who has just arrived sleeps on a bunk in a shared room, a student in a dormitory room, a family from the regions in a panel-block flat, a rich family in a roomy flat with parquet and a chandelier; what you buy (a studio, a village house) changes it. In **Buy mode**, the **Home** tab lets you renovate (floor, walls, light, windows) and, if you are a citizen, **build your own house** stage by stage (plot, foundation, walls, roof, finish): the plot appears in the 3D city and grows, and when it is done you live in it rent free.

@@ -13,8 +13,10 @@ import { extrudeOutline, paintWindows, paintFacade, roofOf, FACADES, STOREY } fr
 import type { Facade } from './scenery3d';
 import { sprite, pinSprite } from './sprites3d';
 import { TILEJSON_URL } from './osm';
-import { readTile, tilesAround, tileOfLL, toLL, buildGraph, route, KIND, ZOOM } from './realworld';
-import type { LatLon, XZ, Chunk, Poi, Graph, Road } from './realworld';
+import { cachedTile, tileTemplateOf } from './tilecache';
+import { Field, doorOf, inOutline } from './collide';
+import { readTile, tilesAround, tileOfLL, toLL, buildGraph, route, addressNear, KIND, ZOOM } from './realworld';
+import type { LatLon, XZ, Chunk, Poi, Graph, Road, Address } from './realworld';
 
 export interface RealDeps {
   host: HTMLElement; s: State; origin: LatLon;
@@ -34,6 +36,8 @@ export interface RealHandle {
   /** Walk to a place along the streets; false when there is no way yet (the map is still loading). */
   goTo: (p: Poi) => { ok: boolean; path: number[] };
   pois: () => Poi[];
+  /** The address of a spot (the player's by default) as people say it: the street and the house number nearest to it. */
+  address: (at?: XZ) => { street?: string; streetEn?: string; num?: string };
   graph: () => Graph | null;
   player: () => XZ;
   /** Jump to where the walk would end (the game time is charged by the caller). */
@@ -48,9 +52,10 @@ const ROAD_W: Record<Road['cls'], number> = { major: 14, street: 10, minor: 6, p
 const ROAD_C: Record<Road['cls'], string> = { major: '#585f6b', street: '#6b7280', minor: '#8a8f98', path: '#c9b99a', rail: '#7d6e63' };
 let tileTemplate: Promise<string> | null = null;
 async function defaultFetch(z: number, x: number, y: number): Promise<ArrayBuffer | null> {
-  tileTemplate ??= fetch(TILEJSON_URL).then(r => r.json()).then((j: { tiles: string[] }) => j.tiles[0]);
-  const url = (await tileTemplate).replace('{z}', String(z)).replace('{x}', String(x)).replace('{y}', String(y));
-  const r = await fetch(url); return r.ok ? r.arrayBuffer() : null;
+  tileTemplate ??= tileTemplateOf(() => fetch(TILEJSON_URL).then(r => r.json()).then((j: { tiles: string[] }) => j.tiles[0]));
+  const tpl = await tileTemplate.catch(e => { tileTemplate = null; throw e; });          // a failed look-up is tried again next time, not remembered
+  const url = tpl.replace('{z}', String(z)).replace('{x}', String(x)).replace('{y}', String(y));
+  return cachedTile(z, x, y, async () => { const r = await fetch(url); return r.ok ? r.arrayBuffer() : null; });          // tiles seen before open with no connection
 }
 
 export async function mountRealWorld(d: RealDeps): Promise<RealHandle> {
@@ -76,6 +81,8 @@ export async function mountRealWorld(d: RealDeps): Promise<RealHandle> {
   /* ----- the map, a chunk (tile) at a time ----- */
   const fetchTile = d.fetchTile ?? defaultFetch;
   const chunks = new Map<string, { data: Chunk; group: THREE.Group }>(), loading = new Set<string>();
+  /* The houses are solid: a place on the map is a point inside its building, so a walk to it ends at the building's wall (its door), never in the middle of it. */
+  const solid = new Field(); let houses: [number, number][][] = [], addresses: Address[] = [], allRoads: Road[] = [], numbers: THREE.Sprite[] = [];
   const poiMeta: Poi[] = []; let pinMesh: THREE.InstancedMesh | null = null, graph: Graph | null = null, labels: THREE.Sprite[] = [], poiModels: THREE.Group[] = [];
   const buildPoiModel = (p: Poi): THREE.Group | null => {
     const g = new THREE.Group(); g.name = 'poi3d';
@@ -210,6 +217,10 @@ export async function mountRealWorld(d: RealDeps): Promise<RealHandle> {
     poiMeta.length = 0; const roads: Road[] = [];
     for (const { data } of chunks.values()) { poiMeta.push(...data.pois); roads.push(...data.roads); }
     graph = roads.length ? buildGraph(roads) : null;
+    solid.clear(); houses = []; addresses = []; allRoads = roads;
+    for (const { data } of chunks.values()) addresses.push(...data.addresses);
+    for (const { data } of chunks.values()) for (const b of data.buildings) { const o = b.pts.map(p => [p.x, p.z] as [number, number]); if (o.length >= 3) { houses.push(o); solid.addPoly(o); } }
+    if (solid.blocked(pos.x, pos.z, 0.45)) { const q = solid.free(pos.x, pos.z, 0.45); pos = { x: q.x, z: q.z }; }       // the map loaded under the player's feet: step out of the house
     if (pinMesh) { scene.remove(pinMesh); pinMesh.geometry.dispose(); (pinMesh.material as THREE.Material).dispose(); pinMesh = null; }
     for (const m of poiModels) { scene.remove(m); m.traverse(o => { const x = o as THREE.Mesh; x.geometry?.dispose(); const mt = x.material; if (Array.isArray(mt)) mt.forEach(y => y.dispose()); else (mt as THREE.Material)?.dispose(); }); }
     poiModels = [];
@@ -232,6 +243,10 @@ export async function mountRealWorld(d: RealDeps): Promise<RealHandle> {
     labels.forEach(l => { scene.remove(l); l.material.map?.dispose(); l.material.dispose(); }); labels = [];
     const ru = /ru/i.test(document.documentElement.lang || '');
     const near = poiMeta.filter(p => p.kind !== 'transport' && p.kind !== 'other').map(p => ({ p, d: Math.hypot(p.at.x - pos.x, p.at.z - pos.z) })).filter(x => x.d < 450).sort((a, b) => a.d - b.d).slice(0, 30);
+    numbers.forEach(l => { scene.remove(l); l.material.map?.dispose(); l.material.dispose(); }); numbers = [];
+    // the numbers of the houses close to the player, so that the street can be read like a real one (at most 40)
+    const closeNum = addresses.map(a => ({ a, d: Math.hypot(a.at.x - pos.x, a.at.z - pos.z) })).filter(x => x.d < 70).sort((x, y) => x.d - y.d).slice(0, 40);
+    for (const { a } of closeNum) { const sp = sprite(a.num, '#fff7d6ee', '#3a2a10', 1); sp.position.set(a.at.x, 4.2, a.at.z); sp.scale.multiplyScalar(1.5); scene.add(sp); numbers.push(sp); }
     for (const { p } of near) { const sp = sprite(`${KIND[p.kind].icon} ${ru ? p.name : p.nameEn ?? p.name}`, '#ffffffee', '#16203a', 1.4); sp.position.set(p.at.x, 13, p.at.z); sp.scale.multiplyScalar(4); sp.userData.poi = p.id; scene.add(sp); labels.push(sp); }
   };
   const ensureTiles = async (): Promise<void> => {
@@ -273,7 +288,7 @@ export async function mountRealWorld(d: RealDeps): Promise<RealHandle> {
     const off = camera.position.clone().sub(controls.target); controls.target.set(pos.x, 2, pos.z); camera.position.copy(controls.target).add(off);
     controls.update();
     lastTileCheck += dt; if (lastTileCheck > 1.5) { lastTileCheck = 0; void ensureTiles(); }
-    if (Math.hypot(pos.x - labelAt.x, pos.z - labelAt.z) > 120) { labelAt = { ...pos }; refreshLabels(); }
+    if (Math.hypot(pos.x - labelAt.x, pos.z - labelAt.z) > 40) { labelAt = { ...pos }; refreshLabels(); }
     renderer.render(scene, camera);
   };
   let raf = 0, last = performance.now();
@@ -296,17 +311,27 @@ export async function mountRealWorld(d: RealDeps): Promise<RealHandle> {
   renderer.domElement.addEventListener('pointerdown', onDown); renderer.domElement.addEventListener('pointerup', onUp);
   const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(size) : null; ro?.observe(d.host);
 
+  /** Where a walk to a place ends: just outside the wall of the house the place is in (the nearest house within 25 m of the place), or the place itself if it is in the open. */
+  const doorFor = (at: XZ, from: XZ): XZ => {
+    let house: [number, number][] | null = houses.find(h => inOutline(h, at)) ?? null;
+    if (!house) { let bd = 25; for (const h of houses) { const d = Math.hypot(doorOf(h, at, 0).x - at.x, doorOf(h, at, 0).z - at.z); if (d < bd) { bd = d; house = h; } } }
+    return house ? solid.free(doorOf(house, from).x, doorOf(house, from).z, 0.45) : solid.free(at.x, at.z, 0.45);
+  };
   const goTo = (p: Poi): { ok: boolean; path: number[] } => {
     if (!graph) return { ok: false, path: [] };
     const path = route(graph, pos, p.at); if (!path.length) return { ok: false, path };
-    const g = graph; walk = [...path.map(i => g.nodes[i]), p.at]; target = p; drawRoute([pos, ...walk]); setPose(me, 'walk', 0, clock);
+    const g = graph, nodes = path.map(i => g.nodes[i]);
+    // from where the player stands to the first street, along the streets, and from the last street to the door of the place's house, round every other house
+    const walkTo = (a: XZ, b: XZ): XZ[] => solid.path(a, b, 0.45);
+    const door = doorFor(p.at, nodes[nodes.length - 1] ?? pos);
+    walk = [...(nodes.length ? walkTo(pos, nodes[0]) : []), ...nodes, ...walkTo(nodes[nodes.length - 1] ?? pos, door)]; target = p; drawRoute([pos, ...walk]); setPose(me, 'walk', 0, clock);
     return { ok: true, path };
   };
   await ensureTiles();
   return {
     destroy: () => { dead = true; cancelAnimationFrame(raf); ro?.disconnect(); controls.dispose(); renderer.domElement.removeEventListener('pointerdown', onDown); renderer.domElement.removeEventListener('pointerup', onUp);
-      for (const v of chunks.values()) disposeGroup(v.group); chunks.clear(); if (pinMesh) disposeGroup(pinMesh); labels.forEach(l => disposeGroup(l)); poiModels.forEach(m => disposeGroup(m)); poiModels = []; drawRoute([]); disposeGroup(ground); ringGeo.dispose(); renderer.dispose(); canvas.remove(); },
-    goTo, pois: () => poiMeta.slice(), graph: () => graph, player: () => ({ ...pos }),
+      for (const v of chunks.values()) disposeGroup(v.group); chunks.clear(); if (pinMesh) disposeGroup(pinMesh); labels.forEach(l => disposeGroup(l)); numbers.forEach(l => disposeGroup(l)); numbers = []; poiModels.forEach(m => disposeGroup(m)); poiModels = []; drawRoute([]); disposeGroup(ground); ringGeo.dispose(); renderer.dispose(); canvas.remove(); },
+    goTo, pois: () => poiMeta.slice(), address: at => addressNear(at ?? pos, addresses, allRoads), graph: () => graph, player: () => ({ ...pos }),
     skip: () => { if (!walk.length) return; pos = { ...walk[walk.length - 1] }; walk = []; drawRoute([]); setPose(me, 'idle', 0, clock); d.onArrive(target); },
     tick, scene, pick, chunks: () => chunks.size,
   };

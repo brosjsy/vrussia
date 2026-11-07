@@ -1,0 +1,3176 @@
+[
+ {
+  "id": "reg_first",
+  "cat": "paper",
+  "built": false,
+  "title": "Registration — the clock is ticking",
+  "text": "The rules give a short time to register your place of stay after arrival: 7 working days for most visitors; for people who come to work, 15 days for citizens of Tajikistan and Uzbekistan and 30 days for those of Kyrgyzstan, Kazakhstan and Armenia (Belarus: 90). As reported in 2024; the rules change often and the game simplifies how the days are counted. Your host, a landlord or a hostel has to submit the notice through the MFC, post office or Gosuslugi.",
+  "choices": [
+   {
+    "t": "Ask your landlord to submit the notice (honest)",
+    "then": "The landlord refuses: \"I don't do paperwork.\" You lose a day and some nerves.",
+    "fixed": false
+   },
+   {
+    "t": "Buy \"registration\" from a fixer for ₽5,000",
+    "then": "The fixer produces a valid notice. Expensive but real.",
+    "fixed": false
+   },
+   {
+    "t": "Postpone",
+    "then": "The clock keeps ticking.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "reg_renew",
+  "cat": "paper",
+  "built": false,
+  "title": "Registration is running out",
+  "text": "Your registration has less than 20 days. Renewal needs the host's consent, the migration card and the receipt.",
+  "choices": [
+   {
+    "t": "Renew at the MFC properly",
+    "then": "Number 142 in the queue, but you leave with a fresh notice.",
+    "fixed": false
+   },
+   {
+    "t": "Pay a \"helper\" to jump the queue",
+    "then": "Done in 20 minutes for ₽3,000. The helper vanishes into the crowd.",
+    "fixed": false
+   },
+   {
+    "t": "Do it next week",
+    "then": "There is always next week.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "med_exam",
+  "cat": "paper",
+  "built": false,
+  "title": "Medical exam for migrants",
+  "text": "Before a patent you need a medical certificate: infectious diseases, drug test, fingerprinting, Russian language test. Clinics near Sakharovo are crowded.",
+  "choices": [
+   {
+    "t": "Go to Sakharovo multifunctional centre",
+    "then": "Eight stamps, three stations, one ID. You walk out with the certificate.",
+    "fixed": false
+   },
+   {
+    "t": "Pay a clinic \"VIP\" service",
+    "then": "No queue, same certificate, double price.",
+    "fixed": false
+   }
+  ]
+ },
+ {
+  "id": "patent_buy",
+  "cat": "paper",
+  "built": false,
+  "title": "Patent payment",
+  "text": "A work patent is paid for in monthly advance payments of income tax. In Moscow it was ₽8,900 a month in 2025 and rose to about ₽10,000 from 1 January 2026 (other regions differ). Pay on time and keep the receipts. After you receive the patent you must notify the Interior Ministry within two months.",
+  "choices": [
+   {
+    "t": "Pay for 1 month",
+    "then": "Receipt in hand, +30 days.",
+    "fixed": true
+   },
+   {
+    "t": "Pay for 3 months",
+    "then": "Peace of mind. +90 days.",
+    "fixed": true
+   },
+   {
+    "t": "Not today",
+    "then": "You tell yourself you will pay on Friday.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "dms_policy",
+  "cat": "paper",
+  "built": false,
+  "title": "You need a health insurance policy for the patent",
+  "text": "To get a work patent a labour migrant must hold a voluntary health insurance policy (DMS) that covers at least ₽100,000 and lasts as long as the patent. The price in the game is an approximation: about ₽5,000 for three months. You can also buy it in Online services → Buy health insurance.",
+  "choices": [
+   {
+    "t": "Buy a three-month policy (₽5,000)",
+    "then": "An insurer prints a policy with your name and a hotline number. Now the patent can be bought.",
+    "fixed": true
+   },
+   {
+    "t": "Think about it",
+    "then": "You open three insurance sites and close them again.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "patent_notice",
+  "cat": "paper",
+  "built": false,
+  "title": "Notify the Interior Ministry about your patent",
+  "text": "After getting a patent you must send a notification to the Interior Ministry within two months. A friend warns: \"If you forget, the patent can be suspended for a year.\"",
+  "choices": [
+   {
+    "t": "File the notification at the MFC today",
+    "then": "A form, a stamp and a receipt. One less thing to worry about.",
+    "fixed": true
+   },
+   {
+    "t": "Do it later",
+    "then": "The deadline does not move.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "patent_suspended",
+  "cat": "paper",
+  "built": false,
+  "title": "Your patent has been suspended",
+  "text": "A clerk reads the screen: \"You did not send the notification within two months. The patent is suspended for a year.\" Everything you do for work now counts as illegal.",
+  "choices": [
+   {
+    "t": "Accept it and look for another way",
+    "then": "You read the rules three times. A lawyer tells you: next time, mark the date in your phone.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "imm_controlled_registry",
+  "cat": "paper",
+  "built": false,
+  "title": "Check the register of controlled persons",
+  "text": "Foreigners with unresolved violations can be placed on a register of \"controlled persons\" with restrictions. A friend recommends checking your status on the official website.",
+  "choices": [
+   {
+    "t": "Check the official website",
+    "then": "Your name is not on the list. You exhale.",
+    "fixed": true
+   },
+   {
+    "t": "Skip it",
+    "then": "Not knowing is not safer.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "imm_fssp_check",
+  "cat": "paper",
+  "built": false,
+  "title": "Unpaid fines and the bailiffs' database",
+  "text": "Before certain applications, unpaid fines must be cleared. You can search the bailiffs' (FSSP) database by name and date of birth.",
+  "choices": [
+   {
+    "t": "Search the database",
+    "then": "Nothing is registered against you.",
+    "fixed": false
+   },
+   {
+    "t": "Ignore it",
+    "then": "The fine would have grown with time.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "student_visa",
+  "cat": "paper",
+  "built": false,
+  "title": "Student visa extension",
+  "text": "The university international office stamps the extension request. The migration service needs your attendance record.",
+  "choices": [
+   {
+    "t": "Hand in all documents",
+    "then": "Approved. Visa extended for a year.",
+    "fixed": false
+   },
+   {
+    "t": "Ask the dean's office first",
+    "then": "They sigh, check the list and say you are fine.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "work_permit_student",
+  "cat": "paper",
+  "built": false,
+  "title": "Working as a student?",
+  "text": "Students can work only with specific permissions. A dean's letter plus a contract with the employer opens the door.",
+  "choices": [
+   {
+    "t": "Apply for permission",
+    "then": "Rejected: wrong form, wrong address.",
+    "fixed": false
+   },
+   {
+    "t": "Stay on scholarship only",
+    "then": "No work, no risk.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "rutest",
+  "cat": "paper",
+  "built": true,
+  "title": "Russian language, history and law exam",
+  "text": "The exam has three modules: Russian language, history of Russia, and the basics of legislation. The residence-permit version takes about two and a quarter hours and costs about ₽5,300 at a university testing centre (prices differ by centre; the shorter patent version is about ₽4,900). Fail one module and you can retake just that one for half price; fail two or more and you retake everything at full price. Beware of anyone selling a \"guaranteed result\".",
+  "choices": [
+   {
+    "t": "Prepare properly and take the exam (₽5,300)",
+    "then": "You fail two or more modules. You must retake all three modules at full price.",
+    "fixed": false
+   },
+   {
+    "t": "Pay for a \"guaranteed result\"",
+    "then": "The certificate is checked in the official registry. It is not there. Serious trouble.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "rvp_apply",
+  "cat": "paper",
+  "built": false,
+  "title": "Temporary residence permit (RVP)",
+  "text": "You have the language certificate and a ground for RVP (quota place, marriage to a citizen, or a Russian child). Income proof, clean record, medical certificate, fingerprints. The clerk says: \"Decision within 6 months\".",
+  "choices": [
+   {
+    "t": "Submit documents (state duty ₽15,000)",
+    "then": "Approved. The stamp goes into your passport; you no longer need a patent.",
+    "fixed": false
+   },
+   {
+    "t": "Wait",
+    "then": "You can re-apply later.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "vnzh_apply",
+  "cat": "paper",
+  "built": false,
+  "title": "Permanent residence permit (VNZh)",
+  "text": "After at least a year on RVP you can apply for the residence permit (VNZh): a card valid for five years, renewable, with the right to live and work without a patent. You must show regular income, tax payments and a clean record. (In real life the waiting times are years; the game shortens them to months.)",
+  "choices": [
+   {
+    "t": "Submit the VNZh application (state duty ₽30,000)",
+    "then": "Approved. The VNZh card arrives: green, five years, enormous relief.",
+    "fixed": false
+   },
+   {
+    "t": "Wait",
+    "then": "Not yet.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "citizenship",
+  "cat": "paper",
+  "built": false,
+  "title": "Russian citizenship",
+  "text": "Normally citizenship takes about five years of residence on a residence permit, or three if you are married to a citizen. You apply with documents, an interview and an oath, and then you receive the passport. (The game shortens the waiting to a few months.)",
+  "choices": [
+   {
+    "t": "Apply for citizenship (state duty ₽50,000)",
+    "then": "You cannot pay the ₽50,000 state duty yet.",
+    "fixed": false
+   },
+   {
+    "t": "Wait a bit",
+    "then": "Something about patience.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "quota_rvp",
+  "cat": "paper",
+  "built": false,
+  "title": "RVP quota application",
+  "text": "Each region has a yearly quota for temporary residence permits. You must apply for a quota place, which may take months. The queue at the Migration Department (GUVM) starts at 5 a.m.",
+  "choices": [
+   {
+    "t": "Queue for the quota ticket",
+    "then": "Quota for your region has run out. Come back next year.",
+    "fixed": false
+   },
+   {
+    "t": "Check other grounds first (marriage, child)",
+    "then": "Marriage to a Russian citizen or having a Russian child opens RVP without the quota.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "fixer_scam",
+  "cat": "paper",
+  "built": false,
+  "title": "A \"helper\" at the MFC",
+  "text": "A man in a leather jacket approaches you: \"Documents, patent, registration — fast, ₽7,000, no queue.\"",
+  "choices": [
+   {
+    "t": "Ignore him",
+    "then": "He moves to the next person.",
+    "fixed": true
+   },
+   {
+    "t": "Pay him",
+    "then": "Surprisingly works — but you know it is a risk.",
+    "fixed": false
+   },
+   {
+    "t": "Report him to the MFC guard",
+    "then": "The guard nods and takes a note. Maybe it helps.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "gosuslugi_down",
+  "cat": "paper",
+  "built": false,
+  "title": "Gosuslugi is down",
+  "text": "The \"State Services\" website shows an error page. The queue at the MFC in person is 90 minutes.",
+  "choices": [
+   {
+    "t": "Wait in the physical queue",
+    "then": "You read half a novel on your phone.",
+    "fixed": true
+   },
+   {
+    "t": "Try again tomorrow",
+    "then": "The page loads at 07:03.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "voenkomat",
+  "cat": "paper",
+  "built": false,
+  "title": "Letter from the military enlistment office",
+  "text": "An envelope arrives: \"Please appear at the voenkomat.\" Rumours ripple through the family chat.",
+  "choices": [
+   {
+    "t": "Go and follow the process",
+    "then": "Medical commission, questionnaires, a long afternoon. You walk out with a new status.",
+    "fixed": false
+   },
+   {
+    "t": "Ignore the letter",
+    "then": "Ignoring does not remove the file — and fines add up.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-0-0",
+  "cat": "paper",
+  "built": false,
+  "title": "Registration notice: Endless queue",
+  "text": "You work on the registration notice. Problem: endless queue.",
+  "choices": [
+   {
+    "t": "Wait it out",
+    "then": "You get number 187. It is 09:00; the office closes at 17:00.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-0-1",
+  "cat": "paper",
+  "built": false,
+  "title": "Registration notice: Missing stamp",
+  "text": "You work on the registration notice. Problem: missing stamp.",
+  "choices": [
+   {
+    "t": "Argue politely",
+    "then": "A clerk asks for a document you were never told about.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-0-2",
+  "cat": "paper",
+  "built": false,
+  "title": "Registration notice: Notarised translation",
+  "text": "You work on the registration notice. Problem: notarised translation.",
+  "choices": [
+   {
+    "t": "Pay",
+    "then": "A translator charges ₽2,500 per page.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-0-3",
+  "cat": "paper",
+  "built": false,
+  "title": "Registration notice: Name spelling mismatch",
+  "text": "You work on the registration notice. Problem: name spelling mismatch.",
+  "choices": [
+   {
+    "t": "Insist on a fix",
+    "then": "The mismatch means starting over.",
+    "fixed": false
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-0-4",
+  "cat": "paper",
+  "built": false,
+  "title": "Registration notice: A fixer offers a shortcut",
+  "text": "You work on the registration notice. Problem: a fixer offers a shortcut.",
+  "choices": [
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   },
+   {
+    "t": "Pay the fixer",
+    "then": "The shortcut is a scam.",
+    "fixed": false
+   }
+  ]
+ },
+ {
+  "id": "paper-0-5",
+  "cat": "paper",
+  "built": false,
+  "title": "Registration notice: The website crashes",
+  "text": "You work on the registration notice. Problem: the website crashes.",
+  "choices": [
+   {
+    "t": "Retry",
+    "then": "\"Service temporarily unavailable\". You try again at midnight.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-0-6",
+  "cat": "paper",
+  "built": false,
+  "title": "Registration notice: New rule announced",
+  "text": "You work on the registration notice. Problem: new rule announced.",
+  "choices": [
+   {
+    "t": "Read the fine print",
+    "then": "A new requirement appears on the notice board and nobody can explain it.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-0-7",
+  "cat": "paper",
+  "built": false,
+  "title": "Registration notice: A kind clerk",
+  "text": "You work on the registration notice. Problem: a kind clerk.",
+  "choices": [
+   {
+    "t": "Thank them",
+    "then": "The clerk quietly helps you and says it is \"not common practice, but fine\".",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-1-0",
+  "cat": "paper",
+  "built": false,
+  "title": "Patent receipt: Endless queue",
+  "text": "You work on the patent receipt. Problem: endless queue.",
+  "choices": [
+   {
+    "t": "Wait it out",
+    "then": "You get number 187. It is 09:00; the office closes at 17:00.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-1-1",
+  "cat": "paper",
+  "built": false,
+  "title": "Patent receipt: Missing stamp",
+  "text": "You work on the patent receipt. Problem: missing stamp.",
+  "choices": [
+   {
+    "t": "Argue politely",
+    "then": "A clerk asks for a document you were never told about.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-1-2",
+  "cat": "paper",
+  "built": false,
+  "title": "Patent receipt: Notarised translation",
+  "text": "You work on the patent receipt. Problem: notarised translation.",
+  "choices": [
+   {
+    "t": "Pay",
+    "then": "A translator charges ₽2,500 per page.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-1-3",
+  "cat": "paper",
+  "built": false,
+  "title": "Patent receipt: Name spelling mismatch",
+  "text": "You work on the patent receipt. Problem: name spelling mismatch.",
+  "choices": [
+   {
+    "t": "Insist on a fix",
+    "then": "They fix the spelling after a signed statement.",
+    "fixed": false
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-1-4",
+  "cat": "paper",
+  "built": false,
+  "title": "Patent receipt: A fixer offers a shortcut",
+  "text": "You work on the patent receipt. Problem: a fixer offers a shortcut.",
+  "choices": [
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   },
+   {
+    "t": "Pay the fixer",
+    "then": "The shortcut is a scam.",
+    "fixed": false
+   }
+  ]
+ },
+ {
+  "id": "paper-1-5",
+  "cat": "paper",
+  "built": false,
+  "title": "Patent receipt: The website crashes",
+  "text": "You work on the patent receipt. Problem: the website crashes.",
+  "choices": [
+   {
+    "t": "Retry",
+    "then": "\"Service temporarily unavailable\". You try again at midnight.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-1-6",
+  "cat": "paper",
+  "built": false,
+  "title": "Patent receipt: New rule announced",
+  "text": "You work on the patent receipt. Problem: new rule announced.",
+  "choices": [
+   {
+    "t": "Read the fine print",
+    "then": "A new requirement appears on the notice board and nobody can explain it.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-1-7",
+  "cat": "paper",
+  "built": false,
+  "title": "Patent receipt: A kind clerk",
+  "text": "You work on the patent receipt. Problem: a kind clerk.",
+  "choices": [
+   {
+    "t": "Thank them",
+    "then": "The clerk quietly helps you and says it is \"not common practice, but fine\".",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-2-0",
+  "cat": "paper",
+  "built": false,
+  "title": "Work contract: Endless queue",
+  "text": "You work on the work contract. Problem: endless queue.",
+  "choices": [
+   {
+    "t": "Wait it out",
+    "then": "You get number 187. It is 09:00; the office closes at 17:00.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-2-1",
+  "cat": "paper",
+  "built": false,
+  "title": "Work contract: Missing stamp",
+  "text": "You work on the work contract. Problem: missing stamp.",
+  "choices": [
+   {
+    "t": "Argue politely",
+    "then": "A clerk asks for a document you were never told about.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-2-2",
+  "cat": "paper",
+  "built": false,
+  "title": "Work contract: Notarised translation",
+  "text": "You work on the work contract. Problem: notarised translation.",
+  "choices": [
+   {
+    "t": "Pay",
+    "then": "A translator charges ₽2,500 per page.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-2-3",
+  "cat": "paper",
+  "built": false,
+  "title": "Work contract: Name spelling mismatch",
+  "text": "You work on the work contract. Problem: name spelling mismatch.",
+  "choices": [
+   {
+    "t": "Insist on a fix",
+    "then": "They fix the spelling after a signed statement.",
+    "fixed": false
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-2-4",
+  "cat": "paper",
+  "built": false,
+  "title": "Work contract: A fixer offers a shortcut",
+  "text": "You work on the work contract. Problem: a fixer offers a shortcut.",
+  "choices": [
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   },
+   {
+    "t": "Pay the fixer",
+    "then": "A genuine shortcut — you are lucky.",
+    "fixed": false
+   }
+  ]
+ },
+ {
+  "id": "paper-2-5",
+  "cat": "paper",
+  "built": false,
+  "title": "Work contract: The website crashes",
+  "text": "You work on the work contract. Problem: the website crashes.",
+  "choices": [
+   {
+    "t": "Retry",
+    "then": "\"Service temporarily unavailable\". You try again at midnight.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-2-6",
+  "cat": "paper",
+  "built": false,
+  "title": "Work contract: New rule announced",
+  "text": "You work on the work contract. Problem: new rule announced.",
+  "choices": [
+   {
+    "t": "Read the fine print",
+    "then": "A new requirement appears on the notice board and nobody can explain it.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-2-7",
+  "cat": "paper",
+  "built": false,
+  "title": "Work contract: A kind clerk",
+  "text": "You work on the work contract. Problem: a kind clerk.",
+  "choices": [
+   {
+    "t": "Thank them",
+    "then": "The clerk quietly helps you and says it is \"not common practice, but fine\".",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-3-0",
+  "cat": "paper",
+  "built": false,
+  "title": "Residence permit (RVP): Endless queue",
+  "text": "You work on the residence permit (rvp). Problem: endless queue.",
+  "choices": [
+   {
+    "t": "Wait it out",
+    "then": "You get number 187. It is 09:00; the office closes at 17:00.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-3-1",
+  "cat": "paper",
+  "built": false,
+  "title": "Residence permit (RVP): Missing stamp",
+  "text": "You work on the residence permit (rvp). Problem: missing stamp.",
+  "choices": [
+   {
+    "t": "Argue politely",
+    "then": "A clerk asks for a document you were never told about.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-3-2",
+  "cat": "paper",
+  "built": false,
+  "title": "Residence permit (RVP): Notarised translation",
+  "text": "You work on the residence permit (rvp). Problem: notarised translation.",
+  "choices": [
+   {
+    "t": "Pay",
+    "then": "A translator charges ₽2,500 per page.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-3-3",
+  "cat": "paper",
+  "built": false,
+  "title": "Residence permit (RVP): Name spelling mismatch",
+  "text": "You work on the residence permit (rvp). Problem: name spelling mismatch.",
+  "choices": [
+   {
+    "t": "Insist on a fix",
+    "then": "They fix the spelling after a signed statement.",
+    "fixed": false
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-3-4",
+  "cat": "paper",
+  "built": false,
+  "title": "Residence permit (RVP): A fixer offers a shortcut",
+  "text": "You work on the residence permit (rvp). Problem: a fixer offers a shortcut.",
+  "choices": [
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   },
+   {
+    "t": "Pay the fixer",
+    "then": "The shortcut is a scam.",
+    "fixed": false
+   }
+  ]
+ },
+ {
+  "id": "paper-3-5",
+  "cat": "paper",
+  "built": false,
+  "title": "Residence permit (RVP): The website crashes",
+  "text": "You work on the residence permit (rvp). Problem: the website crashes.",
+  "choices": [
+   {
+    "t": "Retry",
+    "then": "\"Service temporarily unavailable\". You try again at midnight.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-3-6",
+  "cat": "paper",
+  "built": false,
+  "title": "Residence permit (RVP): New rule announced",
+  "text": "You work on the residence permit (rvp). Problem: new rule announced.",
+  "choices": [
+   {
+    "t": "Read the fine print",
+    "then": "A new requirement appears on the notice board and nobody can explain it.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-3-7",
+  "cat": "paper",
+  "built": false,
+  "title": "Residence permit (RVP): A kind clerk",
+  "text": "You work on the residence permit (rvp). Problem: a kind clerk.",
+  "choices": [
+   {
+    "t": "Thank them",
+    "then": "The clerk quietly helps you and says it is \"not common practice, but fine\".",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-4-0",
+  "cat": "paper",
+  "built": false,
+  "title": "Residence card (VNZh): Endless queue",
+  "text": "You work on the residence card (vnzh). Problem: endless queue.",
+  "choices": [
+   {
+    "t": "Wait it out",
+    "then": "You get number 187. It is 09:00; the office closes at 17:00.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-4-1",
+  "cat": "paper",
+  "built": false,
+  "title": "Residence card (VNZh): Missing stamp",
+  "text": "You work on the residence card (vnzh). Problem: missing stamp.",
+  "choices": [
+   {
+    "t": "Argue politely",
+    "then": "A clerk asks for a document you were never told about.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-4-2",
+  "cat": "paper",
+  "built": false,
+  "title": "Residence card (VNZh): Notarised translation",
+  "text": "You work on the residence card (vnzh). Problem: notarised translation.",
+  "choices": [
+   {
+    "t": "Pay",
+    "then": "A translator charges ₽2,500 per page.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-4-3",
+  "cat": "paper",
+  "built": false,
+  "title": "Residence card (VNZh): Name spelling mismatch",
+  "text": "You work on the residence card (vnzh). Problem: name spelling mismatch.",
+  "choices": [
+   {
+    "t": "Insist on a fix",
+    "then": "The mismatch means starting over.",
+    "fixed": false
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-4-4",
+  "cat": "paper",
+  "built": false,
+  "title": "Residence card (VNZh): A fixer offers a shortcut",
+  "text": "You work on the residence card (vnzh). Problem: a fixer offers a shortcut.",
+  "choices": [
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   },
+   {
+    "t": "Pay the fixer",
+    "then": "The shortcut is a scam.",
+    "fixed": false
+   }
+  ]
+ },
+ {
+  "id": "paper-4-5",
+  "cat": "paper",
+  "built": false,
+  "title": "Residence card (VNZh): The website crashes",
+  "text": "You work on the residence card (vnzh). Problem: the website crashes.",
+  "choices": [
+   {
+    "t": "Retry",
+    "then": "\"Service temporarily unavailable\". You try again at midnight.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-4-6",
+  "cat": "paper",
+  "built": false,
+  "title": "Residence card (VNZh): New rule announced",
+  "text": "You work on the residence card (vnzh). Problem: new rule announced.",
+  "choices": [
+   {
+    "t": "Read the fine print",
+    "then": "A new requirement appears on the notice board and nobody can explain it.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-4-7",
+  "cat": "paper",
+  "built": false,
+  "title": "Residence card (VNZh): A kind clerk",
+  "text": "You work on the residence card (vnzh). Problem: a kind clerk.",
+  "choices": [
+   {
+    "t": "Thank them",
+    "then": "The clerk quietly helps you and says it is \"not common practice, but fine\".",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-5-0",
+  "cat": "paper",
+  "built": false,
+  "title": "Citizenship application: Endless queue",
+  "text": "You work on the citizenship application. Problem: endless queue.",
+  "choices": [
+   {
+    "t": "Wait it out",
+    "then": "You get number 187. It is 09:00; the office closes at 17:00.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-5-1",
+  "cat": "paper",
+  "built": false,
+  "title": "Citizenship application: Missing stamp",
+  "text": "You work on the citizenship application. Problem: missing stamp.",
+  "choices": [
+   {
+    "t": "Argue politely",
+    "then": "A clerk asks for a document you were never told about.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-5-2",
+  "cat": "paper",
+  "built": false,
+  "title": "Citizenship application: Notarised translation",
+  "text": "You work on the citizenship application. Problem: notarised translation.",
+  "choices": [
+   {
+    "t": "Pay",
+    "then": "A translator charges ₽2,500 per page.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-5-3",
+  "cat": "paper",
+  "built": false,
+  "title": "Citizenship application: Name spelling mismatch",
+  "text": "You work on the citizenship application. Problem: name spelling mismatch.",
+  "choices": [
+   {
+    "t": "Insist on a fix",
+    "then": "They fix the spelling after a signed statement.",
+    "fixed": false
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-5-4",
+  "cat": "paper",
+  "built": false,
+  "title": "Citizenship application: A fixer offers a shortcut",
+  "text": "You work on the citizenship application. Problem: a fixer offers a shortcut.",
+  "choices": [
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   },
+   {
+    "t": "Pay the fixer",
+    "then": "A genuine shortcut — you are lucky.",
+    "fixed": false
+   }
+  ]
+ },
+ {
+  "id": "paper-5-5",
+  "cat": "paper",
+  "built": false,
+  "title": "Citizenship application: The website crashes",
+  "text": "You work on the citizenship application. Problem: the website crashes.",
+  "choices": [
+   {
+    "t": "Retry",
+    "then": "\"Service temporarily unavailable\". You try again at midnight.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-5-6",
+  "cat": "paper",
+  "built": false,
+  "title": "Citizenship application: New rule announced",
+  "text": "You work on the citizenship application. Problem: new rule announced.",
+  "choices": [
+   {
+    "t": "Read the fine print",
+    "then": "A new requirement appears on the notice board and nobody can explain it.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-5-7",
+  "cat": "paper",
+  "built": false,
+  "title": "Citizenship application: A kind clerk",
+  "text": "You work on the citizenship application. Problem: a kind clerk.",
+  "choices": [
+   {
+    "t": "Thank them",
+    "then": "The clerk quietly helps you and says it is \"not common practice, but fine\".",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-6-0",
+  "cat": "paper",
+  "built": false,
+  "title": "Military ID: Endless queue",
+  "text": "You work on the military id. Problem: endless queue.",
+  "choices": [
+   {
+    "t": "Wait it out",
+    "then": "You get number 187. It is 09:00; the office closes at 17:00.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-6-1",
+  "cat": "paper",
+  "built": false,
+  "title": "Military ID: Missing stamp",
+  "text": "You work on the military id. Problem: missing stamp.",
+  "choices": [
+   {
+    "t": "Argue politely",
+    "then": "A clerk asks for a document you were never told about.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-6-2",
+  "cat": "paper",
+  "built": false,
+  "title": "Military ID: Notarised translation",
+  "text": "You work on the military id. Problem: notarised translation.",
+  "choices": [
+   {
+    "t": "Pay",
+    "then": "A translator charges ₽2,500 per page.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-6-3",
+  "cat": "paper",
+  "built": false,
+  "title": "Military ID: Name spelling mismatch",
+  "text": "You work on the military id. Problem: name spelling mismatch.",
+  "choices": [
+   {
+    "t": "Insist on a fix",
+    "then": "The mismatch means starting over.",
+    "fixed": false
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-6-4",
+  "cat": "paper",
+  "built": false,
+  "title": "Military ID: A fixer offers a shortcut",
+  "text": "You work on the military id. Problem: a fixer offers a shortcut.",
+  "choices": [
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   },
+   {
+    "t": "Pay the fixer",
+    "then": "A genuine shortcut — you are lucky.",
+    "fixed": false
+   }
+  ]
+ },
+ {
+  "id": "paper-6-5",
+  "cat": "paper",
+  "built": false,
+  "title": "Military ID: The website crashes",
+  "text": "You work on the military id. Problem: the website crashes.",
+  "choices": [
+   {
+    "t": "Retry",
+    "then": "\"Service temporarily unavailable\". You try again at midnight.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-6-6",
+  "cat": "paper",
+  "built": false,
+  "title": "Military ID: New rule announced",
+  "text": "You work on the military id. Problem: new rule announced.",
+  "choices": [
+   {
+    "t": "Read the fine print",
+    "then": "A new requirement appears on the notice board and nobody can explain it.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-6-7",
+  "cat": "paper",
+  "built": false,
+  "title": "Military ID: A kind clerk",
+  "text": "You work on the military id. Problem: a kind clerk.",
+  "choices": [
+   {
+    "t": "Thank them",
+    "then": "The clerk quietly helps you and says it is \"not common practice, but fine\".",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-7-0",
+  "cat": "paper",
+  "built": false,
+  "title": "SNILS (pension number): Endless queue",
+  "text": "You work on the snils (pension number). Problem: endless queue.",
+  "choices": [
+   {
+    "t": "Wait it out",
+    "then": "You get number 187. It is 09:00; the office closes at 17:00.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-7-1",
+  "cat": "paper",
+  "built": false,
+  "title": "SNILS (pension number): Missing stamp",
+  "text": "You work on the snils (pension number). Problem: missing stamp.",
+  "choices": [
+   {
+    "t": "Argue politely",
+    "then": "A clerk asks for a document you were never told about.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-7-2",
+  "cat": "paper",
+  "built": false,
+  "title": "SNILS (pension number): Notarised translation",
+  "text": "You work on the snils (pension number). Problem: notarised translation.",
+  "choices": [
+   {
+    "t": "Pay",
+    "then": "A translator charges ₽2,500 per page.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-7-3",
+  "cat": "paper",
+  "built": false,
+  "title": "SNILS (pension number): Name spelling mismatch",
+  "text": "You work on the snils (pension number). Problem: name spelling mismatch.",
+  "choices": [
+   {
+    "t": "Insist on a fix",
+    "then": "They fix the spelling after a signed statement.",
+    "fixed": false
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-7-4",
+  "cat": "paper",
+  "built": false,
+  "title": "SNILS (pension number): A fixer offers a shortcut",
+  "text": "You work on the snils (pension number). Problem: a fixer offers a shortcut.",
+  "choices": [
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   },
+   {
+    "t": "Pay the fixer",
+    "then": "The shortcut is a scam.",
+    "fixed": false
+   }
+  ]
+ },
+ {
+  "id": "paper-7-5",
+  "cat": "paper",
+  "built": false,
+  "title": "SNILS (pension number): The website crashes",
+  "text": "You work on the snils (pension number). Problem: the website crashes.",
+  "choices": [
+   {
+    "t": "Retry",
+    "then": "\"Service temporarily unavailable\". You try again at midnight.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-7-6",
+  "cat": "paper",
+  "built": false,
+  "title": "SNILS (pension number): New rule announced",
+  "text": "You work on the snils (pension number). Problem: new rule announced.",
+  "choices": [
+   {
+    "t": "Read the fine print",
+    "then": "A new requirement appears on the notice board and nobody can explain it.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-7-7",
+  "cat": "paper",
+  "built": false,
+  "title": "SNILS (pension number): A kind clerk",
+  "text": "You work on the snils (pension number). Problem: a kind clerk.",
+  "choices": [
+   {
+    "t": "Thank them",
+    "then": "The clerk quietly helps you and says it is \"not common practice, but fine\".",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-8-0",
+  "cat": "paper",
+  "built": false,
+  "title": "INN (tax number): Endless queue",
+  "text": "You work on the inn (tax number). Problem: endless queue.",
+  "choices": [
+   {
+    "t": "Wait it out",
+    "then": "You get number 187. It is 09:00; the office closes at 17:00.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-8-1",
+  "cat": "paper",
+  "built": false,
+  "title": "INN (tax number): Missing stamp",
+  "text": "You work on the inn (tax number). Problem: missing stamp.",
+  "choices": [
+   {
+    "t": "Argue politely",
+    "then": "A clerk asks for a document you were never told about.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-8-2",
+  "cat": "paper",
+  "built": false,
+  "title": "INN (tax number): Notarised translation",
+  "text": "You work on the inn (tax number). Problem: notarised translation.",
+  "choices": [
+   {
+    "t": "Pay",
+    "then": "A translator charges ₽2,500 per page.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-8-3",
+  "cat": "paper",
+  "built": false,
+  "title": "INN (tax number): Name spelling mismatch",
+  "text": "You work on the inn (tax number). Problem: name spelling mismatch.",
+  "choices": [
+   {
+    "t": "Insist on a fix",
+    "then": "They fix the spelling after a signed statement.",
+    "fixed": false
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-8-4",
+  "cat": "paper",
+  "built": false,
+  "title": "INN (tax number): A fixer offers a shortcut",
+  "text": "You work on the inn (tax number). Problem: a fixer offers a shortcut.",
+  "choices": [
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   },
+   {
+    "t": "Pay the fixer",
+    "then": "The shortcut is a scam.",
+    "fixed": false
+   }
+  ]
+ },
+ {
+  "id": "paper-8-5",
+  "cat": "paper",
+  "built": false,
+  "title": "INN (tax number): The website crashes",
+  "text": "You work on the inn (tax number). Problem: the website crashes.",
+  "choices": [
+   {
+    "t": "Retry",
+    "then": "\"Service temporarily unavailable\". You try again at midnight.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-8-6",
+  "cat": "paper",
+  "built": false,
+  "title": "INN (tax number): New rule announced",
+  "text": "You work on the inn (tax number). Problem: new rule announced.",
+  "choices": [
+   {
+    "t": "Read the fine print",
+    "then": "A new requirement appears on the notice board and nobody can explain it.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-8-7",
+  "cat": "paper",
+  "built": false,
+  "title": "INN (tax number): A kind clerk",
+  "text": "You work on the inn (tax number). Problem: a kind clerk.",
+  "choices": [
+   {
+    "t": "Thank them",
+    "then": "The clerk quietly helps you and says it is \"not common practice, but fine\".",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-9-0",
+  "cat": "paper",
+  "built": false,
+  "title": "Driver's licence: Endless queue",
+  "text": "You work on the driver's licence. Problem: endless queue.",
+  "choices": [
+   {
+    "t": "Wait it out",
+    "then": "You get number 187. It is 09:00; the office closes at 17:00.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-9-1",
+  "cat": "paper",
+  "built": false,
+  "title": "Driver's licence: Missing stamp",
+  "text": "You work on the driver's licence. Problem: missing stamp.",
+  "choices": [
+   {
+    "t": "Argue politely",
+    "then": "A clerk asks for a document you were never told about.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-9-2",
+  "cat": "paper",
+  "built": false,
+  "title": "Driver's licence: Notarised translation",
+  "text": "You work on the driver's licence. Problem: notarised translation.",
+  "choices": [
+   {
+    "t": "Pay",
+    "then": "A translator charges ₽2,500 per page.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-9-3",
+  "cat": "paper",
+  "built": false,
+  "title": "Driver's licence: Name spelling mismatch",
+  "text": "You work on the driver's licence. Problem: name spelling mismatch.",
+  "choices": [
+   {
+    "t": "Insist on a fix",
+    "then": "The mismatch means starting over.",
+    "fixed": false
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-9-4",
+  "cat": "paper",
+  "built": false,
+  "title": "Driver's licence: A fixer offers a shortcut",
+  "text": "You work on the driver's licence. Problem: a fixer offers a shortcut.",
+  "choices": [
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   },
+   {
+    "t": "Pay the fixer",
+    "then": "The shortcut is a scam.",
+    "fixed": false
+   }
+  ]
+ },
+ {
+  "id": "paper-9-5",
+  "cat": "paper",
+  "built": false,
+  "title": "Driver's licence: The website crashes",
+  "text": "You work on the driver's licence. Problem: the website crashes.",
+  "choices": [
+   {
+    "t": "Retry",
+    "then": "\"Service temporarily unavailable\". You try again at midnight.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-9-6",
+  "cat": "paper",
+  "built": false,
+  "title": "Driver's licence: New rule announced",
+  "text": "You work on the driver's licence. Problem: new rule announced.",
+  "choices": [
+   {
+    "t": "Read the fine print",
+    "then": "A new requirement appears on the notice board and nobody can explain it.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-9-7",
+  "cat": "paper",
+  "built": false,
+  "title": "Driver's licence: A kind clerk",
+  "text": "You work on the driver's licence. Problem: a kind clerk.",
+  "choices": [
+   {
+    "t": "Thank them",
+    "then": "The clerk quietly helps you and says it is \"not common practice, but fine\".",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-10-0",
+  "cat": "paper",
+  "built": false,
+  "title": "Medical certificate: Endless queue",
+  "text": "You work on the medical certificate. Problem: endless queue.",
+  "choices": [
+   {
+    "t": "Wait it out",
+    "then": "You get number 187. It is 09:00; the office closes at 17:00.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-10-1",
+  "cat": "paper",
+  "built": false,
+  "title": "Medical certificate: Missing stamp",
+  "text": "You work on the medical certificate. Problem: missing stamp.",
+  "choices": [
+   {
+    "t": "Argue politely",
+    "then": "A clerk asks for a document you were never told about.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-10-2",
+  "cat": "paper",
+  "built": false,
+  "title": "Medical certificate: Notarised translation",
+  "text": "You work on the medical certificate. Problem: notarised translation.",
+  "choices": [
+   {
+    "t": "Pay",
+    "then": "A translator charges ₽2,500 per page.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-10-3",
+  "cat": "paper",
+  "built": false,
+  "title": "Medical certificate: Name spelling mismatch",
+  "text": "You work on the medical certificate. Problem: name spelling mismatch.",
+  "choices": [
+   {
+    "t": "Insist on a fix",
+    "then": "They fix the spelling after a signed statement.",
+    "fixed": false
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-10-4",
+  "cat": "paper",
+  "built": false,
+  "title": "Medical certificate: A fixer offers a shortcut",
+  "text": "You work on the medical certificate. Problem: a fixer offers a shortcut.",
+  "choices": [
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   },
+   {
+    "t": "Pay the fixer",
+    "then": "The shortcut is a scam.",
+    "fixed": false
+   }
+  ]
+ },
+ {
+  "id": "paper-10-5",
+  "cat": "paper",
+  "built": false,
+  "title": "Medical certificate: The website crashes",
+  "text": "You work on the medical certificate. Problem: the website crashes.",
+  "choices": [
+   {
+    "t": "Retry",
+    "then": "\"Service temporarily unavailable\". You try again at midnight.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-10-6",
+  "cat": "paper",
+  "built": false,
+  "title": "Medical certificate: New rule announced",
+  "text": "You work on the medical certificate. Problem: new rule announced.",
+  "choices": [
+   {
+    "t": "Read the fine print",
+    "then": "A new requirement appears on the notice board and nobody can explain it.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-10-7",
+  "cat": "paper",
+  "built": false,
+  "title": "Medical certificate: A kind clerk",
+  "text": "You work on the medical certificate. Problem: a kind clerk.",
+  "choices": [
+   {
+    "t": "Thank them",
+    "then": "The clerk quietly helps you and says it is \"not common practice, but fine\".",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-11-0",
+  "cat": "paper",
+  "built": false,
+  "title": "Russian language test certificate: Endless queue",
+  "text": "You work on the russian language test certificate. Problem: endless queue.",
+  "choices": [
+   {
+    "t": "Wait it out",
+    "then": "You get number 187. It is 09:00; the office closes at 17:00.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-11-1",
+  "cat": "paper",
+  "built": false,
+  "title": "Russian language test certificate: Missing stamp",
+  "text": "You work on the russian language test certificate. Problem: missing stamp.",
+  "choices": [
+   {
+    "t": "Argue politely",
+    "then": "A clerk asks for a document you were never told about.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-11-2",
+  "cat": "paper",
+  "built": false,
+  "title": "Russian language test certificate: Notarised translation",
+  "text": "You work on the russian language test certificate. Problem: notarised translation.",
+  "choices": [
+   {
+    "t": "Pay",
+    "then": "A translator charges ₽2,500 per page.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-11-3",
+  "cat": "paper",
+  "built": false,
+  "title": "Russian language test certificate: Name spelling mismatch",
+  "text": "You work on the russian language test certificate. Problem: name spelling mismatch.",
+  "choices": [
+   {
+    "t": "Insist on a fix",
+    "then": "The mismatch means starting over.",
+    "fixed": false
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-11-4",
+  "cat": "paper",
+  "built": false,
+  "title": "Russian language test certificate: A fixer offers a shortcut",
+  "text": "You work on the russian language test certificate. Problem: a fixer offers a shortcut.",
+  "choices": [
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   },
+   {
+    "t": "Pay the fixer",
+    "then": "A genuine shortcut — you are lucky.",
+    "fixed": false
+   }
+  ]
+ },
+ {
+  "id": "paper-11-5",
+  "cat": "paper",
+  "built": false,
+  "title": "Russian language test certificate: The website crashes",
+  "text": "You work on the russian language test certificate. Problem: the website crashes.",
+  "choices": [
+   {
+    "t": "Retry",
+    "then": "\"Service temporarily unavailable\". You try again at midnight.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-11-6",
+  "cat": "paper",
+  "built": false,
+  "title": "Russian language test certificate: New rule announced",
+  "text": "You work on the russian language test certificate. Problem: new rule announced.",
+  "choices": [
+   {
+    "t": "Read the fine print",
+    "then": "A new requirement appears on the notice board and nobody can explain it.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-11-7",
+  "cat": "paper",
+  "built": false,
+  "title": "Russian language test certificate: A kind clerk",
+  "text": "You work on the russian language test certificate. Problem: a kind clerk.",
+  "choices": [
+   {
+    "t": "Thank them",
+    "then": "The clerk quietly helps you and says it is \"not common practice, but fine\".",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-12-0",
+  "cat": "paper",
+  "built": false,
+  "title": "Fingerprint & photo registration: Endless queue",
+  "text": "You work on the fingerprint & photo registration. Problem: endless queue.",
+  "choices": [
+   {
+    "t": "Wait it out",
+    "then": "You get number 187. It is 09:00; the office closes at 17:00.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-12-1",
+  "cat": "paper",
+  "built": false,
+  "title": "Fingerprint & photo registration: Missing stamp",
+  "text": "You work on the fingerprint & photo registration. Problem: missing stamp.",
+  "choices": [
+   {
+    "t": "Argue politely",
+    "then": "A clerk asks for a document you were never told about.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-12-2",
+  "cat": "paper",
+  "built": false,
+  "title": "Fingerprint & photo registration: Notarised translation",
+  "text": "You work on the fingerprint & photo registration. Problem: notarised translation.",
+  "choices": [
+   {
+    "t": "Pay",
+    "then": "A translator charges ₽2,500 per page.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-12-3",
+  "cat": "paper",
+  "built": false,
+  "title": "Fingerprint & photo registration: Name spelling mismatch",
+  "text": "You work on the fingerprint & photo registration. Problem: name spelling mismatch.",
+  "choices": [
+   {
+    "t": "Insist on a fix",
+    "then": "They fix the spelling after a signed statement.",
+    "fixed": false
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-12-4",
+  "cat": "paper",
+  "built": false,
+  "title": "Fingerprint & photo registration: A fixer offers a shortcut",
+  "text": "You work on the fingerprint & photo registration. Problem: a fixer offers a shortcut.",
+  "choices": [
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   },
+   {
+    "t": "Pay the fixer",
+    "then": "The shortcut is a scam.",
+    "fixed": false
+   }
+  ]
+ },
+ {
+  "id": "paper-12-5",
+  "cat": "paper",
+  "built": false,
+  "title": "Fingerprint & photo registration: The website crashes",
+  "text": "You work on the fingerprint & photo registration. Problem: the website crashes.",
+  "choices": [
+   {
+    "t": "Retry",
+    "then": "\"Service temporarily unavailable\". You try again at midnight.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-12-6",
+  "cat": "paper",
+  "built": false,
+  "title": "Fingerprint & photo registration: New rule announced",
+  "text": "You work on the fingerprint & photo registration. Problem: new rule announced.",
+  "choices": [
+   {
+    "t": "Read the fine print",
+    "then": "A new requirement appears on the notice board and nobody can explain it.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-12-7",
+  "cat": "paper",
+  "built": false,
+  "title": "Fingerprint & photo registration: A kind clerk",
+  "text": "You work on the fingerprint & photo registration. Problem: a kind clerk.",
+  "choices": [
+   {
+    "t": "Thank them",
+    "then": "The clerk quietly helps you and says it is \"not common practice, but fine\".",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-13-0",
+  "cat": "paper",
+  "built": false,
+  "title": "Gosuslugi confirmed account: Endless queue",
+  "text": "You work on the gosuslugi confirmed account. Problem: endless queue.",
+  "choices": [
+   {
+    "t": "Wait it out",
+    "then": "You get number 187. It is 09:00; the office closes at 17:00.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-13-1",
+  "cat": "paper",
+  "built": false,
+  "title": "Gosuslugi confirmed account: Missing stamp",
+  "text": "You work on the gosuslugi confirmed account. Problem: missing stamp.",
+  "choices": [
+   {
+    "t": "Argue politely",
+    "then": "A clerk asks for a document you were never told about.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-13-2",
+  "cat": "paper",
+  "built": false,
+  "title": "Gosuslugi confirmed account: Notarised translation",
+  "text": "You work on the gosuslugi confirmed account. Problem: notarised translation.",
+  "choices": [
+   {
+    "t": "Pay",
+    "then": "A translator charges ₽2,500 per page.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-13-3",
+  "cat": "paper",
+  "built": false,
+  "title": "Gosuslugi confirmed account: Name spelling mismatch",
+  "text": "You work on the gosuslugi confirmed account. Problem: name spelling mismatch.",
+  "choices": [
+   {
+    "t": "Insist on a fix",
+    "then": "They fix the spelling after a signed statement.",
+    "fixed": false
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-13-4",
+  "cat": "paper",
+  "built": false,
+  "title": "Gosuslugi confirmed account: A fixer offers a shortcut",
+  "text": "You work on the gosuslugi confirmed account. Problem: a fixer offers a shortcut.",
+  "choices": [
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   },
+   {
+    "t": "Pay the fixer",
+    "then": "The shortcut is a scam.",
+    "fixed": false
+   }
+  ]
+ },
+ {
+  "id": "paper-13-5",
+  "cat": "paper",
+  "built": false,
+  "title": "Gosuslugi confirmed account: The website crashes",
+  "text": "You work on the gosuslugi confirmed account. Problem: the website crashes.",
+  "choices": [
+   {
+    "t": "Retry",
+    "then": "\"Service temporarily unavailable\". You try again at midnight.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-13-6",
+  "cat": "paper",
+  "built": false,
+  "title": "Gosuslugi confirmed account: New rule announced",
+  "text": "You work on the gosuslugi confirmed account. Problem: new rule announced.",
+  "choices": [
+   {
+    "t": "Read the fine print",
+    "then": "A new requirement appears on the notice board and nobody can explain it.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-13-7",
+  "cat": "paper",
+  "built": false,
+  "title": "Gosuslugi confirmed account: A kind clerk",
+  "text": "You work on the gosuslugi confirmed account. Problem: a kind clerk.",
+  "choices": [
+   {
+    "t": "Thank them",
+    "then": "The clerk quietly helps you and says it is \"not common practice, but fine\".",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-14-0",
+  "cat": "paper",
+  "built": false,
+  "title": "Health insurance (OMS): Endless queue",
+  "text": "You work on the health insurance (oms). Problem: endless queue.",
+  "choices": [
+   {
+    "t": "Wait it out",
+    "then": "You get number 187. It is 09:00; the office closes at 17:00.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-14-1",
+  "cat": "paper",
+  "built": false,
+  "title": "Health insurance (OMS): Missing stamp",
+  "text": "You work on the health insurance (oms). Problem: missing stamp.",
+  "choices": [
+   {
+    "t": "Argue politely",
+    "then": "A clerk asks for a document you were never told about.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-14-2",
+  "cat": "paper",
+  "built": false,
+  "title": "Health insurance (OMS): Notarised translation",
+  "text": "You work on the health insurance (oms). Problem: notarised translation.",
+  "choices": [
+   {
+    "t": "Pay",
+    "then": "A translator charges ₽2,500 per page.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-14-3",
+  "cat": "paper",
+  "built": false,
+  "title": "Health insurance (OMS): Name spelling mismatch",
+  "text": "You work on the health insurance (oms). Problem: name spelling mismatch.",
+  "choices": [
+   {
+    "t": "Insist on a fix",
+    "then": "They fix the spelling after a signed statement.",
+    "fixed": false
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-14-4",
+  "cat": "paper",
+  "built": false,
+  "title": "Health insurance (OMS): A fixer offers a shortcut",
+  "text": "You work on the health insurance (oms). Problem: a fixer offers a shortcut.",
+  "choices": [
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   },
+   {
+    "t": "Pay the fixer",
+    "then": "A genuine shortcut — you are lucky.",
+    "fixed": false
+   }
+  ]
+ },
+ {
+  "id": "paper-14-5",
+  "cat": "paper",
+  "built": false,
+  "title": "Health insurance (OMS): The website crashes",
+  "text": "You work on the health insurance (oms). Problem: the website crashes.",
+  "choices": [
+   {
+    "t": "Retry",
+    "then": "\"Service temporarily unavailable\". You try again at midnight.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-14-6",
+  "cat": "paper",
+  "built": false,
+  "title": "Health insurance (OMS): New rule announced",
+  "text": "You work on the health insurance (oms). Problem: new rule announced.",
+  "choices": [
+   {
+    "t": "Read the fine print",
+    "then": "A new requirement appears on the notice board and nobody can explain it.",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "paper-14-7",
+  "cat": "paper",
+  "built": false,
+  "title": "Health insurance (OMS): A kind clerk",
+  "text": "You work on the health insurance (oms). Problem: a kind clerk.",
+  "choices": [
+   {
+    "t": "Thank them",
+    "then": "The clerk quietly helps you and says it is \"not common practice, but fine\".",
+    "fixed": true
+   },
+   {
+    "t": "Come back tomorrow",
+    "then": "Another day lost.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "imm_passport_embassy",
+  "cat": "paper",
+  "built": false,
+  "title": "Your home passport is expiring",
+  "text": "The embassy of your country in Moscow has a long queue and strict rules. A valid national passport is needed for registration, patent and every later step.",
+  "choices": [
+   {
+    "t": "Renew at the embassy (₽8,000 with fees)",
+    "then": "New passport in six weeks. Documents stay in order.",
+    "fixed": false
+   },
+   {
+    "t": "Delay it",
+    "then": "The expiry date does not move.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "imm_consulate_reg",
+  "cat": "paper",
+  "built": false,
+  "title": "Register with your consulate",
+  "text": "Your country's consulate asks citizens abroad to register. It helps if you lose documents or need an emergency passport.",
+  "choices": [
+   {
+    "t": "Register",
+    "then": "A small card goes into your wallet. It feels reassuring.",
+    "fixed": true
+   },
+   {
+    "t": "Skip it",
+    "then": "You skip it. Famous last words.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "imm_entry_ban_check",
+  "cat": "paper",
+  "built": false,
+  "title": "Check your entry ban status",
+  "text": "A friend says a violation can put you on a list that bans entry for years. You can check your status through official channels.",
+  "choices": [
+   {
+    "t": "Check status at the migration service",
+    "then": "Clean status. You exhale.",
+    "fixed": true
+   },
+   {
+    "t": "Ignore it",
+    "then": "Not knowing is not safer.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "imm_lost_passport",
+  "cat": "paper",
+  "built": false,
+  "title": "Lost passport",
+  "text": "Your wallet and passport are gone. Without it you cannot prove status, register, or work.",
+  "choices": [
+   {
+    "t": "Report to police and go to the embassy",
+    "then": "Report, embassy form, new passport in three weeks. The delay costs you.",
+    "fixed": true
+   },
+   {
+    "t": "Look for it everywhere first",
+    "then": "You retrace your route. Nothing.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "imm_employer_notice",
+  "cat": "paper",
+  "built": false,
+  "title": "Employer must notify authorities",
+  "text": "Your employer must notify the migration service about hiring you. A careless employer forgets; a fair one files in three days.",
+  "choices": [
+   {
+    "t": "Remind the HR manager politely",
+    "then": "HR says \"we will get to it\" and does not.",
+    "fixed": false
+   },
+   {
+    "t": "Trust them",
+    "then": "Nothing happens. For now.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "imm_marriage_ground",
+  "cat": "paper",
+  "built": false,
+  "title": "RVP outside quota (marriage)",
+  "text": "Marriage to a Russian citizen gives you the right to apply for temporary residence without the quota. The ZAGS certificate, your partner's passport and a joint photo list are needed.",
+  "choices": [
+   {
+    "t": "Submit the file",
+    "then": "Accepted for review. The ground for RVP is confirmed.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "imm_child_ground",
+  "cat": "paper",
+  "built": false,
+  "title": "RVP outside quota (Russian child)",
+  "text": "Having a child who is a Russian citizen gives you a ground for RVP without the quota.",
+  "choices": [
+   {
+    "t": "Submit the file",
+    "then": "The migration office accepts the application as a family ground.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "imm_patent_to_rvp",
+  "cat": "paper",
+  "built": false,
+  "title": "You no longer need a patent",
+  "text": "The patent offices send you a farewell leaflet. RVP lets you work without it. One small paper gone.",
+  "choices": [
+   {
+    "t": "Celebrate with a pastry",
+    "then": "It tastes better than any patent receipt.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "imm_rvp_notify",
+  "cat": "paper",
+  "built": false,
+  "title": "Residence notification",
+  "text": "Residents on RVP must notify the migration service about their address and job every year.",
+  "choices": [
+   {
+    "t": "File the notice",
+    "then": "Done in one visit. A small win.",
+    "fixed": true
+   },
+   {
+    "t": "Forget",
+    "then": "Forgetting costs fines later.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "imm_oath",
+  "cat": "paper",
+  "built": false,
+  "title": "Language and history refresh",
+  "text": "The citizenship interview includes questions about Russian history, law and daily life. A colleague offers to quiz you.",
+  "choices": [
+   {
+    "t": "Study with a colleague",
+    "then": "You learn why Pushkin is in every textbook.",
+    "fixed": true
+   },
+   {
+    "t": "Wing it",
+    "then": "You hope for good luck.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "baby_registration",
+  "cat": "paper",
+  "built": false,
+  "title": "Newborn paperwork",
+  "text": "Birth certificate at ZAGS, child registration, SNILS and a polyclinic attachment.",
+  "choices": [
+   {
+    "t": "Do it all in one trip",
+    "then": "One document is missing; second visit.",
+    "fixed": false
+   }
+  ]
+ },
+ {
+  "id": "ev-law3",
+  "cat": "paper",
+  "built": false,
+  "title": "Unpaid wages, small claims",
+  "text": "Your employer owes you a month of wages. A friend says: \"Go to the court, it is free for small claims.\"",
+  "choices": [
+   {
+    "t": "File a statement with the labour inspectorate",
+    "then": "An officer calls the employer. The money arrives the next day.",
+    "fixed": true
+   },
+   {
+    "t": "Wait and hope",
+    "then": "You wait. You keep waiting.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "ev-law4",
+  "cat": "paper",
+  "built": false,
+  "title": "Power of attorney",
+  "text": "You need someone at home to act on your behalf in a property matter. A notary can draw up a power of attorney.",
+  "choices": [
+   {
+    "t": "Visit a notary (₽2,500)",
+    "then": "Stamp, signature, three copies. Done.",
+    "fixed": true
+   },
+   {
+    "t": "Leave it unsolved",
+    "then": "The matter drags on, and your relatives keep asking.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "ev-law5",
+  "cat": "paper",
+  "built": false,
+  "title": "A debt notice",
+  "text": "A letter from the bailiffs (FSSP) arrives with your name and a sum you do not recognise.",
+  "choices": [
+   {
+    "t": "Check it on the official website and call",
+    "then": "It is a mistake: a different person with the same name.",
+    "fixed": true
+   },
+   {
+    "t": "Ignore it",
+    "then": "Three weeks later your card is blocked.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "ev-law8",
+  "cat": "paper",
+  "built": false,
+  "title": "Read the employment contract",
+  "text": "Your employer hands you a long contract and says \"just sign here, everyone does\".",
+  "choices": [
+   {
+    "t": "Read it and ask about unclear points",
+    "then": "You catch a clause about unpaid overtime and negotiate it out.",
+    "fixed": true
+   },
+   {
+    "t": "Sign without reading",
+    "then": "It works out. Mostly.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "ev-law10",
+  "cat": "paper",
+  "built": false,
+  "title": "A court summons",
+  "text": "A white envelope: \"You are called as a witness in a case.\" Your hands are cold.",
+  "choices": [
+   {
+    "t": "Go and tell what you saw",
+    "then": "The judge is brisk, the lawyer polite. You are done in two hours.",
+    "fixed": true
+   },
+   {
+    "t": "Ignore the summons",
+    "then": "A second letter arrives, less friendly, with a fine.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "ev-law11",
+  "cat": "paper",
+  "built": false,
+  "title": "Recognition of a diploma",
+  "text": "Your diploma from home must be recognised in Russia before you can work in your profession.",
+  "choices": [
+   {
+    "t": "Submit it for recognition (₽5,000)",
+    "then": "Months later: \"Recognised.\" You are legal in your field.",
+    "fixed": true
+   },
+   {
+    "t": "Work in another field",
+    "then": "Safer, but less satisfying.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "ev-law12",
+  "cat": "paper",
+  "built": false,
+  "title": "Tax deduction for studies",
+  "text": "You can claim back part of what you paid for education through the tax service portal.",
+  "choices": [
+   {
+    "t": "File the form on the portal",
+    "then": "A month later ₽8,000 arrives on your card.",
+    "fixed": true
+   },
+   {
+    "t": "Skip the paperwork",
+    "then": "Free money stays unclaimed.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "ev-law14",
+  "cat": "paper",
+  "built": false,
+  "title": "Marriage name change",
+  "text": "After the wedding you decide to change your surname in all documents.",
+  "choices": [
+   {
+    "t": "Do the whole circuit: passport, bank, SNILS, driving licence",
+    "then": "Three weeks of queues. Then everything is aligned.",
+    "fixed": true
+   },
+   {
+    "t": "Keep your name",
+    "then": "Your partner nods. Simple.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "fine-notice-0",
+  "cat": "paper",
+  "built": false,
+  "title": "Fine: a speed camera",
+  "text": "A notification in the Gosuslugi app: your car was recorded doing 71 km/h in a 60 zone. The amount is ₽500. Paying within 20 days gets you a discount (a simplified rule in the game); ignoring it makes it grow.",
+  "choices": [
+   {
+    "t": "Pay it now with the early discount",
+    "then": "You pay ₽250 in the app at once. Receipt saved.",
+    "fixed": true
+   },
+   {
+    "t": "Deal with it later (use Online services → Pay fines)",
+    "then": "You leave it in the app. The clock ticks.",
+    "fixed": true
+   },
+   {
+    "t": "Ignore it",
+    "then": "You close the app. The amount stays in the system.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "fine-notice-1",
+  "cat": "paper",
+  "built": false,
+  "title": "Fine: a parking violation",
+  "text": "A photo of your car on a pavement, taken by a parking patrol car. A fine has been issued. The amount is ₽3,000. Paying within 20 days gets you a discount (a simplified rule in the game); ignoring it makes it grow.",
+  "choices": [
+   {
+    "t": "Pay it now with the early discount",
+    "then": "You pay ₽1,500 in the app at once. Receipt saved.",
+    "fixed": true
+   },
+   {
+    "t": "Deal with it later (use Online services → Pay fines)",
+    "then": "You leave it in the app. The clock ticks.",
+    "fixed": true
+   },
+   {
+    "t": "Ignore it",
+    "then": "You close the app. The amount stays in the system.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "fine-notice-2",
+  "cat": "paper",
+  "built": false,
+  "title": "Fine: a ticket inspector",
+  "text": "On the tram an inspector writes you a protocol for travelling without a valid ticket. The amount is ₽800. Paying within 20 days gets you a discount (a simplified rule in the game); ignoring it makes it grow.",
+  "choices": [
+   {
+    "t": "Pay it now with the early discount",
+    "then": "You pay ₽400 in the app at once. Receipt saved.",
+    "fixed": true
+   },
+   {
+    "t": "Deal with it later (use Online services → Pay fines)",
+    "then": "You leave it in the app. The clock ticks.",
+    "fixed": true
+   },
+   {
+    "t": "Ignore it",
+    "then": "You close the app. The amount stays in the system.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "fine-notice-3",
+  "cat": "paper",
+  "built": false,
+  "title": "Fine: litter on the pavement",
+  "text": "A police officer says you dropped a cigarette butt next to the bin and writes a protocol. The amount is ₽1,000. Paying within 20 days gets you a discount (a simplified rule in the game); ignoring it makes it grow.",
+  "choices": [
+   {
+    "t": "Pay it now with the early discount",
+    "then": "You pay ₽500 in the app at once. Receipt saved.",
+    "fixed": true
+   },
+   {
+    "t": "Deal with it later (use Online services → Pay fines)",
+    "then": "You leave it in the app. The clock ticks.",
+    "fixed": true
+   },
+   {
+    "t": "Ignore it",
+    "then": "You close the app. The amount stays in the system.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "fine-notice-4",
+  "cat": "paper",
+  "built": false,
+  "title": "Fine: a noisy party",
+  "text": "Neighbours called the police after 23:00. An officer arrives and issues a fine for noise. The amount is ₽2,000. Paying within 20 days gets you a discount (a simplified rule in the game); ignoring it makes it grow.",
+  "choices": [
+   {
+    "t": "Pay it now with the early discount",
+    "then": "You pay ₽1,000 in the app at once. Receipt saved.",
+    "fixed": true
+   },
+   {
+    "t": "Deal with it later (use Online services → Pay fines)",
+    "then": "You leave it in the app. The clock ticks.",
+    "fixed": true
+   },
+   {
+    "t": "Ignore it",
+    "then": "You close the app. The amount stays in the system.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "fine-notice-5",
+  "cat": "paper",
+  "built": false,
+  "title": "Fine: registration late",
+  "text": "A letter says you were late to submit a notice about your new address. The amount is ₽2,000. Paying within 20 days gets you a discount (a simplified rule in the game); ignoring it makes it grow.",
+  "choices": [
+   {
+    "t": "Pay it now with the early discount",
+    "then": "You pay ₽1,000 in the app at once. Receipt saved.",
+    "fixed": true
+   },
+   {
+    "t": "Deal with it later (use Online services → Pay fines)",
+    "then": "You leave it in the app. The clock ticks.",
+    "fixed": true
+   },
+   {
+    "t": "Ignore it",
+    "then": "You close the app. The amount stays in the system.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "fine-reminder",
+  "cat": "paper",
+  "built": false,
+  "title": "A reminder about your unpaid fines",
+  "text": "A message from the bailiffs' service: \"You have unpaid fines. After 60 days the amount doubles and enforcement begins.\"",
+  "choices": [
+   {
+    "t": "Open Online services and pay them",
+    "then": "You switch to the payment screen straight away.",
+    "fixed": true
+   },
+   {
+    "t": "Pay later",
+    "then": "You promise yourself.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "fine-enforcement",
+  "cat": "paper",
+  "built": false,
+  "title": "Bailiffs and a blocked card",
+  "text": "The bailiffs have taken the money for the fines (now doubled, with a minimum of ₽1,000) from your card, plus a fee. A note says: \"Debt closed. Please read your notifications.\" In real life a court can also choose up to 15 days of arrest or up to 50 hours of compulsory labour instead; the game uses the doubled fine.",
+  "choices": [
+   {
+    "t": "Sigh and move on",
+    "then": "It is an expensive lesson in paying on time.",
+    "fixed": true
+   }
+  ]
+ }
+]

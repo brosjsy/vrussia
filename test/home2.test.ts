@@ -14,6 +14,7 @@ describe('the home screen: layers, chat, messages, daily hunt, plus button', () 
       (document.getElementById('nextBtn') || document.querySelector<HTMLButtonElement>('#stage .choices button'))?.click();
     }
     expect(document.querySelector('#actions button')).toBeTruthy();
+    (window as unknown as { __state: () => { flags: Record<string, unknown> } | null }).__state()!.flags.sim = true;          // nobody has a number until they have bought a SIM card
 
     // achievements pill and the daily hunt card
     expect(document.getElementById('achPill')!.textContent).toMatch(/^🏆 \d+\/\d+$/);

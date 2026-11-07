@@ -229,7 +229,7 @@ body{zoom:var(--fs,1)}
 .msg{display:flex;gap:10px;align-items:flex-start;background:var(--card2);border-radius:14px;padding:10px 12px}
 .msgIcon{font-size:24px}.msg p{margin:2px 0 0;font-size:14px}.msg small{display:block;margin-top:2px;color:var(--warn);font-size:12px}
 .msg.urgent{border-left:4px solid var(--bad)}.msg.scam{border-left:4px solid var(--warn)}.msg.warm{border-left:4px solid var(--ok)}
-@media (max-width:760px){.moneyRow{justify-content:flex-start}.pcHead .ghost{padding:2px 6px}}
+@media (max-width:760px){.moneyRow{justify-content:flex-start;flex-wrap:wrap}.pcHead .ghost{padding:2px 6px}}
 
 /* ---------- round 84: the phone as a system ---------- */
 .phoneNum{font-size:14px;opacity:.95;margin:0 0 8px}
@@ -694,3 +694,68 @@ button.primary[disabled],button.secondary[disabled]{opacity:.45;filter:grayscale
 .realCard { background: #fff; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 8px 24px rgba(30, 36, 48, .18); }
 .realCard .row { display: flex; flex-wrap: wrap; gap: 6px; }
 .realSteps { margin: 0; background: #fff; border-radius: 16px; padding: 12px 12px 12px 30px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+/* the real city: city picker, address search, kind chips (round 154) */
+.realGo { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.realGo select, .realAddr input { min-height: 40px; border: 1px solid #c9d6e4; border-radius: 10px; padding: 0 10px; font: inherit; background: #fff; }
+.realAddr { display: flex; gap: 6px; flex: 1 1 260px; margin: 0; }
+.realAddr input { flex: 1; min-width: 0; }
+.realChip.on { background: #1f4fa8; color: #fff; }
+.realAsk { background: #fff7e0; border: 1px solid #e8c766; border-radius: 12px; padding: 10px 12px; font-size: 14px; }
+.realHits { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.realHits button { width: 100%; text-align: left; min-height: 44px; border: 0; border-radius: 12px; background: #fff; padding: 8px 12px; font: inherit; cursor: pointer; }
+.realChip.kind { background: #fff; color: #1f4fa8; border: 1px solid #1f4fa8; }
+.realChip.kind.on { background: #1f4fa8; color: #fff; }
+.realKinds summary { cursor: pointer; font-weight: 700; min-height: 36px; display: flex; align-items: center; }
+
+/* ---------- phone skins (src/phone-skins.ts): eight generic shapes, the screens inside are the same ---------- */
+.phone{position:relative}
+.phone.skin-notch{border-radius:38px;padding-top:30px}.phone.skin-notch::before{content:"";position:absolute;top:0;left:50%;width:42%;height:20px;transform:translateX(-50%);background:#0b0b12;border-radius:0 0 16px 16px}
+.phone.skin-island{border-radius:44px;padding-top:34px}.phone.skin-island::before{content:"";position:absolute;top:10px;left:50%;width:30%;height:16px;transform:translateX(-50%);background:#0b0b12;border-radius:999px}
+.phone.skin-punch{border-radius:30px;padding-top:28px}.phone.skin-punch::before{content:"";position:absolute;top:10px;left:50%;width:12px;height:12px;transform:translateX(-50%);background:#0b0b12;border-radius:50%}
+.phone.skin-compact{max-width:310px;border-radius:26px;font-size:.92em}
+.phone.skin-foldable{max-width:520px;border-radius:22px}.phone.skin-foldable::after{content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;background:#00000040;pointer-events:none}
+.phone.skin-budget{border-radius:18px;border:14px solid #15151d;border-bottom-width:34px;padding:10px 12px 14px}
+.phone.skin-keypad{max-width:300px;border-radius:14px;background:#8aa86a;color:#10200a;font-family:ui-monospace,Menlo,Consolas,monospace;border:10px solid #2b2d33;border-bottom-width:6px;padding:8px 10px 12px;box-shadow:var(--shadow)}
+.phone.skin-keypad .apps{display:flex;flex-direction:column;gap:2px}.phone.skin-keypad .app{flex-direction:row;justify-content:flex-start;gap:8px;padding:4px 6px;background:transparent;color:inherit;border-radius:0;border-bottom:1px dotted #10200a66}
+.phone.skin-keypad.sub{background:#8aa86a;color:#10200a;border-color:#2b2d33}.phone.skin-keypad.sub *{color:inherit}.phone.skin-keypad.sub button{background:#10200a14;border-radius:2px}
+.phone.skin-tablet{max-width:620px;border-radius:20px;border:8px solid #1b1b24;padding:20px 24px 26px}
+.phone.skin-tablet .apps{grid-template-columns:repeat(auto-fill,minmax(88px,1fr))}
+.phSkin{display:flex;gap:6px;align-items:center;justify-content:center;margin:6px 0;font-size:12px}.phSkin select{font:inherit;font-size:12px;border-radius:8px;padding:2px 6px;max-width:60%}
+.dial{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}.dial button{padding:10px;font-size:18px}
+.callBig{font-size:20px;text-align:center;margin:10px 0}.ringing{animation:ringPulse 1s infinite}@keyframes ringPulse{50%{opacity:.55}}
+@media (prefers-reduced-motion:reduce){.ringing{animation:none}}
+.ltPal{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.ltGrid{display:grid;gap:2px;margin:8px 0;max-width:420px}
+.ltCell{aspect-ratio:1;border:1px dashed var(--line);background:var(--card2);border-radius:4px;font-size:16px;padding:0;cursor:pointer;min-width:0}
+.ltCell.wall{background:#b5542e;border-style:solid}.ltCell.window{background:#9ed4f0}.ltCell.door{background:#7a4a24}.ltCell.floor{background:#e8c98a}.ltCell.counter,.ltCell.shelf{background:#d9a35c}.ltCell.sign{background:#f4e9a8}
+.ltCell:focus-visible{outline:3px solid var(--accent,#3a2cc9);outline-offset:1px}
+
+/* partner places (the phone's Partner services app) */
+.partnerList { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+.partner { border: 1px solid var(--line, #c9d6e4); border-radius: .6rem; padding: .6rem .7rem; }
+.partner h3 { margin: .1rem 0; font-size: 1rem; }
+.partner .adLabel { display: block; font-weight: 600; opacity: .8; }
+.partner .price { font-weight: 600; }
+.partner a { overflow-wrap: anywhere; }
+
+/* the phone's Extras app (interest test) */
+.xBanner { border-left: 4px solid var(--accent, #2f6fa8); padding: .4rem .6rem; background: rgba(47, 111, 168, .08); }
+.extraList { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+.extra { border: 1px solid var(--line, #c9d6e4); border-radius: .6rem; padding: .6rem .7rem; }
+.extra h3 { margin: .1rem 0; font-size: 1rem; }
+.extra .price { font-weight: 600; }
+
+/* a phone app that fills the modal on its own (Land & shop, Partner services, Extras) sits on a solid card, not on the transparent phone sheet */
+.modal.phoneMode #modalBody > .svc { background: var(--card); border-radius: 14px; padding: 12px; box-shadow: var(--shadow); }
+
+/* the number of waiting gifts and invitations on the Online buttons (src/ui.ts refreshInbox) */
+#onlineBtn[data-badge]::after, #onlineBtn2[data-badge]::after { content: attr(data-badge); display: inline-block; min-width: 1.3em; margin-left: .4em; padding: 0 .35em; border-radius: 1em; background: #c0392b; color: #fff; font-size: .8em; line-height: 1.4; text-align: center; }
+
+/* round 154: the choices never cover the player. A smaller panel, a button to hide it, and an even smaller one while the player walks to a place */
+.peekBtn{display:none}
+#game.immersive .peekBtn{display:block;position:fixed;left:8px;bottom:140px;z-index:6;margin:0;border-radius:999px;background:#fffffff0;color:#1e2235;border:0;box-shadow:0 4px 14px #00000026;padding:6px 12px;font-size:13px}
+#game.immersive main{max-height:30vh}
+#game.immersive.cinema main{max-height:17vh;opacity:.94}
+#game.immersive.cinema main #stage .recent,#game.immersive.cinema main #stage .notes{display:none}
+#game.immersive.peek main>#stage,#game.immersive.peek main>#actions{display:none}
+#game.immersive:not(.peek) main>#stage{background:color-mix(in srgb,var(--card) 90%,transparent)}
+@media (max-width:560px){#game.immersive main{max-height:26vh}#game.immersive .peekBtn{bottom:132px}}

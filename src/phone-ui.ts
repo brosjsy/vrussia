@@ -10,6 +10,7 @@ import { unpaid } from './housing';
 import { savingsOf, setGoal, move, budget } from './budget';
 import type { State } from './engine';
 import { flows } from './forms';
+import { flowText } from './flows-ru';
 import type { Flow } from './forms';
 import { contactsFor, phoneBlock, replyFor, chatBonus, callScript, transfer, canReceive, groupsFor, requestsFor, resolveRequest, TRANSFER_MAX } from './phone';
 import { play } from './sound';
@@ -21,6 +22,16 @@ import { dating, profilesFor, swipesLeft, swipe, compat, playerInterests, dateRe
 import type { Contact } from './phone';
 import { messagesFor } from './social';
 import { t, locale, lang } from './i18n';
+import { PhoneOnline } from './phone-online';
+import type { Text } from './phone-online';
+import { Call } from './calls';
+import { parseNumber, formatNumber } from './phonenumber';
+import { SKINS, skinOf, setSkin, applySkin, isSkin } from './phone-skins';
+import { partnersFor, active as activePartners, hidden as partnersHidden, setHidden as hidePartners } from './partners';
+import { PARTNERS } from './content/partners';
+import { extrasOpen } from './extras';
+
+let generation = 0;           // each time the phone opens, the earlier phone stops listening for calls and texts
 
 const esc = (x: string): string => String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
 const BANK_NAMES: Record<string, string> = { sber: 'Sber', vtb: 'VTB', tbank: 'T-Bank' };
@@ -32,7 +43,7 @@ export interface PhoneDeps {
   scenario?: (sc: import('./engine').Scenario) => void;
 }
 
-type Screen = { name: 'home' } | { name: 'games' } | { name: 'memory' } | { name: 'scramble' } | { name: 'dating' } | { name: 'datechat'; id: string } | { name: 'requests' } | { name: 'group'; id: string } | { name: 'messages' } | { name: 'updates' } | { name: 'chat'; id: string } | { name: 'contacts' } | { name: 'call'; id: string } | { name: 'bank' };
+type Screen = { name: 'home' } | { name: 'games' } | { name: 'memory' } | { name: 'scramble' } | { name: 'dating' } | { name: 'datechat'; id: string } | { name: 'requests' } | { name: 'group'; id: string } | { name: 'messages' } | { name: 'updates' } | { name: 'chat'; id: string } | { name: 'contacts' } | { name: 'call'; id: string } | { name: 'bank' } | { name: 'players' } | { name: 'ptext'; number: string } | { name: 'pcall' };
 
 export function openPhone(d: PhoneDeps): void {
   const { s, host } = d;
@@ -44,6 +55,35 @@ export function openPhone(d: PhoneDeps): void {
   let plays = 0;
   let flash = '';           // a short result line shown at the top of the current screen
   const block = (): string | null => phoneBlock(s);
+  const ru = (): boolean => lang() === 'ru';
+  const online = new PhoneOnline();
+  const mine = ++generation;
+  let inbox: Text[] = [];          // the texts between players, oldest first
+  let dialled = '';                // what was typed in the number box
+  let callNote = '';
+  const audio = typeof Audio === 'undefined' ? null : new Audio();
+  const call = new Call({ online, onRemote: st => { if (audio) { audio.srcObject = st; void audio.play().catch(() => undefined); } },
+    onState: (st, _who, note) => {
+      callNote = note;
+      if (st === 'ringing' || st === 'calling') { screen = { name: 'pcall' }; play('ring'); }
+      if (st === 'ended') { flash = note; if (screen.name === 'pcall') screen = { name: 'players' }; }
+      if (host.isConnected) draw();
+    } });
+  const alive = (): boolean => mine === generation && host.isConnected && !!host.closest('#modal') && !host.closest('[hidden]');
+  const listen = (): void => {
+    if (!online.available) return;
+    const tick = async (): Promise<void> => {
+      if (!alive()) { clearInterval(timer); return; }
+      if (block()) return;
+      await call.poll();
+      if (screen.name === 'ptext' || screen.name === 'players') {
+        const last = inbox.length ? Math.max(...inbox.map(x => x.id)) : 0;
+        const r = await online.texts(last);
+        if (r.ok && r.value.length) { inbox = [...inbox, ...r.value.filter(x => !inbox.some(y => y.id === x.id))].slice(-200); if (alive()) draw(); }
+      }
+    };
+    const timer = setInterval(() => { void tick(); }, 2500);
+  };
   const find = (id: string): Contact | undefined => contactsFor(s).find(c => c.id === id);
   const back = (title: string, to: Screen['name'] = 'home'): string => `<div class="phHead"><button class="ghost" data-go="${to}" aria-label="Back">‹ ${esc(t('phoneBack'))}</button><b>${esc(title)}</b></div>`;
   const note = (): string => { const f = flash; flash = ''; return f ? `<p class="phNote" role="status">${esc(f)}</p>` : ''; };
@@ -54,17 +94,18 @@ export function openPhone(d: PhoneDeps): void {
     const clock = ['08:30', '14:00', '19:30'][s.slot] || '12:00';
     const broken = s.phone <= 0;
     const why = block();
-    const apps = flows.map((f, i) => { const w = broken ? 'Your phone is broken.' : f.available(s); return `<button class="app ${w ? 'off' : ''}" data-flow="${i}" ${w ? `title="${esc(w)}" aria-disabled="true"` : ''}><span class="appIcon" aria-hidden="true">${f.icon}</span><span class="appName">${esc(f.title)}</span></button>`; });
+    const apps = flows.map((f, i) => { const w = broken ? 'Your phone is broken.' : f.available(s); return `<button class="app ${w ? 'off' : ''}" data-flow="${i}" ${w ? `title="${esc(w)}" aria-disabled="true"` : ''}><span class="appIcon" aria-hidden="true">${f.icon}</span><span class="appName">${esc(flowText(f).title)}</span></button>`; });
     const urgent = messagesFor(s).filter(m => m.tag === 'urgent').length + requestsFor(s).length;
     const sys: [string, string, string, boolean, number][] = [
-      ['💼', t('phoneJobs'), 'jobs', broken, 0], ['🏛️', t('svApp'), 'service', broken, 0], ['🚨', t('lwTitle'), 'law', false, 0], ['🧹', t('hlTitle'), 'household', broken, 0], ['🏙️', t('laTitle'), 'citylife', broken, 0], ['🍳', t('ckApp'), 'kitchen', broken, 0], ['🎓', t('phoneStudy'), 'study', broken, 0], ['🏘️', t('phoneHousing'), 'housing', broken, unpaid(s).length], ['🧺', t('phoneLife'), 'chores', broken, choresOf(s).clothes <= 15 ? 1 : 0], ['🚆', t('trTitle'), 'trains', broken, 0], ['🛍️', t('shopTitle'), 'shop', broken, 0], ['💬', t('phoneMessages'), 'messages', !!why, urgent], ['💘', t('phoneDating'), 'dating', broken, 0], ['🎮', t('phoneGames'), 'games', broken, 0], ['📞', t('phoneCalls'), 'phone', !!why, 0], ['🏦', t('phoneBank'), 'bank', broken, 0],
+      ['💼', t('phoneJobs'), 'jobs', broken, 0], ['🏛️', t('svApp'), 'service', broken, 0], ['🚨', t('lwTitle'), 'law', false, 0], ['🧹', t('hlTitle'), 'household', broken, 0], ['🏙️', t('laTitle'), 'citylife', broken, 0], ['🍳', t('ckApp'), 'kitchen', broken, 0], ['🎓', t('phoneStudy'), 'study', broken, 0], ['🏘️', t('phoneHousing'), 'housing', broken, unpaid(s).length], ['🧺', t('phoneLife'), 'chores', broken, choresOf(s).clothes <= 15 ? 1 : 0], ['🚆', t('trTitle'), 'trains', broken, 0], ['🛍️', t('shopTitle'), 'shop', broken, 0], ['💬', t('phoneMessages'), 'messages', !!why, urgent], ['💘', t('phoneDating'), 'dating', broken, 0], ['🎮', t('phoneGames'), 'games', broken, 0], ['📞', t('phoneCalls'), 'phone', !!why, 0], ['👥', ru() ? 'Игроки' : 'Players', 'players', !!why, 0], ['🏗️', ru() ? 'Земля и магазин' : 'Land & shop', 'land', broken, 0], ...(extrasOpen() ? [['⭐', ru() ? 'Дополнения' : 'Extras', 'extras', broken, 0] as [string, string, string, boolean, number]] : []), ...(!partnersHidden() && partnersFor(PARTNERS, s.city).length ? [['🤝', ru() ? 'Партнёры города' : 'Partner services', 'partners', broken, 0] as [string, string, string, boolean, number]] : []), ['🏦', t('phoneBank'), 'bank', broken, 0],
       ['✈️', t('phoneFlights'), 'flights', false, 0], ['📜', t('phoneJournal'), 'journal', false, 0], ['👤', t('phoneProfile'), 'profile', false, 0], ['🛡️', lang() === 'ru' ? 'Кибербезопасность' : 'Cyber safety', 'cyber', broken, 0], ['💡', t('phoneHelp'), 'help', false, 0],
     ];
     const seen = seenApps();
     const sysHtml = sys.map(([ic, name, id, off, badge]) => `<button class="app sys ${off ? 'off' : ''}" data-sys="${id}" ${off ? 'aria-disabled="true"' : ''}><span class="appIcon" aria-hidden="true">${ic}${badge ? `<i class="badge">${badge}</i>` : !seen.has(id) && !off ? `<i class="newTag">${esc(t('phoneNew'))}</i>` : ''}</span><span class="appName">${esc(name)}</span></button>`);
-    return `<div class="phone${phoneNight() ? ' night' : ''}" role="group" aria-label="${esc(t('phoneTitle'))}"><div class="phoneBar"><span>${clock}</span><span>${broken ? '✖ no phone' : why ? 'No SIM' : '4G ▮▮▮'}</span></div>
+    return `<div class="phone${phoneNight() ? ' night' : ''}" role="group" aria-label="${esc(t('phoneTitle'))}"><div class="phoneBar"><span>${clock}</span><span>${broken ? (ru() ? '✖ нет телефона' : '✖ no phone') : why ? (ru() ? 'Нет SIM' : 'No SIM') : '4G ▮▮▮'}</span></div>
       <div class="phoneClock">${clock}</div><div class="phoneDate">${esc(dt.toLocaleDateString(locale(), { weekday: 'long', day: 'numeric', month: 'long' }))} · ${esc(s.city)}</div>
       <div class="phoneNum">📱 ${esc(G.phoneOf(s).number)} <button type="button" class="nightBtn" id="phNight" aria-pressed="${phoneNight()}">🌙 ${esc(t('phoneNight'))}</button></div>${why ? `<p class="phWarn" role="alert">${esc(why)}</p>` : ''}${note()}
+      <label class="phSkin">${ru() ? 'Вид телефона' : 'Phone look'} <select id="phSkin" aria-label="${ru() ? 'Вид телефона' : 'Phone look'}">${SKINS.map(k => `<option value="${k.id}" ${k.id === skinOf() ? 'selected' : ''}>${esc(ru() ? k.ru : k.name)}</option>`).join('')}</select></label>${activePartners(PARTNERS).length ? `<label class="phSkin"><input type="checkbox" id="phPartners" ${partnersHidden() ? '' : 'checked'}> ${ru() ? 'Показывать партнёров города' : 'Show city partners'}</label>` : ''}
       <div class="apps">${[...apps, ...sysHtml].join('')}</div></div>`;
   };
 
@@ -141,6 +182,32 @@ export function openPhone(d: PhoneDeps): void {
       <h3>${esc(t('phoneHistory'))}</h3><ul class="txs">${tx || `<li class="hint">${esc(t('phoneNoHistory'))}</li>`}</ul></div>`;
   };
 
+  /* ----- players: the number, texts and calls between players (only inside the game) ----- */
+  const threads = (): { number: string; last: Text }[] => { const m = new Map<string, Text>(); for (const x of inbox) if (x.other) m.set(x.other, x); return [...m].map(([number, last]) => ({ number, last })).reverse(); };
+  const playersScreen = (): string => {
+    const why = block();
+    const help = ru() ? 'Звонки и сообщения работают только внутри игры. Номер можно ввести как угодно: +7 0123 4567-89-01.' : 'Calls and texts work only inside the game. Type a number any way you like: +7 0123 4567-89-01.';
+    const th = threads().map(x => `<li><button class="thread" data-ptext="${esc(x.number)}"><span class="msgIcon" aria-hidden="true">💬</span><div><b>${esc(x.number)}</b><small>${esc(x.last.body.slice(0, 40))}</small></div></button></li>`).join('');
+    return `<div class="phone sub">${back(ru() ? 'Игроки' : 'Players')}${note()}<p class="phoneNum">📱 ${esc(t('phoneMyNumber'))}: <b>${esc(G.phoneOf(s).number)}</b></p>${why ? `<p class="phWarn">${esc(why)}</p>` : ''}
+      ${online.available ? '' : `<p class="phWarn">${esc(ru() ? 'В этой копии игры нет онлайн-сервиса, поэтому звонки и сообщения игрокам недоступны.' : 'This copy of the game has no online service, so calls and texts to players are not available.')}</p>`}
+      <p class="hint">${esc(help)}</p>
+      <form class="chatForm" id="phDial"><input id="phDialNo" inputmode="tel" maxlength="24" autocomplete="off" value="${esc(dialled)}" placeholder="+7 0___ ____-__-__" aria-label="${ru() ? 'Номер' : 'Number'}"><button class="ghost" type="button" data-pdial="text" ${why ? 'disabled' : ''} aria-label="${ru() ? 'Написать' : 'Text'}">💬</button><button class="primary" type="button" data-pdial="call" ${why ? 'disabled' : ''} aria-label="${ru() ? 'Позвонить' : 'Call'}">📞</button></form>
+      ${th ? `<h3>${ru() ? 'Сообщения' : 'Texts'}</h3><ul class="msgs">${th}</ul>` : ''}
+      <button class="ghost" data-perase="1">${ru() ? 'Стереть мои сообщения на сервере' : 'Erase my texts on the server'}</button><p class="hint">${ru() ? 'Держите телефон открытым, чтобы принимать звонки. Микрофон включается только когда вы звоните или отвечаете; звук нигде не записывается.' : 'Keep the phone open to receive calls. The microphone is switched on only when you place a call or answer; no sound is ever recorded.'}</p></div>`;
+  };
+  const ptextScreen = (number: string): string => {
+    const list = inbox.filter(x => x.other === number);
+    return `<div class="phone sub">${back(number, 'players')}${note()}<ul class="bubbles" aria-live="polite">${list.length ? list.map(m => `<li class="b ${m.mine ? 'me' : 'them'}">${esc(m.body)}${m.mine ? '' : ` <button class="ghost" data-preport="${m.id}" aria-label="Report">⚑</button>`}</li>`).join('') : `<li class="hint">${esc(t('phoneNoChat'))}</li>`}</ul>
+      <form class="chatForm" id="phPForm"><input id="phPInput" maxlength="160" autocomplete="off" placeholder="${esc(t('phoneType'))}" aria-label="${esc(t('phoneType'))}"><button class="primary" type="submit">${esc(t('chatSend'))}</button></form>
+      <div class="cBtns"><button data-pcallto="${esc(number)}" aria-label="${ru() ? 'Позвонить' : 'Call'}">📞</button><button class="ghost" data-pblock="${esc(number)}">🚫 ${esc(t('phoneBlock'))}</button></div></div>`;
+  };
+  const pcallScreen = (): string => {
+    const st = call.state;
+    const label = st === 'ringing' ? (ru() ? 'Входящий звонок' : 'Incoming call') : st === 'calling' ? (ru() ? 'Вызов…' : 'Calling…') : (ru() ? 'Разговор' : 'On the call');
+    return `<div class="phone sub callScr"><div class="callWho"><span class="appIcon ${st === 'connected' ? '' : 'ringing'}" aria-hidden="true">📞</span><b>${esc(call.who)}</b></div><p class="callBig" role="status">${esc(label)}</p>${callNote ? `<p class="hint">${esc(callNote)}</p>` : ''}
+      <div class="cBtns">${st === 'ringing' ? `<button class="primary" data-cans="1">${ru() ? 'Ответить' : 'Answer'}</button><button class="ghost" data-cdec="1">${ru() ? 'Отклонить' : 'Decline'}</button>` : `<button class="ghost" data-cmute="1" aria-pressed="false">🎙️ ${ru() ? 'Без звука' : 'Mute'}</button><button class="primary" data-chang="1">${esc(t('phoneHangUp'))}</button>`}</div></div>`;
+  };
+
   /* ----- games ----- */
   const gamesScreen = (): string => `<div class="phone sub">${back(t('phoneGames'))}${note()}<ul class="msgs">
     <li><button class="thread" data-go="memory"><span class="msgIcon" aria-hidden="true">🃏</span><div><b>${esc(t('gameMemory'))}</b><small>${esc(t('gameMemoryHint'))}</small></div></button></li>
@@ -193,7 +260,8 @@ export function openPhone(d: PhoneDeps): void {
   /* ----- drawing and wiring ----- */
   const draw = (): void => {
     host.innerHTML = screen.name === 'home' ? home() : screen.name === 'messages' ? messagesScreen() : screen.name === 'games' ? gamesScreen() : screen.name === 'memory' ? memoryScreen() : screen.name === 'scramble' ? scrambleScreen() : screen.name === 'dating' ? datingScreen() : screen.name === 'datechat' ? dateChatScreen(screen.id) : screen.name === 'updates' ? updatesScreen() : screen.name === 'requests' ? requestsScreen() : screen.name === 'group' ? groupScreen(screen.id)
-      : screen.name === 'chat' ? chatScreen(screen.id) : screen.name === 'contacts' ? contactsScreen() : screen.name === 'call' ? callScreen(screen.id) : bankScreen();
+      : screen.name === 'chat' ? chatScreen(screen.id) : screen.name === 'contacts' ? contactsScreen() : screen.name === 'call' ? callScreen(screen.id) : screen.name === 'players' ? playersScreen() : screen.name === 'ptext' ? ptextScreen(screen.number) : screen.name === 'pcall' ? pcallScreen() : bankScreen();
+    applySkin(host.querySelector('.phone'), skinOf());
     wire();
   };
   const go = (next: Screen): void => { screen = next; draw(); };
@@ -217,6 +285,42 @@ export function openPhone(d: PhoneDeps): void {
         d.close(); d.startFlow(f);
       };
     });
+    const pc = host.querySelector<HTMLInputElement>('#phPartners'); if (pc) pc.onchange = () => { hidePartners(!pc.checked); draw(); };
+    const sk = host.querySelector<HTMLSelectElement>('#phSkin'); if (sk) sk.onchange = () => { if (isSkin(sk.value)) { setSkin(sk.value); applySkin(host.querySelector('.phone'), sk.value); } };
+    host.querySelectorAll<HTMLButtonElement>('button[data-pdial]').forEach(b => {
+      b.onclick = () => {
+        const raw = (host.querySelector('#phDialNo') as HTMLInputElement).value; dialled = raw;
+        const n = parseNumber(raw);
+        if (!n) { flash = ru() ? 'Это не номер игры: +7, затем 0 и ещё 11 цифр (последняя проверочная).' : 'That is not a number of the game: +7, then 0, then 11 more digits (the last is a check digit).'; play('error'); return draw(); }
+        const num = formatNumber(n);
+        if (b.dataset.pdial === 'text') go({ name: 'ptext', number: num }); else { void call.place(num); }
+      };
+    });
+    host.querySelectorAll<HTMLButtonElement>('button[data-ptext]').forEach(b => { b.onclick = () => go({ name: 'ptext', number: b.dataset.ptext as string }); });
+    host.querySelectorAll<HTMLButtonElement>('button[data-pcallto]').forEach(b => { b.onclick = () => { void call.place(b.dataset.pcallto as string); }; });
+    host.querySelectorAll<HTMLButtonElement>('button[data-pblock]').forEach(b => { b.onclick = () => { void online.block(b.dataset.pblock as string).then(r => { flash = r.ok ? (ru() ? 'Номер заблокирован.' : 'Number blocked.') : r.why; screen = { name: 'players' }; draw(); }); }; });
+    host.querySelectorAll<HTMLButtonElement>('button[data-preport]').forEach(b => { b.onclick = () => { void online.report(Number(b.dataset.preport)).then(r => { flash = r.ok ? (ru() ? 'Жалоба отправлена.' : 'Report sent.') : r.why; draw(); }); }; });
+    host.querySelectorAll<HTMLButtonElement>('button[data-perase]').forEach(b => { b.onclick = () => { void online.erase().then(r => { if (r.ok) inbox = []; flash = r.ok ? (ru() ? 'Сообщения стёрты на сервере.' : 'Your texts are erased on the server.') : r.why; draw(); }); }; });
+    const pf = host.querySelector<HTMLFormElement>('#phPForm');
+    if (pf && screen.name === 'ptext') {
+      const num = screen.number;
+      pf.onsubmit = (e: Event) => {
+        e.preventDefault();
+        const input = host.querySelector('#phPInput') as HTMLInputElement, text = input.value;
+        if (!text.trim()) return;
+        void online.send(num, text).then(async r => {
+          if (!r.ok) { flash = r.why; play('error'); return draw(); }
+          play('pop');
+          const got = await online.texts(inbox.length ? Math.max(...inbox.map(x => x.id)) : 0);
+          if (got.ok) inbox = [...inbox, ...got.value.filter(x => !inbox.some(y => y.id === x.id))].slice(-200);
+          draw(); host.querySelector<HTMLInputElement>('#phPInput')?.focus();
+        });
+      };
+    }
+    host.querySelectorAll<HTMLButtonElement>('button[data-cans]').forEach(b => { b.onclick = () => { void call.answer(); }; });
+    host.querySelectorAll<HTMLButtonElement>('button[data-cdec]').forEach(b => { b.onclick = () => call.decline(); });
+    host.querySelectorAll<HTMLButtonElement>('button[data-chang]').forEach(b => { b.onclick = () => call.hangUp(); });
+    host.querySelectorAll<HTMLButtonElement>('button[data-cmute]').forEach(b => { b.onclick = () => { const on = b.getAttribute('aria-pressed') !== 'true'; call.mute(on); b.setAttribute('aria-pressed', String(on)); }; });
     const nb = host.querySelector<HTMLButtonElement>('#phNight'); if (nb) nb.onclick = () => { setPhoneNight(!phoneNight()); draw(); };
     host.querySelectorAll<HTMLButtonElement>('button[data-sys]').forEach(b => {
       b.onclick = () => {
@@ -228,11 +332,15 @@ export function openPhone(d: PhoneDeps): void {
         else if (id === 'messages') go({ name: 'messages' });
         else if (id === 'phone') go({ name: 'contacts' });
         else if (id === 'bank') go({ name: 'bank' });
+        else if (id === 'players') { go({ name: 'players' }); void online.number().then(r => { if (r.ok && G.phoneOf(s).number !== r.value) { G.phoneOf(s).number = r.value; G.save(s); if (alive()) draw(); } }); }
         else if (id === 'study' || id === 'housing' || id === 'chores' || id === 'trains') (id === 'study' ? openStudy : id === 'housing' ? openHousing : id === 'chores' ? openChores : openTrains)(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, scenario: sc => { d.close(); d.scenario?.(sc); } });
         else if (id === 'kitchen') void import('./cook-ui').then(m => m.openCook(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, notify: m2 => { flash = m2; } }));
         else if (id === 'citylife') void import('./lifeacts-ui').then(m => m.openLife(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, notify: m2 => { flash = m2; } }));
         else if (id === 'household') void import('./homelife-ui').then(m => m.openHomeLife(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, notify: m2 => { flash = m2; } }));
         else if (id === 'law') void import('./law-ui').then(m => m.openLaw(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, notify: m2 => { flash = m2; } }));
+        else if (id === 'extras') void import('./extras-ui').then(m => m.openExtras(host, { back: () => go({ name: 'home' }) }));
+        else if (id === 'partners') void import('./partners-ui').then(m => m.openPartners(host, s, { back: () => go({ name: 'home' }) }));
+        else if (id === 'land') void import('./land-ui').then(m => m.openLand(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, notify: m2 => { flash = m2; } }));
         else if (id === 'cyber') void import('./cyber-ui').then(m => m.openCyber(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, notify: m2 => { flash = m2; } }));
         else if (id === 'service') void import('./service-ui').then(m => m.openService(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, notify: m2 => { flash = m2; } }));
         else if (id === 'jobs') openJobs(host, s, { back: () => go({ name: 'home' }), refresh: d.refresh, notify: m => { flash = m; } });
@@ -380,4 +488,5 @@ export function openPhone(d: PhoneDeps): void {
 
   d.show();
   draw();
+  listen();
 }

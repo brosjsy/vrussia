@@ -51,6 +51,8 @@ const Schema = z.object({
   RATE_AUTH_PER_MIN: z.coerce.number().int().min(1).default(10),
   /** Log-in attempts for one e-mail address in 15 minutes, from anywhere. */
   LOGIN_PER_EMAIL: z.coerce.number().int().min(1).default(10),
+  /** E-mail addresses (comma separated) of the people who may use /api/admin/*: usage numbers, feature flags, announcements. Empty: nobody. */
+  ADMIN_EMAILS: z.string().default('').transform(v => v.split(',').map(s => s.trim().toLowerCase()).filter(Boolean)),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
 });
 export type Config = z.infer<typeof Schema>;

@@ -6,6 +6,7 @@ import * as C from './cook';
 import { ING, CUISINES, TYPES } from './cook-data';
 import { dishSvg } from './cook-art';
 import { lang } from './i18n';
+import { play } from './sound';
 import { checkAchievements } from './engine';
 import { homeOf, washDishes } from './homelife';
 /** The Russian texts, loaded with the Kitchen (their own small download). */
@@ -140,8 +141,8 @@ export function wireCook(host: HTMLElement, s: State, d: { notify: (m: string) =
     else if (act === 'pick') view.picked = view.picked.includes(arg) ? view.picked.filter(k => k !== arg) : [...view.picked, arg];
     else if (act === 'start') { view.stage = 'q'; view.qi = 0; }
     else if (act === 'hint') { view.hint = true; if (C.cookOf(s).freeHint) { C.cookOf(s).freeHint = false; view.freeHint = true; } }
-    else if (act === 'ans') { const qq = view.ch!.questions[view.qi], o = qq.options[Number(arg)]; view.answers.push({ qi: view.qi, chosen: Number(arg), hint: view.hint && !view.freeHint }); view.freeHint = false; const bad = qq.options.find(x => !x.ok); view.fb = { ok: o.ok, why: o.ok ? (bad?.why ? `${w('avoid')}: ${T(bad.t).toLowerCase()}. ${T(bad.why)}` : '') : T(o.why ?? '') }; }
-    else if (act === 'next') { view.fb = undefined; view.hint = false; if (view.qi + 1 < view.ch!.questions.length) view.qi++; else { view.out = C.cook(s, view.ch!, view.picked, view.answers); view.stage = 'done'; const dish = view.ch!.dish.id, out = view.out;
+    else if (act === 'ans') { const qq = view.ch!.questions[view.qi], o = qq.options[Number(arg)]; view.answers.push({ qi: view.qi, chosen: Number(arg), hint: view.hint && !view.freeHint }); view.freeHint = false; const bad = qq.options.find(x => !x.ok); play(o.ok ? 'pop' : 'bad'); view.fb = { ok: o.ok, why: o.ok ? (bad?.why ? `${w('avoid')}: ${T(bad.t).toLowerCase()}. ${T(bad.why)}` : '') : T(o.why ?? '') }; }
+    else if (act === 'next') { view.fb = undefined; view.hint = false; if (view.qi + 1 < view.ch!.questions.length) view.qi++; else { view.out = C.cook(s, view.ch!, view.picked, view.answers); view.stage = 'done'; play(view.out.ok ? 'chime' : 'bad'); const dish = view.ch!.dish.id, out = view.out;
       void import('./cook-online').then(m => m.sendIfToday(dish, out)).then(msg => { if (msg) { d.notify(msg); d.again(); } }).catch(() => { /* offline */ }); } }
     for (const a of checkAchievements(s)) d.notify(`🏆 ${a.title}: ${a.text}`);
     d.again();

@@ -2,9 +2,11 @@
    Pure drawing helpers and text builders live here; the wiring (what happens on a click) stays in ui.ts.
    Layout idea only: no artwork, text or code of any other game is used. */
 import * as G from './engine';
-import { placeL, checkL, firstMonthL, huntL } from './i18n-words';
+import { placeL, checkL, firstMonthL, huntL, sceneRu } from './i18n-words';
 import type { State } from './engine';
 import { dreamOf } from './dreams';
+import { goalsFor, isDone as goalDone, progress as goalProgress } from './dailygoals';
+import { lang } from './i18n';
 import { bodyInSvg } from './figure';
 import { ROLE_PLACES, ROLES, bodyGroup, lookFromSeed, normalizeLook, seedGroup, wornFor } from './avatar';
 import type { RoleId } from './avatar';
@@ -173,29 +175,38 @@ const HOLIDAYS: Record<string, string> = {
   cal_russiaday: 'Russia Day (12 June)', cal_ege: 'Exam season', cal_admission: 'University admission campaign',
 };
 
+const HOLIDAYS_RU: Record<string, string> = {
+  cal_sept1: 'День знаний (1 сентября)', cal_unity: 'День народного единства (4 ноября)', cal_newyear: 'Новый год (31 декабря)', cal_christmas: 'Рождество (7 января)',
+  cal_feb23: 'День защитника Отечества (23 февраля)', cal_mar8: 'Международный женский день (8 марта)', cal_navruz: 'Навруз (21 марта)', cal_victory: 'День Победы (9 мая)',
+  cal_russiaday: 'День России (12 июня)', cal_ege: 'Пора экзаменов', cal_admission: 'Приёмная кампания в вузы',
+};
+
 /** A holiday's name: from the list above, else the title of its calendar scene (round 150: "cal_constitution" was shown as it is). */
-const holidayName = (id: string): string => HOLIDAYS[id] || G.scenarios.find(x => x.id === id)?.title || id.replace(/^cal_/, '').replace(/_/g, ' ');
+const holidayName = (id: string, ru = false): string => (ru ? HOLIDAYS_RU[id] || sceneRu(id)?.title : undefined) || HOLIDAYS[id] || G.scenarios.find(x => x.id === id)?.title || id.replace(/^cal_/, '').replace(/_/g, ' ');
 /** Short "this week" lines for the ticker. There is always at least one. Facts here were checked earlier in the project (see docs/ITERATION_REPORT.md). */
-export function newsItems(s: State): string[] {
+/** The news ticker's lines (English for the billboards, which look for their start; Russian when `ru`). */
+export function newsItems(s: State, ru = false): string[] {
   const out: string[] = [];
+  const n = (en: string, r: string): string => (ru ? r : en);
+  const days = (d: number): string => (d % 10 === 1 && d % 100 !== 11 ? 'день' : d % 10 >= 2 && d % 10 <= 4 && (d % 100 < 12 || d % 100 > 14) ? 'дня' : 'дней');
   const now = G.dateOf(s);
   for (const c of G.CAL) {
     for (let d = 0; d <= 10; d++) {
       const t = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d);
-      if (t.getMonth() + 1 === c.m && t.getDate() === c.d) { const name = holidayName(c.id); out.push(d === 0 ? `Today: ${name}` : `In ${d} day${d > 1 ? 's' : ''}: ${name}`); break; }
+      if (t.getMonth() + 1 === c.m && t.getDate() === c.d) { const name = holidayName(c.id, ru); out.push(ru ? (d === 0 ? `Сегодня: ${name}` : `Через ${d} ${days(d)}: ${name}`) : d === 0 ? `Today: ${name}` : `In ${d} day${d > 1 ? 's' : ''}: ${name}`); break; }
     }
   }
   if (s.status !== 'citizen') {
-    if (s.docs.reg > 0 && s.docs.reg < 10) out.push(`Your registration runs out in ${Math.round(s.docs.reg)} days`);
-    if (s.status === 'migrant' && s.docs.patent > 0 && s.docs.patent < 10) out.push(`Your patent runs out in ${Math.round(s.docs.patent)} days`);
+    if (s.docs.reg > 0 && s.docs.reg < 10) out.push(n(`Your registration runs out in ${Math.round(s.docs.reg)} days`, `Ваша регистрация закончится через ${Math.round(s.docs.reg)} ${days(Math.round(s.docs.reg))}`));
+    if (s.status === 'migrant' && s.docs.patent > 0 && s.docs.patent < 10) out.push(n(`Your patent runs out in ${Math.round(s.docs.patent)} days`, `Ваш патент закончится через ${Math.round(s.docs.patent)} ${days(Math.round(s.docs.patent))}`));
   }
-  if (Number(s.tmp.fines) > 0) out.push(`Unpaid fines: ${G.money(Number(s.tmp.fines))}. Paying early costs less`);
-  if (Number(s.tmp.debt) > 0) out.push(`Loan balance: ${G.money(Number(s.tmp.debt))}`);
-  if (s.booking && !s.booking.done) out.push(`Your flight leaves in ${Math.max(0, s.booking.dep - s.day)} days`);
-  if (now.getDay() >= 4 && s.rent > 0) out.push('Rent is due on Saturday');
-  if (s.weather === 'snow' || s.weather === 'frost') out.push('Cold weather: wear a coat and check the map before you go out');
-  out.push('Emergency: 112 is free from any phone');
-  if (s.status !== 'citizen') out.push('State duties from 26 July 2026: residence permit 15,000, VNZh 30,000, citizenship 50,000');
+  if (Number(s.tmp.fines) > 0) out.push(n(`Unpaid fines: ${G.money(Number(s.tmp.fines))}. Paying early costs less`, `Неоплаченные штрафы: ${G.money(Number(s.tmp.fines))}. Если заплатить раньше, выйдет дешевле`));
+  if (Number(s.tmp.debt) > 0) out.push(n(`Loan balance: ${G.money(Number(s.tmp.debt))}`, `Остаток по кредиту: ${G.money(Number(s.tmp.debt))}`));
+  if (s.booking && !s.booking.done) out.push(n(`Your flight leaves in ${Math.max(0, s.booking.dep - s.day)} days`, `Ваш рейс вылетает через ${Math.max(0, s.booking.dep - s.day)} ${days(Math.max(0, s.booking.dep - s.day))}`));
+  if (now.getDay() >= 4 && s.rent > 0) out.push(n('Rent is due on Saturday', 'Аренду нужно заплатить в субботу'));
+  if (s.weather === 'snow' || s.weather === 'frost') out.push(n('Cold weather: wear a coat and check the map before you go out', 'Холодно: наденьте пальто и посмотрите карту перед выходом'));
+  out.push(n('Emergency: 112 is free from any phone', 'Экстренная помощь: 112 бесплатно с любого телефона'));
+  if (s.status !== 'citizen') out.push(n('State duties from 26 July 2026: residence permit 15,000, VNZh 30,000, citizenship 50,000', 'Госпошлины с 26 июля 2026: РВП 15 000, ВНЖ 30 000, гражданство 50 000'));
   return out;
 }
 
@@ -211,8 +222,11 @@ export function quests(s: State): Quest[] {
   const daily: Quest = G.dailyDone(s)
     ? { icon: '🧸', title: 'Matryoshka found today', sub: `${G.dailyFound(s)} found · big prize in ${G.dailyToPrize(s)} more`, progress: 1 - G.dailyToPrize(s) / G.DAILY_PRIZE_EVERY }
     : { icon: '🧸', ...huntL(G.placeById(G.dailySpot(s)).n, G.dailyFound(s), G.money(G.DAILY_BIG_PRIZE), G.dailyToPrize(s)), progress: 1 - G.dailyToPrize(s) / G.DAILY_PRIZE_EVERY };
-  // the first to-do, the daily hunt, then one more to-do
-  return [todo[0], daily, todo[1]].filter((x): x is Quest => !!x);
+  // today's own goal: the first of the day's three that is not met yet, with its progress
+  const g = goalsFor(s).find(x => !goalDone(s, x)), ru = lang() === 'ru';
+  const goalQ: Quest | null = g ? { icon: g.icon, title: ru ? g.ru : g.en, sub: `${ru ? 'Цель дня' : "Today's goal"} · ${goalProgress(s, g)}/${g.need}`, progress: goalProgress(s, g) / g.need } : null;
+  // the first to-do, the daily hunt, then today's goal (or one more to-do)
+  return [todo[0], daily, goalQ ?? todo[1]].filter((x): x is Quest => !!x);
 }
 
 /** The actions that fit the place where the player stands. */

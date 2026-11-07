@@ -121,7 +121,7 @@ describe('challenges with other players, from the Online screen (round 124)', ()
     const host = document.body.appendChild(document.createElement('div')); const notes: string[] = [];
     const stop = mountOnline(host, { cloud: api, state: () => s, notify: m => notes.push(m), onLoad: () => undefined });
     host.querySelector<HTMLButtonElement>('[data-tab="challenges"]')!.click(); await new Promise(r => setTimeout(r, 500));
-    expect(host.querySelectorAll('.chlChapter')).toHaveLength(8);
+    expect(host.querySelectorAll('.chlChapter')).toHaveLength(12);
     expect(host.querySelector('.chlHead[aria-expanded="true"]')!.textContent).toContain('Hello, neighbours');
     const take = host.querySelector<HTMLButtonElement>('[data-claim="first_hello"]')!; expect(take.textContent).toContain('300');
     take.click(); await new Promise(r => setTimeout(r, 500));

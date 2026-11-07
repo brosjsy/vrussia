@@ -42,9 +42,12 @@ export const directRoom = (a: string, b: string): string => `direct:${a < b ? a 
 export function explain(raw: string): string {
   const t = raw.toLowerCase();
   const table: [RegExp, string][] = [
-    [/username taken|profiles_username_key/, 'That name is taken. Choose another.'], [/bad username/, 'A name has 3 to 20 small letters, digits or underscores.'],
+    [/^name taken$/, 'A crew with that name already exists.'], [/username taken|profiles_username_key/, 'That name is taken. Choose another.'], [/bad username/, 'A name has 3 to 20 small letters, digits or underscores.'],
     [/invalid login credentials/, 'Wrong e-mail or password.'], [/already registered|already been registered/, 'This e-mail already has an account. Log in instead.'],
     [/email not confirmed/, 'Confirm your e-mail first: open the link we sent you.'], [/password should be at least|weak password/, 'The password is too short.'],
+    [/already in a crew/, 'You are in a crew already (or the other player is). Leave first.'], [/not in a crew/, 'You are not in a crew yet.'], [/not friends/, 'Only friends who follow each other can be invited.'], [/crew is full/, 'A crew has room for 12 players.'], [/already invited/, 'That player has an invitation already.'], [/no such invitation/, 'That invitation is gone.'], [/not the owner/, 'Only the owner of the crew can do that.'], [/not your crew/, 'That crew chat is for its members.'], [/no such player/, 'There is no such player.'],
+    [/already in a flat/, 'You live in a shared flat already (or the other player does). Leave first.'], [/not in a flat/, 'You are not in a shared flat yet.'], [/flat is full/, 'A shared flat has room for 4 players.'], [/chore done today/, 'You have done your chore today. Come back tomorrow.'],
+    [/no such gift/, 'That gift is gone: it was taken already.'],
     [/slow down/, 'You are writing too fast. Wait a little.'], [/adults/, 'Chat is only for players who are 18 or older.'], [/blocked/, 'This player does not accept messages from you.'],
     [/language/, 'Please keep it polite: that word is not allowed.'], [/your own home/, 'That is your own home.'], [/no such home/, 'This player has not shown their home yet.'], [/too many notes/, 'Enough notes for today.'],
     [/contact details/, 'No phone numbers or messenger names: players answer through the private chat of the game.'], [/bad price/, 'The price cannot be below zero.'], [/too many ads/, 'You have enough ads up for now. Take one down or wait.'], [/daily limit/, 'That is enough messages for today.'],
@@ -239,7 +242,7 @@ export class Cloud {
 }
 
 /** What the Online screen and the automatic save need from an online client: the game's own server (ApiCloud, api-client.ts) or Supabase (Cloud). */
-export type OnlineClient = { [K in keyof Cloud]: Cloud[K] } & Partial<Pick<ApiCloud, 'restore' | 'verifyEmail' | 'resendVerification' | 'forgot' | 'resetPassword' | 'changePassword' | 'endOtherSessions' | 'myAds' | 'myHomeVote' | 'challenges' | 'claimChallenge' | 'joinCity' | 'coops' | 'coopInvite' | 'coopAnswer' | 'coopDone' | 'blocks' | 'unblock' | 'setOrigin' | 'adverts' | 'myAdverts' | 'mountAdvert' | 'removeAdvert' | 'reportAdvert' | 'cookToday' | 'sendCookScore'>>;
+export type OnlineClient = { [K in keyof Cloud]: Cloud[K] } & Partial<Pick<ApiCloud, 'topCrews' | 'sendGift' | 'myGifts' | 'claimGift' | 'inbox' | 'myFlat' | 'createFlat' | 'inviteToFlat' | 'answerFlatInvite' | 'leaveFlat' | 'doChore' | 'myCrew' | 'createCrew' | 'inviteToCrew' | 'answerCrewInvite' | 'leaveCrew' | 'kickFromCrew' | 'live' | 'restore' | 'verifyEmail' | 'resendVerification' | 'forgot' | 'resetPassword' | 'changePassword' | 'endOtherSessions' | 'myAds' | 'myHomeVote' | 'challenges' | 'claimChallenge' | 'joinCity' | 'coops' | 'coopInvite' | 'coopAnswer' | 'coopDone' | 'blocks' | 'unblock' | 'setOrigin' | 'adverts' | 'myAdverts' | 'mountAdvert' | 'removeAdvert' | 'reportAdvert' | 'cookToday' | 'sendCookScore'>>;
 
 let shared: OnlineClient | null | undefined;
 /** The one connection of the page: the game's own server when built with VITE_API_URL, else Supabase (being retired), else null (offline). */

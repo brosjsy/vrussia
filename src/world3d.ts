@@ -208,27 +208,38 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
     const storey = facade === 'stalinka' ? 3.4 : facade === 'prerev' ? 3.8 : facade === 'wooden' ? 3.2 : 2.8, h = Math.max(4.5, floors * storey);
     return { facade, h, wall: HOME_WALL[b], floor: Math.min(a.floor, floors), floors, key: dwellingOf(s) + '|' + s.city, plate: plateOf(a, lang() === 'ru') };
   };
+  const PLACE_FACADE: Record<string, Facade> = { station: 'stalinka', mfc: 'panel9', guvm: 'panel9', uni: 'stalinka', market: 'prerev', clinic: 'panel9', work: 'panel16', bank: 'stalinka', center: 'stalinka', mall: 'newbuild', airport: 'newbuild', dealer: 'newbuild', agency: 'prerev', hospital: 'panel16', shelter: 'khrush' };
+  const PLACE_WALL: Record<string, string> = { station: '#d8c8a0', mfc: '#d0d0ca', guvm: '#cfc8b8', uni: '#e6d4a8', market: '#e0c896', clinic: '#d8d8d2', work: '#c8c8c8', bank: '#e0d8b8', center: '#e8d6a4', mall: '#d8dce6', airport: '#d5dde6', dealer: '#d5dde6', agency: '#e0c890', hospital: '#d8d8d2', shelter: '#d4b49a' };
   for (const p of G.PLACES) {
     const look = PLACE_LOOK[p.id] ?? { icon: '📍', color: '#6b7bd6', h: 8, flavour: '' };
     const hl = p.id === 'home' ? homeLook(d.s) : null;
+    const pf = !hl && PLACE_FACADE[p.id] ? PLACE_FACADE[p.id] : null;
     const c = toWorld(p), h = hl ? hl.h : look.h * 0.75 + 3;
     const g = new THREE.Group(); g.position.set(c.x, 0, c.z); g.userData.place = p.id;
-    const wallMat = track(new THREE.MeshStandardMaterial({ color: hl ? hl.wall : shade(look.color, 70), roughness: 0.9, map: hl ? undefined : winTex ?? undefined }));
+    const wallColor = hl ? hl.wall : pf ? PLACE_WALL[p.id] ?? shade(look.color, 70) : shade(look.color, 70);
+    const wallMat = track(new THREE.MeshStandardMaterial({ color: wallColor, roughness: 0.9, map: (hl || pf) ? undefined : winTex ?? undefined }));
     if (hl) g.userData.facade = paintFacade(wallMat, { facade: hl.facade, top: h });
-    if (winTex) { /* the window pattern repeats once per storey */ }
+    else if (pf) g.userData.facade = paintFacade(wallMat, { facade: pf, top: h });
     const roofMat = track(new THREE.MeshStandardMaterial({ color: look.color, roughness: 0.8 }));
     const bodyGeo = track(new THREE.BoxGeometry(10, h, 10));
     const body = new THREE.Mesh(bodyGeo, [wallMat, wallMat, roofMat, roofMat, wallMat, wallMat]); body.position.y = h / 2; body.castShadow = true; body.receiveShadow = true; body.userData.place = p.id; g.add(body);
-    const slab = new THREE.Mesh(track(new THREE.BoxGeometry(11, 0.6, 11)), roofMat); slab.position.y = h + 0.35; slab.castShadow = true; slab.userData.place = p.id; g.add(slab);
+    const lowBuilding = h < 12 && p.id !== 'airport' && p.id !== 'station';
+    if (lowBuilding) {
+      const roof = new THREE.Mesh(track(new THREE.ConeGeometry(7.6, 2.8, 4)), roofMat); roof.position.y = h + 1.4; roof.rotation.y = Math.PI / 4; roof.castShadow = true; roof.userData.place = p.id; g.add(roof);
+    } else {
+      const slab = new THREE.Mesh(track(new THREE.BoxGeometry(11, 0.6, 11)), roofMat); slab.position.y = h + 0.35; slab.castShadow = true; slab.userData.place = p.id; g.add(slab);
+    }
     // the door faces the road
     const toHub = { x: HUB.x - c.x, z: HUB.z - c.z };
     const alongX = Math.abs(toHub.x) > Math.abs(toHub.z) && p.id !== 'home';
     const sx = alongX ? Math.sign(toHub.x) : 0, sz = alongX ? 0 : (p.id === 'home' ? 1 : Math.sign(toHub.z) || 1);
     const door = new THREE.Mesh(track(new THREE.BoxGeometry(alongX ? 0.4 : 2.2, 3.4, alongX ? 2.2 : 0.4)), track(new THREE.MeshStandardMaterial({ color: '#5a3a24' })));
     door.position.set(sx * 5.1, 1.7, sz * 5.1); door.userData.place = p.id; g.add(door);
-    const sign = sprite(placeL(p.n), '#ffffffee', '#16203a', 2.0); sign.position.set(0, h + 2.4, 0); sign.userData.place = p.id; g.add(sign);
-    const pin = pinSprite(look.icon, look.color, 4.2); pin.position.set(0, h + 5.4, 0); pin.userData.place = p.id; g.add(pin);
-    g.userData.parts = [body, slab, door]; g.userData.sign = sign; g.userData.pin = pin; g.userData.h = h; g.userData.look = look;
+    const canopy = new THREE.Mesh(track(new THREE.BoxGeometry(alongX ? 0.6 : 3.6, 0.2, alongX ? 3.6 : 0.6)), track(new THREE.MeshStandardMaterial({ color: '#8a8f99' })));
+    canopy.position.set(sx * 5.3, 3.6, sz * 5.3); canopy.userData.place = p.id; g.add(canopy);
+    const sign = sprite(placeL(p.n), '#ffffffee', '#16203a', 2.0); sign.position.set(0, h + (lowBuilding ? 4.8 : 2.4), 0); sign.userData.place = p.id; g.add(sign);
+    const pin = pinSprite(look.icon, look.color, 4.2); pin.position.set(0, h + (lowBuilding ? 7.8 : 5.4), 0); pin.userData.place = p.id; g.add(pin);
+    g.userData.parts = [body, g.children[1], door, canopy]; g.userData.sign = sign; g.userData.pin = pin; g.userData.h = h; g.userData.look = look;
     if (hl) {                                                    // the blue address plate by the entrance and the player's own window, lit in the evening
       const plate = sprite(hl.plate, '#1f4fa8ee', '#ffffff', 1.0); plate.position.set(2.6, 3.4, 5.4); plate.name = 'address-plate'; plate.userData.place = 'home'; g.add(plate);
       const myWin = new THREE.Mesh(track(new THREE.PlaneGeometry(1.4, 1.2)), track(new THREE.MeshStandardMaterial({ color: '#ffd27a', emissive: new THREE.Color('#ffb84a'), emissiveIntensity: 0.2 })));
@@ -244,35 +255,63 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
     const g = buildings.find(b => b.userData.place === 'home'); if (!g) return;
     const win = g.userData.myWin as THREE.Mesh | undefined; if (win) (win.material as THREE.MeshStandardMaterial).emissiveIntensity = s.slot === 2 ? 1.6 : 0.2;
     const hl = homeLook(s); if (hl.key === g.userData.homeKey) return;
-    const body = g.children[0] as THREE.Mesh, slab = g.children[1] as THREE.Mesh, h = hl.h;
-    body.geometry.dispose(); body.geometry = new THREE.BoxGeometry(10, h, 10); body.position.y = h / 2; slab.position.y = h + 0.35;
+    const body = g.children[0] as THREE.Mesh, roofPart = g.children[1] as THREE.Mesh, h = hl.h;
+    body.geometry.dispose(); body.geometry = new THREE.BoxGeometry(10, h, 10); body.position.y = h / 2;
+    const low = h < 12;
+    roofPart.geometry.dispose();
+    if (low) { roofPart.geometry = new THREE.ConeGeometry(7.6, 2.8, 4); roofPart.position.y = h + 1.4; roofPart.rotation.y = Math.PI / 4; }
+    else { roofPart.geometry = new THREE.BoxGeometry(11, 0.6, 11); roofPart.position.y = h + 0.35; roofPart.rotation.y = 0; }
     const mats = body.material as THREE.MeshStandardMaterial[]; mats[0].color.set(hl.wall); (g.userData.facade as { set: (f: Facade, t: number) => void } | undefined)?.set(hl.facade, h);
-    (g.userData.sign as THREE.Sprite).position.y = h + 2.4; (g.userData.pin as THREE.Sprite).position.y = h + 5.4; g.userData.h = h;
+    const signOff = low ? 4.8 : 2.4, pinOff = low ? 7.8 : 5.4;
+    (g.userData.sign as THREE.Sprite).position.y = h + signOff; (g.userData.pin as THREE.Sprite).position.y = h + pinOff; g.userData.h = h;
     if (win) win.position.y = (hl.floor - 0.5) * (h / hl.floors);
     const old = g.userData.plate as THREE.Sprite | undefined; if (old) { g.remove(old); old.material.map?.dispose(); old.material.dispose(); }
     const plate = sprite(hl.plate, '#1f4fa8ee', '#ffffff', 1.0); plate.position.set(2.6, 3.4, 5.4); plate.name = 'address-plate'; plate.userData.place = 'home'; g.add(plate); g.userData.plate = plate;
     g.userData.homeKey = hl.key;
   };
 
-  /* ----- trees ----- */
+  /* ----- trees: a mix of spruce (cone) and deciduous (sphere), with varying sizes ----- */
   const spots = treeSpots();
+  const treeRng = seeded(42);
+  const spruceIdx: number[] = [], decidIdx: number[] = [];
+  const treeSc: number[] = [];
+  spots.forEach((_, i) => { const sc = 0.8 + treeRng() * 0.5; treeSc.push(sc); if (treeRng() < 0.45) spruceIdx.push(i); else decidIdx.push(i); });
   const trunks = new THREE.InstancedMesh(track(new THREE.CylinderGeometry(0.35, 0.45, 2, 6)), track(new THREE.MeshStandardMaterial({ color: '#7a5a3a' })), spots.length);
-  const crowns = new THREE.InstancedMesh(track(new THREE.ConeGeometry(2.3, 5.2, 7)), track(new THREE.MeshStandardMaterial({ color: '#3c8f4a', flatShading: true })), spots.length);
-  const m4 = new THREE.Matrix4();
-  spots.forEach(([x, y], i) => { const w = toWorld({ x, y }); m4.makeTranslation(w.x, 1, w.z); trunks.setMatrixAt(i, m4); m4.makeTranslation(w.x, 4.4, w.z); crowns.setMatrixAt(i, m4); });
-  trunks.castShadow = crowns.castShadow = true; scene.add(trunks, crowns);
+  const spruces = new THREE.InstancedMesh(track(new THREE.ConeGeometry(2.3, 5.2, 7)), track(new THREE.MeshStandardMaterial({ color: '#2b7a3e', flatShading: true })), spruceIdx.length);
+  const decids = new THREE.InstancedMesh(track(new THREE.SphereGeometry(2.4, 8, 6)), track(new THREE.MeshStandardMaterial({ color: '#4a9f52', flatShading: true })), decidIdx.length);
+  const m4 = new THREE.Matrix4(), sc4 = new THREE.Matrix4();
+  spots.forEach(([x, y], i) => { const w = toWorld({ x, y }), sc = treeSc[i]; sc4.makeScale(sc, sc, sc); m4.makeTranslation(w.x, 1 * sc, w.z); m4.multiply(sc4); trunks.setMatrixAt(i, m4); });
+  spruceIdx.forEach((si, j) => { const [x, y] = spots[si], w = toWorld({ x, y }), sc = treeSc[si]; m4.makeTranslation(w.x, 4.4 * sc, w.z); sc4.makeScale(sc, sc, sc); m4.multiply(sc4); spruces.setMatrixAt(j, m4); });
+  decidIdx.forEach((di, j) => { const [x, y] = spots[di], w = toWorld({ x, y }), sc = treeSc[di]; m4.makeTranslation(w.x, 4.2 * sc, w.z); sc4.makeScale(sc, sc, sc); m4.multiply(sc4); decids.setMatrixAt(j, m4); });
+  trunks.castShadow = spruces.castShadow = decids.castShadow = true; scene.add(trunks, spruces, decids);
+
+  /* ----- street lamps along the roads near the hub ----- */
+  const lampMat = track(new THREE.MeshStandardMaterial({ color: '#4a4f58' }));
+  const lampGlow = track(new THREE.MeshStandardMaterial({ color: '#ffd84d', emissive: '#ffcc33', emissiveIntensity: 0 }));
+  const lampPole = track(new THREE.CylinderGeometry(0.12, 0.15, 5, 6));
+  const lampHead = track(new THREE.SphereGeometry(0.4, 8, 6));
+  const lamps: THREE.Mesh[] = [];
+  const lampRng = seeded(31);
+  const bldgCenters = buildings.map(b => ({ x: b.position.x, z: b.position.z }));
+  for (let i = 0; i < 18; i++) {
+    const a = (i / 18) * Math.PI * 2, r = 18 + lampRng() * 8;
+    const lx = HUB.x + Math.sin(a) * r, lz = HUB.z + Math.cos(a) * r;
+    if (bldgCenters.some(b => Math.hypot(b.x - lx, b.z - lz) < 8)) continue;
+    const pole = new THREE.Mesh(lampPole, lampMat); pole.position.set(lx, 2.5, lz); pole.castShadow = true; scene.add(pole);
+    const head = new THREE.Mesh(lampHead, lampGlow); head.position.set(lx, 5.2, lz); scene.add(head); lamps.push(head);
+  }
 
   /* ----- water, a bridge, ordinary buildings, parks and the notice boards ----- */
   const scenery = buildScenery(scene, track, d.s.city);
   for (const b of buildings) { const body = b.children[0] as THREE.Mesh; const hh = (body.geometry as THREE.BoxGeometry).parameters.height; scenery.decorate(b, b.userData.place as string, hh); if (b.userData.place === 'center') scenery.attachMega(b, hh + 0.6); }
 
   /* ----- places set on real buildings (when the real houses are on) ----- */
-  const anchorObjs: { g: THREE.Group; objs: THREE.Object3D[]; hidden: THREE.Object3D[] }[] = [];
+  const anchorObjs: { g: THREE.Group; objs: THREE.Object3D[]; hidden: THREE.Object3D[]; signY: number; pinY: number }[] = [];
   const unanchor = (): void => {
     for (const a of anchorObjs) {
       a.objs.forEach(o => { a.g.remove(o); (o as THREE.Mesh).geometry?.dispose(); const m = (o as THREE.Mesh).material; if (m && !Array.isArray(m)) m.dispose(); });
       a.hidden.forEach(o => { o.visible = true; });
-      const sign = a.g.userData.sign as THREE.Sprite, pin = a.g.userData.pin as THREE.Sprite; sign.position.set(0, (a.g.userData.h as number) + 2.4, 0); pin.position.set(0, (a.g.userData.h as number) + 5.4, 0);
+      const sign = a.g.userData.sign as THREE.Sprite, pin = a.g.userData.pin as THREE.Sprite; sign.position.set(0, a.signY, 0); pin.position.set(0, a.pinY, 0);
     }
     anchorObjs.length = 0;
   };
@@ -282,9 +321,12 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
     for (const g of buildings) {
       const id = g.userData.place as string, a = anchors[id]; if (!a) continue;
       const look = g.userData.look as { color: string }, h = g.userData.h as number, c = g.position;
+      const sign = g.userData.sign as THREE.Sprite, pin = g.userData.pin as THREE.Sprite;
+      const signY = sign.position.y, pinY = pin.position.y;
       const local = a.pts.map((p): [number, number] => [p[0] - c.x, p[1] - c.z]);
       const hidden: THREE.Object3D[] = [...(g.userData.parts as THREE.Object3D[])];
-      if (id === 'hospital' || id === 'clinic' || id === 'bank') hidden.push(...g.children.slice(4).filter(o => !(o instanceof THREE.Sprite)));
+      const decIdx = (g.userData.parts as THREE.Object3D[]).length + 2;
+      if (id === 'hospital' || id === 'clinic' || id === 'bank') hidden.push(...g.children.slice(decIdx).filter(o => !(o instanceof THREE.Sprite)));
       hidden.forEach(o => { o.visible = false; });
       const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85 }); paintWindows(m);
       const body = new THREE.Mesh(extrudeOutline(local, h, shade(look.color, 70), look.color), m); body.castShadow = true; body.receiveShadow = true; body.userData.place = id; g.add(body);
@@ -292,8 +334,8 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
       const door = new THREE.Mesh(new THREE.BoxGeometry(2.2, 3.4, 0.4), new THREE.MeshStandardMaterial({ color: '#5a3a24' }));
       door.position.set(q.x - c.x + (dx / dl) * 0.15, 1.7, q.z - c.z + (dz / dl) * 0.15); door.rotation.y = Math.atan2(dx, dz); door.userData.place = id; g.add(door);
       const cx = local.reduce((t, p) => t + p[0], 0) / local.length, cz = local.reduce((t, p) => t + p[1], 0) / local.length;
-      (g.userData.sign as THREE.Sprite).position.set(cx, h + 2.4, cz); (g.userData.pin as THREE.Sprite).position.set(cx, h + 5.4, cz);
-      anchorObjs.push({ g, objs: [body, door], hidden });
+      sign.position.set(cx, h + 2.4, cz); pin.position.set(cx, h + 5.4, cz);
+      anchorObjs.push({ g, objs: [body, door], hidden, signY, pinY });
     }
   };
 
@@ -368,6 +410,8 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
       // the model follows the vehicle smoothly, so a change of lane or a turn at a junction is a curve and not a jump
       const p = poseOf(c.v), n = c.node; n.position.x += (p.x - n.position.x) * k; n.position.z += (p.z - n.position.z) * k;
       let turn = p.heading - n.rotation.y; turn = Math.atan2(Math.sin(turn), Math.cos(turn)); n.rotation.y += turn * k;
+      // the streets are planned once for every city, so a real building (real houses on) can stand across one: a vehicle is not drawn while it is inside a building
+      n.visible = showTraffic && !(realCity && solid.blocked(n.position.x, n.position.z, 0.6));
       if (c.rider) {
         const moving = c.v.halt === 0 && c.v.wait === 0, ph = clock * 7; setPose(c.rider, 'sit', 0, clock);
         c.rider.torso.rotation.x = 0.35; c.rider.armL.rotation.x = c.rider.armR.rotation.x = -1.0; c.rider.elbowL.rotation.x = c.rider.elbowR.rotation.x = -0.25;
@@ -426,7 +470,8 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
   };
   const dateText = (): string => G.dateOf(state).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
   /* ----- seasons and holidays: the colours of the ground and the trees, the White Nights, the northern lights, the tree and the fireworks ----- */
-  const groundMat = ground.material as THREE.MeshStandardMaterial, fieldMat = field.material as THREE.MeshStandardMaterial, crownMat = crowns.material as THREE.MeshStandardMaterial;
+  const groundMat = ground.material as THREE.MeshStandardMaterial, fieldMat = field.material as THREE.MeshStandardMaterial;
+  const spruceMat = spruces.material as THREE.MeshStandardMaterial, decidMat = decids.material as THREE.MeshStandardMaterial;
   const aurora = new THREE.Group(); aurora.visible = false; scene.add(aurora);
   for (let k = 0; k < 3; k++) { const m = new THREE.Mesh(track(new THREE.PlaneGeometry(260, 34)), track(new THREE.MeshBasicMaterial({ color: k === 1 ? '#7bf0c6' : '#3ee08f', transparent: true, opacity: 0.22, side: THREE.DoubleSide, depthWrite: false, fog: false }))); m.position.set(HUB.x - 40 + k * 30, 70 + k * 9, HUB.z - 150 - k * 20); m.rotation.set(-0.15, 0.2 * k, 0.08 * (k - 1)); aurora.add(m); }
   const decor = new THREE.Group(); scene.add(decor); let decorKey = '';
@@ -454,12 +499,15 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
     scenery.updateBoards(state, dateText());
     const t = DAY[Math.min(2, Math.max(0, state.slot))];
     look = seasonLook(G.dateOf(state).getMonth() + 1, state.city, state.slot, state.weather, state.day);
-    groundMat.color.set(look.ground); fieldMat.color.set(look.field); crownMat.color.set(look.crown);
-    const sky = state.slot === 2 && look.whiteNight ? look.eveningSky : t.sky;
+    groundMat.color.set(look.ground); fieldMat.color.set(look.field);
+    decidMat.color.set(look.crown); spruceMat.color.set(new THREE.Color(look.crown).lerp(new THREE.Color('#2b7a3e'), 0.6));
+    const evening = state.slot === 2;
+    lampGlow.emissiveIntensity = evening ? 1.6 : 0;
+    const sky = evening && look.whiteNight ? look.eveningSky : t.sky;
     (scene.background as THREE.Color).set(sky); (scene.fog as THREE.Fog).color.set(sky);
     aurora.visible = look.aurora && !saver;
     const ev = activeEvent(state); if ((ev?.id ?? '') !== decorKey) buildDecor(ev?.id ?? null);
-    fireworks(!saver && state.slot === 2 && (ev?.id === 'newyear' || ev?.id === 'cityday'));
+    fireworks(!saver && evening && (ev?.id === 'newyear' || ev?.id === 'cityday'));
     sun.intensity = t.sun; sun.color.set(t.color); hemi.intensity = t.hemi;
     weather.visible = !saver && (state.weather === 'rain' || state.weather === 'snow');
     partMat.color.set(state.weather === 'rain' ? '#7aa8e8' : '#ffffff'); partMat.size = state.weather === 'rain' ? 0.35 : 0.7;
@@ -811,7 +859,7 @@ export async function mountWorld3d(d: World3dDeps): Promise<World3dHandle> {
     destroy: () => {
       dead = true; cancelAnimationFrame(raf); setPlacing(null); clearCars(); if (site) { scene.remove(site); disposeSite(site); site = null; } leave(); scenery.setReal(null); unanchor(); ro?.disconnect(); io?.disconnect(); controls.dispose();
       people.forEach(removePerson); people.length = 0; removePerson(playerPerson);
-      trunks.dispose(); crowns.dispose();
+      trunks.dispose(); spruces.dispose(); decids.dispose();
       owned.forEach(o => o.dispose());
       buildings.forEach(b => b.traverse(o => { if (o instanceof THREE.Sprite) { o.material.map?.dispose(); o.material.dispose(); } }));
       disposeCharacterMaterials();

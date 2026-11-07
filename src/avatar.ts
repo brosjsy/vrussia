@@ -98,7 +98,7 @@ export function applyGroup(rawLook: unknown, id: string): Look {
 }
 
 /** Which starting look fits each character of the game. */
-export const GROUP_OF_ORIGIN: Record<string, GroupId> = { moscow: 'slavic', region: 'slavic', tajik: 'central-asian', uzbek: 'central-asian', kyrgyz: 'central-asian', student: 'african', dagestan: 'caucasus' };
+export const GROUP_OF_ORIGIN: Record<string, GroupId> = { moscow: 'slavic', region: 'slavic', tajik: 'central-asian', uzbek: 'central-asian', kyrgyz: 'central-asian', kazakh: 'central-asian', turkmen: 'central-asian', armenian: 'caucasus', azeri: 'caucasus', belarusian: 'slavic', moldovan: 'slavic', worker: 'central-asian', student: 'african', dagestan: 'caucasus' };
 
 /** Shares (in per cent) of the people one meets in a city. Large cities are mixed; some regions are known for one people. A guess for a game, not a census. */
 export function groupWeights(city: string): Record<GroupId, number> {

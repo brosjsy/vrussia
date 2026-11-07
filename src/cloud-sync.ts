@@ -22,7 +22,14 @@ export interface Sync { flush: (why?: string) => Promise<boolean>; status: () =>
 export function startSync(d: SyncDeps): Sync {
   const now = d.now ?? (() => Date.now()), win = d.win ?? window, doc = d.doc ?? document;
   const st: SyncStatus = { lastSaved: null, pending: false, error: '' };
-  let lastPrint = '', lastHome = '', lastHomeAt = -Infinity, busy = false, stopped = false;
+  let lastPrint = '', lastHome = '', lastHomeAt = -Infinity, lastFlatAt = -Infinity, busy = false, stopped = false;
+  /** Who lives in the player's shared flat decides the rent share (engine.rentDue); asked again every five minutes. */
+  const syncFlat = async (): Promise<void> => {
+    const s = d.state(); if (stopped || !s || !d.cloud.myFlat || !d.cloud.session()?.username || now() - lastFlatAt < HOME_EVERY_MS) return;
+    lastFlatAt = now();
+    const r = await d.cloud.myFlat(); if (!r.ok || !r.data) return;
+    s.tmp.flatmates = r.data.flat ? Math.max(0, Math.min(3, r.data.flat.members.length - 1)) : 0;
+  };
   const tell = (): void => d.onStatus?.({ ...st });
   const flush = async (_why = 'timer'): Promise<boolean> => {
     if (stopped || busy || !d.cloud.session()?.username) return false;
@@ -39,7 +46,7 @@ export function startSync(d: SyncDeps): Sync {
       return r.ok;
     } finally { busy = false; tell(); }
   };
-  const timer = win.setInterval(() => { void flush('timer'); }, EVERY_MS);
+  const timer = win.setInterval(() => { void syncFlat(); void flush('timer'); }, EVERY_MS);
   const onOnline = (): void => { if (st.pending) void flush('online'); };
   const onHide = (): void => { if (doc.visibilityState === 'hidden') void flush('hidden'); };
   const onLeave = (): void => { void flush('close'); };

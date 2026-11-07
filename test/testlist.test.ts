@@ -3,7 +3,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 
 /* The `npm test` script names its files one by one (the long ones are run separately). A test file that is not named there is never
    run by the quick suite: that happened once with fees.test.ts. This test makes the omission impossible. */
-const LONG_RUNNING = new Set(['exhaustive.test.ts', 'balance.test.ts', 'players20.test.ts']);
+const LONG_RUNNING = new Set(['exhaustive.test.ts', 'balance.test.ts', 'players20.test.ts', 'rl-balance.test.ts']);
 
 describe('the quick test script', () => {
   const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts: Record<string, string> };

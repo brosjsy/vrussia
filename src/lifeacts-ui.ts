@@ -4,6 +4,7 @@ import type { State } from './engine';
 import * as A from './lifeacts';
 import type { Cat } from './lifeacts';
 import { lang } from './i18n';
+import { playOk } from './sound';
 
 const W: Record<string, [string, string]> = {
   title: ['City life', 'Городская жизнь'], all: ['All', 'Все'], search: ['Search', 'Поиск'], doIt: ['Do it', 'Сделать'], free: ['free', 'бесплатно'], takes: ['takes a part of the day', 'занимает часть дня'],
@@ -30,7 +31,7 @@ export function wireLife(host: HTMLElement, s: State, d: { notify: (m: string) =
   host.querySelectorAll<HTMLButtonElement>('[data-la]').forEach(b => { b.onclick = () => {
     const [act, arg] = (b.dataset.la as string).split(':');
     if (act === 'cat') { view.cat = arg as Cat | 'all'; return d.again(); }
-    if (act === 'do') { d.notify(A.doAct(s, arg).msg); return d.again(); }
+    if (act === 'do') { const r = A.doAct(s, arg); d.notify(r.msg); playOk(r.ok); return d.again(); }
   }; });
 }
 export function openLife(host: HTMLElement, s: State, d: { back: () => void; refresh: () => void; notify: (m: string) => void }): void {

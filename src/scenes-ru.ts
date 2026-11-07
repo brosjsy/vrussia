@@ -12,7 +12,7 @@ export const SCENES_RU: Record<string, SceneRu> = {
     choices: [['Затащить чемодан наверх', 'Комендант выдаёт ключ и чайник. Начинается первый день.']] },
 };
 /** The home towns of the starting lives. */
-export const HOME_RU: Record<string, string> = { 'Khatlon, Tajikistan': 'Хатлон, Таджикистан', 'Lagos, Nigeria': 'Лагос, Нигерия', Makhachkala: 'Махачкала', Moscow: 'Москва', 'Osh, Kyrgyzstan': 'Ош, Киргизия', 'Samarkand, Uzbekistan': 'Самарканд, Узбекистан', Saratov: 'Саратов' };
+export const HOME_RU: Record<string, string> = { 'Khatlon, Tajikistan': 'Хатлон, Таджикистан', 'Lagos, Nigeria': 'Лагос, Нигерия', 'Your home country': 'Ваша родная страна', 'Almaty, Kazakhstan': 'Алма-Ата, Казахстан', 'Yerevan, Armenia': 'Ереван, Армения', 'Minsk, Belarus': 'Минск, Беларусь', 'Ganja, Azerbaijan': 'Гянджа, Азербайджан', 'Balti, Moldova': 'Бельцы, Молдова', 'Mary, Turkmenistan': 'Мары, Туркменистан', Makhachkala: 'Махачкала', Moscow: 'Москва', 'Osh, Kyrgyzstan': 'Ош, Киргизия', 'Samarkand, Uzbekistan': 'Самарканд, Узбекистан', Saratov: 'Саратов' };
 /** The scene categories shown over a scene. */
 export const CAT_RU: Record<string, string> = { intro: 'Начало', work: 'Работа', papers: 'Документы', police: 'Полиция', money: 'Деньги', health: 'Здоровье', study: 'Учёба', love: 'Любовь', family: 'Семья',
   culture: 'Культура', history: 'История', traditions: 'Традиции', life: 'Жизнь', city: 'Город', home: 'Дом', food: 'Еда', travel: 'Поездки', weather: 'Погода', social: 'Друзья', business: 'Бизнес', arc: 'История героя', family_decision: 'Решение семьи' };

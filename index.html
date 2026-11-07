@@ -1,37 +1,41 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>В России — who can you become in Russia?</title>
+<title>В России: who can you become in Russia?</title>
 <meta name="theme-color" content="#bfe0f7">
 <meta property="og:type" content="website">
-<meta property="og:title" content="В России — who can you become in Russia?">
-<meta property="og:description" content="В России: start with a name, a passport and a dream. Survive the winter, get your papers, build a career — from a rented room to a flat of your own, from newcomer to citizen. A free life simulator, in Russian and English.">
+<meta property="og:title" content="В России: who can you become in Russia?">
+<meta property="og:description" content="В России: start with a name, a passport and a dream. Survive the winter, get your papers, build a career, from a rented room to a flat of your own, from newcomer to citizen. A free life simulator, in Russian and English.">
 <meta property="og:image" content="icon.svg">
 <meta name="twitter:card" content="summary">
-<meta name="description" content="В России: start with a name, a passport and a dream. Survive the winter, get your papers, build a career — from a rented room to a flat of your own, from newcomer to citizen. A free life simulator, in Russian and English.">
+<meta name="description" content="В России: start with a name, a passport and a dream. Survive the winter, get your papers, build a career, from a rented room to a flat of your own, from newcomer to citizen. A free life simulator, in Russian and English.">
+<!-- Content Security Policy (OWASP A05): scripts only from this site, no plug-ins, no <base> or form tricks; the map and the 3D world need blob workers and pictures; https: is open for connect/img because the game server and the map tiles are configured at build time -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https: ws://localhost:* ws://127.0.0.1:*; worker-src 'self' blob:; child-src blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 </head>
 <body>
+<a class="skip" href="#main" id="skipLink" data-i18n="skipLink">Skip to the game</a>
 <div id="errbar" hidden></div>
 <noscript><p style="padding:16px">В России (In Russia) is a browser game and needs JavaScript. Please enable it and reload the page.</p></noscript>
 
 <section id="title" class="screen">
   <div class="flagbar"><i></i><i></i><i></i></div>
-  <div class="titlebar"><h1 class="brand">В&nbsp;России</h1><button class="ghost langBtn" id="onlineBtn" data-i18n="olBtn">🌐 Online</button><button class="ghost langBtn" id="textBtn" data-i18n-aria="textSize" aria-label="Text size">Aa</button><button class="ghost langBtn" id="langBtn" data-i18n="langBtn" aria-label="Language / Язык">RU</button></div>
+  <div class="titlebar"><h1 class="brand">В&nbsp;России</h1><button class="ghost langBtn" id="onlineBtn" data-i18n="olBtn">🌐 Online</button><button class="ghost langBtn" type="button" data-pf-open data-pf-label="hub">🧰 More</button><button class="ghost langBtn" id="textBtn" data-i18n-aria="textSize" aria-label="Text size">Aa</button><button class="ghost langBtn" id="langBtn" data-i18n="langBtn" aria-label="Language / Язык">RU</button></div>
   <p class="heroSub" data-i18n="heroSub">Who can you become in Russia?</p>
-  <p class="tag" data-i18n="tag">Start with a name, a passport and a dream. Survive your first winter, get your papers, build a career — and see how far you can go in two years.</p>
+  <p class="tag" data-i18n="tag">Start with a name, a passport and a dream. Survive your first winter, get your papers, build a career, and see how far you can go in two years.</p>
   <ul class="heroPoints">
-    <li data-i18n="heroP1">🎯 Pick your start: a Moscow kid, a student from Lagos, a worker from Samarkand or Osh — every life starts hard in its own way.</li>
+    <li data-i18n="heroP1">🎯 Pick your start: a Moscow kid, a student from Lagos seeking admission, a worker from Samarkand or Osh. Every life starts hard in its own way.</li>
     <li data-i18n="heroP2">🏆 Climb: from your first rented room to a flat of your own, from courier to your own business, from newcomer to citizen. Or get deported trying.</li>
-    <li data-i18n="heroP3">⚖️ Every choice counts: papers, money, the law, love and family — the game remembers everything.</li>
+    <li data-i18n="heroP3">⚖️ Every choice counts: papers, money, the law, love and family. The game remembers everything.</li>
     <li data-i18n="heroP4">🌍 Compete online: the challenge of the day, the leaderboard, the dish of the day. And learn on the way how life in Russia really works: registration, the patent, public services, the language and traditions.</li>
   </ul>
   <p class="sub" id="langNote" data-i18n="note"></p>
+  <section id="dailyBox" class="dailyBox" aria-label="Daily game" hidden></section>
   <label class="field"><span data-i18n="name">Your name</span> <input id="nameInput" maxlength="20" placeholder="e.g. Rustam, Aisha, Ivan" data-i18n-ph="namePh"></label> <button type="button" class="ghost randName" id="randNameBtn" data-i18n="crRandomName">Random Russian name</button>
-  <label class="field"><span data-i18n="startCity">Starting city (optional — migrants default to Moscow)</span>
+  <label class="field"><span data-i18n="startCity">Starting city (optional, migrants default to Moscow)</span>
     <select id="citySel"><option value="" data-i18n="cityDefault">Default for your character</option></select></label>
   <label class="field"><span data-i18n="difficulty">Difficulty</span>
     <select id="diffSel"><option value="easy" data-i18n="diff.easy">Easy: more money, fewer checks</option><option value="normal" data-i18n="diff.normal" selected>Normal</option><option value="hard" data-i18n="diff.hard">Realistic: less money, more checks</option></select></label>
@@ -62,6 +66,7 @@
   </header>
   <div id="hud" class="hud" role="group" aria-label="Your condition"></div>
   <button class="ghost cleanBtn" id="cleanBtn" aria-pressed="false" data-i18n="clean">⤢ Clean screen</button>
+  <button class="ghost peekBtn" id="peekBtn" aria-pressed="false" data-i18n="panelHide">Hide choices</button>
   <div class="grid">
     <aside class="panel">
       <button class="ghost" id="profileBtn" data-i18n="profile">👤 My profile &amp; awards</button>
@@ -74,6 +79,7 @@
       <button class="ghost" id="textBtn2" data-i18n-aria="textSize" aria-label="Text size">Aa</button>
       <button class="ghost" id="langBtn2" data-i18n="langBtn" aria-label="Language / Язык">RU</button>
       <button class="ghost" id="settingsBtn" data-i18n="stTitle2Btn">⚙️ Settings</button>
+      <button class="ghost" type="button" data-pf-open data-pf-label="hub">🧰 More</button>
       <button class="ghost" id="menuBtn" data-i18n="newGame">⟲ New game</button>
     </aside>
     <main>
@@ -86,7 +92,8 @@
         <button id="ticker" class="ticker" aria-live="polite" title="Next headline"></button>
         <div id="placeCard" class="placeCard"></div>
       </section>
-      <div id="stage" class="card"></div>
+      <div id="nextStep" class="nextStep" role="status" aria-live="polite" hidden></div>
+      <div id="stage" class="card" tabindex="-1"></div>
       <div id="actions" class="actions"></div>
     </main>
   </div>

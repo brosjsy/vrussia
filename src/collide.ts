@@ -91,6 +91,26 @@ export class Field {
   }
 }
 
+/* ---------- the door of a house ---------- */
+/** The spot just outside a building's wall that is nearest to a point: where a person who walks up to the building (to go in) should stop.
+    A place on a map is a point somewhere inside its building; walking to that point would carry the person through the wall, so the walk ends here instead.
+    `out` is how far outside the wall the spot lies (a little more than a person's radius, so that it is free ground). */
+export function doorOf(pts: [number, number][], from: P2, out = 0.7): P2 {
+  let best: { d: number; x: number; z: number; nx: number; nz: number } | null = null;
+  for (let i = 0; i < pts.length; i++) {
+    const [ax, az] = pts[i], [bx, bz] = pts[(i + 1) % pts.length], dx = bx - ax, dz = bz - az, l2 = dx * dx + dz * dz || 1;
+    const t = Math.max(0, Math.min(1, ((from.x - ax) * dx + (from.z - az) * dz) / l2)), qx = ax + t * dx, qz = az + t * dz, d = Math.hypot(from.x - qx, from.z - qz);
+    if (!best || d < best.d) { const l = Math.sqrt(l2); best = { d, x: qx, z: qz, nx: dz / l, nz: -dx / l }; }
+  }
+  if (!best) return { x: from.x, z: from.z };
+  // the wall's normal that points away from the inside of the building
+  let nx = best.nx, nz = best.nz;
+  if (insidePoly(pts, best.x + nx * 0.05, best.z + nz * 0.05)) { nx = -nx; nz = -nz; }
+  return { x: best.x + nx * out, z: best.z + nz * out };
+}
+/** Does the building (an outline) contain the point? */
+export const inOutline = (pts: [number, number][], p: P2): boolean => insidePoly(pts, p.x, p.z);
+
 /* ---------- finding a way round the solid things ---------- */
 const KEY = (ix: number, iz: number): number => (ix + 1024) * 4096 + (iz + 1024);
 class Heap {

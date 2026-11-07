@@ -17,6 +17,9 @@ import type { SessionUser } from './auth.js';
 import type { EmailSender } from './email.js';
 import { Templates, brandFrom } from './email.js';
 import { gameRoutes } from './routes-game.js';
+import { Live, liveRoutes } from './live.js';
+import { platformRoutes } from './routes-platform.js';
+import { phoneRoutes } from './routes-phone.js';
 
 declare module 'fastify' {
   interface FastifyRequest { user: SessionUser | null }
@@ -25,7 +28,7 @@ export interface AppDeps { cfg: Config; db: Db; mail: EmailSender; templates?: T
 
 const UNSAFE = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 /** Postgres errors raised on purpose by the game's functions: their words are safe to pass on; anything else is a plain "server error". */
-const KNOWN = /^(bad username|username taken|no profile|too many scores today|score not possible|chat is for adults|bad length|language|slow down|daily limit|not your talk|bad room|blocked|no such message|already voted|bad counter|too many ads today|contact details|bad price|too many ads|no such ad|too many follows|your own home|no such home|too many notes|no such challenge|already claimed|not done yet|join first|friends only|too many invitations|already invited|no such invitation|too many adverts|too many adverts today|place taken|no such advert)$/;
+const KNOWN = /^(no such gift|already in a flat|not in a flat|flat is full|chore done today|already in a crew|name taken|not in a crew|not friends|crew is full|already invited|no such invitation|not the owner|use leave|not your crew|no such player|bad username|username taken|no profile|too many scores today|score not possible|chat is for adults|bad length|language|slow down|daily limit|not your talk|bad room|blocked|no such message|already voted|bad counter|too many ads today|contact details|bad price|too many ads|no such ad|too many follows|your own home|no such home|too many notes|no such challenge|already claimed|not done yet|join first|friends only|too many invitations|already invited|no such invitation|too many adverts|too many adverts today|place taken|no such advert|no such number|number taken)$/;
 
 /** Counts attempts per key in a sliding window (logging in per e-mail). Kept in memory: with several servers, put a shared store in front. */
 export class Throttle {
@@ -117,6 +120,10 @@ export async function buildApp(d: AppDeps): Promise<FastifyInstance> {
   app.post('/api/auth/sessions/end-others', async req => ({ ended: await auth.endOtherSessions(need(req)) }));
   app.post('/api/auth/delete', strict, async (req, reply) => { await auth.deleteAccount(need(req), body(req).password, meta(req)); clearCookie(reply); return done; });
 
-  await gameRoutes(app, d.db, need);
+  const live = new Live();
+  await gameRoutes(app, d.db, need, live);
+  await liveRoutes(app, live, need);
+  await platformRoutes(app, d.db, need, cfg.ADMIN_EMAILS);
+  await phoneRoutes(app, d.db, need);
   return app;
 }

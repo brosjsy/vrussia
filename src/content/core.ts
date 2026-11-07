@@ -1,3 +1,7 @@
+/* Hand-written core scenarios: the intros (one per kind of character), the calendar scenes, the document chain (registration, patent, residence
+   permit, citizenship) and the other set pieces. A scenario is S({ id, cat, title, text, choices: [{ t, msg, fx } or { t, r }] }): see the Scenario type in engine.ts.
+   Money is in roubles; the amounts in the text must match the rules in engine.ts (fees, patent price). If you change a legal rule, also update its source in
+   src/platform/citations.ts. */
 import { RU, FEE } from '../engine';
 import type { State } from '../engine';
 /* Hand-written scenarios: intros, calendar, document chain, set pieces */
@@ -121,9 +125,9 @@ import type { State } from '../engine';
       C('Ask the dean\'s office first', 'They sigh, check the list and say you are fine.', { docs: { visa: 120 }, stress: -4 })] });
 
   S({ id: 'work_permit_student', cat: 'paper', who: ['student'], req: s => !s.flags.workPermit, w: 25,
-    title: 'Working as a student?', text: 'Students can work only with specific permissions. A dean\'s letter plus a contract with the employer opens the door.',
+    title: 'Working as a student?', text: 'A full-time student may work in free time without a separate permit, but employers still like a dean\'s letter and a clear contract.',
     choices: [
-      F('Apply for permission', s => gamble(0.6, O('Permission granted for part-time work.', { flag: 'workPermit', money: -1500 }), O('Rejected: wrong form, wrong address.', { stress: 6 }))),
+      F('Ask the dean for a letter', s => gamble(0.6, O('The dean signs a letter for part-time work.', { flag: 'workPermit', money: -300 }), O('The office is closed until Monday.', { stress: 3 }))),
       C('Stay on scholarship only', 'No work, no risk.', {})] });
 
   S({ id: 'rutest', cat: 'paper', who: ['migrant', 'eaeu', 'student'], req: s => s.day > 30 && !s.flags.rutest, w: 40,

@@ -3,11 +3,15 @@
    owner role (npm run migrate), so the running server never needs the right to change tables. */
 import { loadConfig } from './config.js';
 import { pgDb } from './db.js';
+import { waitForDb } from './db-ready.js';
 import { buildApp } from './app.js';
 import { senderFrom } from './email.js';
 
 const cfg = loadConfig();
 const db = pgDb(cfg.DATABASE_URL, cfg.DATABASE_SSL, cfg.DATABASE_POOL_MAX);
+try { await waitForDb(db, { log: m => console.warn(m) }); } catch (e) { console.error(`
+${(e as Error).message}
+`); await db.close().catch(() => undefined); process.exit(1); }
 const app = await buildApp({ cfg, db, mail: senderFrom(cfg, msg => console.log(msg)) });
 
 const cleanup = setInterval(() => { db.query('select * from app.cleanup()').then(r => app.log.info({ cleanup: r.rows[0] }, 'clean-up done'), e => app.log.error({ err: e }, 'clean-up failed')); }, 3_600_000);

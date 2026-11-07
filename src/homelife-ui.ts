@@ -3,6 +3,7 @@
 import type { State } from './engine';
 import * as H from './homelife';
 import { lang } from './i18n';
+import { playOk } from './sound';
 
 const W: Record<string, [string, string]> = {
   title: ['Household', 'Быт дома'], state: ['How the flat is', 'Как дома'], clean: ['Clean', 'Чистота'], sink: ['Dirty dishes', 'Грязная посуда'], bin: ['Rubbish bin', 'Мусорное ведро'], plants: ['Plants', 'Растения'], none: ['none', 'нет'],
@@ -36,7 +37,7 @@ export function wireHomeLife(host: HTMLElement, s: State, d: { notify: (m: strin
     const r = a === 'dishes' ? H.washDishes(s) : a === 'clean' ? H.clean(s, false) : a === 'hire' ? H.clean(s, true) : a === 'rubbish' ? H.rubbish(s, false) : a === 'sort' ? H.rubbish(s, true)
       : a === 'water' ? H.water(s) : a === 'plant' ? H.buyPlant(s, ['Ficus', 'Aloe', 'Basil', 'Violet', 'Cactus', 'Monstera'][H.homeOf(s).plants.length % 6]) : a === 'fix' ? H.fix(s, arg as 'diy' | 'pro') : a === 'lock' ? H.locksmith(s)
       : a === 'alarm' ? H.setAlarm(s, arg === 'off' ? null : Number(arg)) : a === 'tv' ? H.watchSeries(s) : a === 'read' ? H.read(s) : a === 'nap' ? H.nap(s) : null;
-    if (r) { d.notify(r.msg); d.again(); }
+    if (r) { d.notify(r.msg); playOk(r.ok); d.again(); }
   }; });
 }
 export function openHomeLife(host: HTMLElement, s: State, d: { back: () => void; refresh: () => void; notify: (m: string) => void }): void {

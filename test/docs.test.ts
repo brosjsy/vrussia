@@ -32,7 +32,7 @@ describe('README numbers match the code', () => {
   it('the number of starting characters in the demo script is right', () => {
     const demo = readFileSync('docs/DEMO_SCRIPT.md', 'utf8');
     expect(demo).toContain('seven starting lives');
-    expect(G.origins.length).toBe(7);
+    expect(G.origins.length).toBe(14);
   });
 });
 

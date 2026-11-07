@@ -12,14 +12,14 @@ const list = async (cookie: string, city = 'Moscow'): Promise<Record<string, Ch>
   const r = await call(c, 'GET', `/api/challenges?city=${encodeURIComponent(city)}`, undefined, cookie);
   return Object.fromEntries((r.json.challenges as unknown as Ch[]).map(x => [x.id, x]));
 };
-const EVENTS = ['msg_place', 'msg_direct', 'msg_ru', 'partner_new', 'city_room_new', 'welcome_newcomer', 'partner_abroad', 'follow', 'followed', 'mutual', 'note_sent', 'note_received', 'gift_sent', 'gift_received', 'like_given', 'like_received', 'ad_posted', 'ad_city_new', 'vote_cast', 'home_shown', 'score_sent', 'city_new', 'coop_done'];
+const EVENTS = ['msg_place', 'msg_direct', 'msg_ru', 'partner_new', 'city_room_new', 'welcome_newcomer', 'partner_abroad', 'crew_created', 'crew_invite', 'crew_member_joined', 'crew_msg', 'crew_joined', 'flat_created', 'flat_invite', 'flat_member_joined', 'flat_joined', 'flat_chore', 'flat_chore_team', 'gift_given', 'gift_received', 'follow', 'followed', 'mutual', 'note_sent', 'note_received', 'gift_sent', 'gift_received', 'like_given', 'like_received', 'ad_posted', 'ad_city_new', 'vote_cast', 'home_shown', 'score_sent', 'city_new', 'coop_done'];
 
 describe('the storyline', () => {
-  it('80 challenges in 8 chapters of 10, in English and Russian; every counted challenge counts something the server records', async () => {
+  it('120 challenges in 12 chapters of 10, in English and Russian; every counted challenge counts something the server records', async () => {
     const r = await call(c, 'GET', '/api/challenges?city=Moscow', undefined, A.cookie);
-    expect(r.json.chapters as unknown[]).toHaveLength(8);
-    const all = r.json.challenges as unknown as Ch[]; expect(all).toHaveLength(80);
-    for (let ch = 1; ch <= 8; ch++) expect(all.filter(x => x.chapter === ch), `chapter ${ch}`).toHaveLength(10);
+    expect(r.json.chapters as unknown[]).toHaveLength(12);
+    const all = r.json.challenges as unknown as Ch[]; expect(all).toHaveLength(120);
+    for (let ch = 1; ch <= 12; ch++) expect(all.filter(x => x.chapter === ch), `chapter ${ch}`).toHaveLength(10);
     expect(all.every(x => /[А-Яа-я]/.test(x.title_ru))).toBe(true);
     const evs = (await c.t.admin("select distinct event from app.challenges where kind = 'event'")).rows.map(x => String(x.event));
     expect(evs.filter(e => !EVENTS.includes(e))).toEqual([]);

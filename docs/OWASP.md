@@ -1,0 +1,33 @@
+# OWASP Top 10 (2021): what is tested, what was found
+
+Server: `server/test/owasp.test.ts` (28 tests). Browser: `test/owasp-client.test.ts` (23 tests). Real browser: `e2e/flows.spec.ts` (loads the page under the Content Security Policy and fails on any console error). Packages: `npm audit` in `.github/workflows/quality.yml`. Older controls: `docs/SECURITY.md` and the other server tests (`auth`, `security`, `game`, `db`).
+
+| # | Category | Controls | Tests |
+|---|---|---|---|
+| A01 | Broken access control | Player id always from the session; every private route needs a login; administrator routes need a confirmed address in `ADMIN_EMAILS`; classes belong to their owner | Every private route returns 401 without a login; an ordinary player gets 403 on admin routes; another player's class, results and export are unreachable; a forged owner or player id is ignored |
+| A02 | Cryptographic failures | `__Host-` session cookie, HttpOnly, Secure, SameSite; Argon2id password hashes; only hashes of tokens stored; HSTS in production | Cookie flags; no password or token in the database or in any export |
+| A03 | Injection | Parameterised SQL everywhere; zod shapes with strict objects; the page writes player text only through an escaping function | Nine injection payloads sent to seven kinds of input, tables intact; stored script returned as JSON with `nosniff`; unknown keys and operators (`$ne`) refused; hostile names rendered as text in the report, sources, policy, print page, hub screens; CSV cells made safe |
+| A04 | Insecure design | Caps by design: 10 classes per teacher, 300 results per class, 20 events per request, 512 KB bodies, tight rate limits on the public endpoints, pack effects bounded | Each cap hit; rate limit returns 429 on telemetry and class lookup; impossible scores refused |
+| A05 | Security misconfiguration | helmet (CSP `default-src 'none'`, no framing), CORS only for the game's address, no server banner, Content Security Policy on the page, no secrets in source | Headers present; evil origin gets no CORS and cannot change anything; no stack, SQL or path in any error; no inline script or handler in the page; CSP rejects `unsafe-inline`/`unsafe-eval` for scripts |
+| A06 | Vulnerable and outdated components | Exact versions pinned; lock files; `npm audit` in CI | Test that no dependency is a wildcard, `latest` or a git address; audit run (below) |
+| A07 | Identification and authentication failures | Login throttling per IP and per e-mail, password rules, logout kills the session, deleting an account removes its data | Logged-out cookie stops working; deletion needs the right password and cascades; guessing gets 429; weak passwords refused; failed login leaves a record |
+| A08 | Software and data integrity failures | JSON and an allowed `Origin` required for changes; saves and results are opaque data with limits; packs validated and cannot carry code; exact dependency versions | Form posts and `Origin: null` refused; prototype-pollution bodies change nothing; hostile stored values in every `vrussia_*` key do not stop the page; pack ids such as `__proto__` and `../../etc` refused; pack effects such as `run`, `setDocs`, `status`, `city` refused |
+| A09 | Security logging and monitoring failures | Auth events table; error reports collected (with consent) and shown to administrators; logger redacts cookies; usage events carry no address or account | Browser errors reach the admin page; telemetry has no column for an address; 90-day retention works; error text is scrubbed of e-mail addresses |
+| A10 | Server-side request forgery | The server never fetches an address from a player | With `fetch` replaced by a trap, cloud-metadata and localhost addresses sent in every free-text field cause no outgoing request; the source has no HTTP client call |
+
+## Findings and fixes (31 October 2026)
+
+1. **A06, real finding.** `npm audit --omit=dev` on the server reported 3 moderate and 1 high issues in packages that run in production: `fastify` 5.12.5 (header validation bypass), `nodemailer` 10.0.10 (address parser), `zod` below 4.6.6 (memory exhaustion on oversized collections) and `fast-uri`. Fixed by moving to `fastify` 5.12.7, `nodemailer` 10.3.1, `zod` 4.6.7 and the patched `fast-uri`; the audit now reports 0 for production packages and all 100 server tests pass. The browser build's production audit was already clean. The remaining audit notices are in development tools (vite, vitest, esbuild) and do not ship.
+2. **A01/least privilege, caught by an existing test.** The first version of the platform migration let the server's database role insert announcements directly, and `server/test/db.test.ts` failed. Announcements are now posted through a `security definer` function, so the role still cannot write the table.
+3. **A05.** The page had no Content Security Policy. One was added (scripts only from the site itself, no plug-ins, fixed base and form targets). It allows `https:` for connections and images because the game server and the map tiles are set when the game is built; narrow it to your own hosts when you deploy.
+4. **A09/privacy.** The usage table was designed with no place for an IP address, user agent or account id, and a test pins the column list.
+5. **A03, test-writing note.** Two false alarms in my own checks (a regular expression that matched `forgot(` as `got(`; a test that expected a 200 where the server rightly answers 414 for a 5,000-character address). Both were test mistakes, not server problems.
+
+## Not covered (be honest about this)
+
+- No outside penetration test, no dynamic scanner run (for example OWASP ZAP) and no fuzzing. These tests are the checks a developer can write; they do not replace a review by a security specialist before a public launch.
+- The server was tested against PGlite (PostgreSQL in WebAssembly), not a real PostgreSQL, real SMTP or Docker. See the limits in `docs/SECURITY.md`.
+- No two-factor sign-in and no change-of-e-mail flow (already listed in `docs/SECURITY.md`).
+- The real map (MapLibre) loads tiles from `tiles.openfreemap.org`. On 31 October 2026 it was opened once in Chrome under the Content Security Policy with the real network: the map canvas drew and the console showed no policy violation. That check is not in the automatic suite (it needs the internet); repeat it after any change to the policy.
+- Rate limits for the public endpoints are per IP; behind a proxy `TRUST_PROXY` must be set correctly or all players share one limit.
+- Lighthouse was run once by hand on the built site (desktop preset, 31 October 2026): performance 92, accessibility 95, best practices 100, SEO 92, all above the limits in `lighthouserc.json`. The CI job itself (`@lhci/cli`) has still not run on a server.

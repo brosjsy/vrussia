@@ -80,7 +80,7 @@ describe('job search guidance', () => {
     const c = G.newState('T', 'moscow'); c.queue = [];
     expect((G.dyn.job_search(c)).text).not.toContain('Tip:');
     const st = G.newState('T', 'student'); st.queue = [];
-    expect((G.dyn.job_search(st)).text).toContain('work permission');
+    expect((G.dyn.job_search(st)).text).toContain('free time');
   });
 });
 

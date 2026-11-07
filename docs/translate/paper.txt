@@ -1,0 +1,273 @@
+reg_first
+ T: Registration — the clock is ticking
+ X: The rules give a short time to register your place of stay after arrival: 7 working days for most visitors; for people who come to work, 15 days for citizens of Tajikistan and Uzbekistan and 30 days for those of Kyrgyzstan, Kazakhstan and Armenia (Belarus: 90). As reported in 2024; the rules change often and the game simplifies how the days are counted. Your host, a landlord or a hostel has to submit the notice through the MFC, post office or Gosuslugi.
+ 1V Ask your landlord to submit the notice (honest)
+ 2V Buy "registration" from a fixer for ₽5,000
+ 3F Postpone => The clock keeps ticking.
+
+reg_renew
+ T: Registration is running out
+ X: Your registration has less than 20 days. Renewal needs the host's consent, the migration card and the receipt.
+ 1V Renew at the MFC properly
+ 2V Pay a "helper" to jump the queue
+ 3F Do it next week => There is always next week.
+
+med_exam
+ T: Medical exam for migrants
+ X: Before a patent you need a medical certificate: infectious diseases, drug test, fingerprinting, Russian language test. Clinics near Sakharovo are crowded.
+ 1V Go to Sakharovo multifunctional centre
+ 2V Pay a clinic "VIP" service
+
+patent_buy
+ T: Patent payment
+ X: A work patent is paid for in monthly advance payments of income tax. In Moscow it was ₽8,900 a month in 2025 and rose to about ₽10,000 from 1 January 2026 (other regions differ). Pay on time and keep the receipts. After you receive the patent you must notify the Interior Ministry within two months.
+ 1F Pay for 1 month => Receipt in hand, +30 days.
+ 2F Pay for 3 months => Peace of mind. +90 days.
+ 3F Not today => You tell yourself you will pay on Friday.
+
+dms_policy
+ T: You need a health insurance policy for the patent
+ X: To get a work patent a labour migrant must hold a voluntary health insurance policy (DMS) that covers at least ₽100,000 and lasts as long as the patent. The price in the game is an approximation: about ₽5,000 for three months. You can also buy it in Online services → Buy health insurance.
+ 1F Buy a three-month policy (₽5,000) => An insurer prints a policy with your name and a hotline number. Now the patent can be bought.
+ 2F Think about it => You open three insurance sites and close them again.
+
+patent_notice
+ T: Notify the Interior Ministry about your patent
+ X: After getting a patent you must send a notification to the Interior Ministry within two months. A friend warns: "If you forget, the patent can be suspended for a year."
+ 1F File the notification at the MFC today => A form, a stamp and a receipt. One less thing to worry about.
+ 2F Do it later => The deadline does not move.
+
+patent_suspended
+ T: Your patent has been suspended
+ X: A clerk reads the screen: "You did not send the notification within two months. The patent is suspended for a year." Everything you do for work now counts as illegal.
+ 1F Accept it and look for another way => You read the rules three times. A lawyer tells you: next time, mark the date in your phone.
+
+imm_controlled_registry
+ T: Check the register of controlled persons
+ X: Foreigners with unresolved violations can be placed on a register of "controlled persons" with restrictions. A friend recommends checking your status on the official website.
+ 1F Check the official website => Your name is not on the list. You exhale.
+ 2F Skip it => Not knowing is not safer.
+
+imm_fssp_check
+ T: Unpaid fines and the bailiffs' database
+ X: Before certain applications, unpaid fines must be cleared. You can search the bailiffs' (FSSP) database by name and date of birth.
+ 1V Search the database
+ 2F Ignore it => The fine would have grown with time.
+
+student_visa
+ T: Student visa extension
+ X: The university international office stamps the extension request. The migration service needs your attendance record.
+ 1V Hand in all documents
+ 2F Ask the dean's office first => They sigh, check the list and say you are fine.
+
+work_permit_student
+ T: Working as a student?
+ X: Students can work only with specific permissions. A dean's letter plus a contract with the employer opens the door.
+ 1V Apply for permission
+ 2F Stay on scholarship only => No work, no risk.
+
+rvp_apply
+ T: Temporary residence permit (RVP)
+ X: You have the language certificate and a ground for RVP (quota place, marriage to a citizen, or a Russian child). Income proof, clean record, medical certificate, fingerprints. The clerk says: "Decision within 6 months".
+ 1V Submit documents (state duty ₽15,000)
+ 2F Wait => You can re-apply later.
+
+vnzh_apply
+ T: Permanent residence permit (VNZh)
+ X: After at least a year on RVP you can apply for the residence permit (VNZh): a card valid for five years, renewable, with the right to live and work without a patent. You must show regular income, tax payments and a clean record. (In real life the waiting times are years; the game shortens them to months.)
+ 1V Submit the VNZh application (state duty ₽30,000)
+ 2F Wait => Not yet.
+
+citizenship
+ T: Russian citizenship
+ X: Normally citizenship takes about five years of residence on a residence permit, or three if you are married to a citizen. You apply with documents, an interview and an oath, and then you receive the passport. (The game shortens the waiting to a few months.)
+ 1V Apply for citizenship (state duty ₽50,000)
+ 2F Wait a bit => Something about patience.
+
+quota_rvp
+ T: RVP quota application
+ X: Each region has a yearly quota for temporary residence permits. You must apply for a quota place, which may take months. The queue at the Migration Department (GUVM) starts at 5 a.m.
+ 1V Queue for the quota ticket
+ 2F Check other grounds first (marriage, child) => Marriage to a Russian citizen or having a Russian child opens RVP without the quota.
+
+fixer_scam
+ T: A "helper" at the MFC
+ X: A man in a leather jacket approaches you: "Documents, patent, registration — fast, ₽7,000, no queue."
+ 1F Ignore him => He moves to the next person.
+ 2V Pay him
+ 3F Report him to the MFC guard => The guard nods and takes a note. Maybe it helps.
+
+gosuslugi_down
+ T: Gosuslugi is down
+ X: The "State Services" website shows an error page. The queue at the MFC in person is 90 minutes.
+ 1F Wait in the physical queue => You read half a novel on your phone.
+ 2F Try again tomorrow => The page loads at 07:03.
+
+voenkomat
+ T: Letter from the military enlistment office
+ X: An envelope arrives: "Please appear at the voenkomat." Rumours ripple through the family chat.
+ 1V Go and follow the process
+ 2F Ignore the letter => Ignoring does not remove the file — and fines add up.
+
+imm_passport_embassy
+ T: Your home passport is expiring
+ X: The embassy of your country in Moscow has a long queue and strict rules. A valid national passport is needed for registration, patent and every later step.
+ 1V Renew at the embassy (₽8,000 with fees)
+ 2F Delay it => The expiry date does not move.
+
+imm_consulate_reg
+ T: Register with your consulate
+ X: Your country's consulate asks citizens abroad to register. It helps if you lose documents or need an emergency passport.
+ 1F Register => A small card goes into your wallet. It feels reassuring.
+ 2F Skip it => You skip it. Famous last words.
+
+imm_entry_ban_check
+ T: Check your entry ban status
+ X: A friend says a violation can put you on a list that bans entry for years. You can check your status through official channels.
+ 1F Check status at the migration service => Clean status. You exhale.
+ 2F Ignore it => Not knowing is not safer.
+
+imm_lost_passport
+ T: Lost passport
+ X: Your wallet and passport are gone. Without it you cannot prove status, register, or work.
+ 1F Report to police and go to the embassy => Report, embassy form, new passport in three weeks. The delay costs you.
+ 2F Look for it everywhere first => You retrace your route. Nothing.
+
+imm_employer_notice
+ T: Employer must notify authorities
+ X: Your employer must notify the migration service about hiring you. A careless employer forgets; a fair one files in three days.
+ 1V Remind the HR manager politely
+ 2F Trust them => Nothing happens. For now.
+
+imm_marriage_ground
+ T: RVP outside quota (marriage)
+ X: Marriage to a Russian citizen gives you the right to apply for temporary residence without the quota. The ZAGS certificate, your partner's passport and a joint photo list are needed.
+ 1F Submit the file => Accepted for review. The ground for RVP is confirmed.
+
+imm_child_ground
+ T: RVP outside quota (Russian child)
+ X: Having a child who is a Russian citizen gives you a ground for RVP without the quota.
+ 1F Submit the file => The migration office accepts the application as a family ground.
+
+imm_patent_to_rvp
+ T: You no longer need a patent
+ X: The patent offices send you a farewell leaflet. RVP lets you work without it. One small paper gone.
+ 1F Celebrate with a pastry => It tastes better than any patent receipt.
+
+imm_rvp_notify
+ T: Residence notification
+ X: Residents on RVP must notify the migration service about their address and job every year.
+ 1F File the notice => Done in one visit. A small win.
+ 2F Forget => Forgetting costs fines later.
+
+imm_oath
+ T: Language and history refresh
+ X: The citizenship interview includes questions about Russian history, law and daily life. A colleague offers to quiz you.
+ 1F Study with a colleague => You learn why Pushkin is in every textbook.
+ 2F Wing it => You hope for good luck.
+
+baby_registration
+ T: Newborn paperwork
+ X: Birth certificate at ZAGS, child registration, SNILS and a polyclinic attachment.
+ 1V Do it all in one trip
+
+ev-law3
+ T: Unpaid wages, small claims
+ X: Your employer owes you a month of wages. A friend says: "Go to the court, it is free for small claims."
+ 1F File a statement with the labour inspectorate => An officer calls the employer. The money arrives the next day.
+ 2F Wait and hope => You wait. You keep waiting.
+
+ev-law4
+ T: Power of attorney
+ X: You need someone at home to act on your behalf in a property matter. A notary can draw up a power of attorney.
+ 1F Visit a notary (₽2,500) => Stamp, signature, three copies. Done.
+ 2F Leave it unsolved => The matter drags on, and your relatives keep asking.
+
+ev-law5
+ T: A debt notice
+ X: A letter from the bailiffs (FSSP) arrives with your name and a sum you do not recognise.
+ 1F Check it on the official website and call => It is a mistake: a different person with the same name.
+ 2F Ignore it => Three weeks later your card is blocked.
+
+ev-law8
+ T: Read the employment contract
+ X: Your employer hands you a long contract and says "just sign here, everyone does".
+ 1F Read it and ask about unclear points => You catch a clause about unpaid overtime and negotiate it out.
+ 2F Sign without reading => It works out. Mostly.
+
+ev-law10
+ T: A court summons
+ X: A white envelope: "You are called as a witness in a case." Your hands are cold.
+ 1F Go and tell what you saw => The judge is brisk, the lawyer polite. You are done in two hours.
+ 2F Ignore the summons => A second letter arrives, less friendly, with a fine.
+
+ev-law11
+ T: Recognition of a diploma
+ X: Your diploma from home must be recognised in Russia before you can work in your profession.
+ 1F Submit it for recognition (₽5,000) => Months later: "Recognised." You are legal in your field.
+ 2F Work in another field => Safer, but less satisfying.
+
+ev-law12
+ T: Tax deduction for studies
+ X: You can claim back part of what you paid for education through the tax service portal.
+ 1F File the form on the portal => A month later ₽8,000 arrives on your card.
+ 2F Skip the paperwork => Free money stays unclaimed.
+
+ev-law14
+ T: Marriage name change
+ X: After the wedding you decide to change your surname in all documents.
+ 1F Do the whole circuit: passport, bank, SNILS, driving licence => Three weeks of queues. Then everything is aligned.
+ 2F Keep your name => Your partner nods. Simple.
+
+fine-notice-0
+ T: Fine: a speed camera
+ X: A notification in the Gosuslugi app: your car was recorded doing 71 km/h in a 60 zone. The amount is ₽500. Paying within 20 days gets you a discount (a simplified rule in the game); ignoring it makes it grow.
+ 1F Pay it now with the early discount => You pay ₽250 in the app at once. Receipt saved.
+ 2F Deal with it later (use Online services → Pay fines) => You leave it in the app. The clock ticks.
+ 3F Ignore it => You close the app. The amount stays in the system.
+
+fine-notice-1
+ T: Fine: a parking violation
+ X: A photo of your car on a pavement, taken by a parking patrol car. A fine has been issued. The amount is ₽3,000. Paying within 20 days gets you a discount (a simplified rule in the game); ignoring it makes it grow.
+ 1F Pay it now with the early discount => You pay ₽1,500 in the app at once. Receipt saved.
+ 2F Deal with it later (use Online services → Pay fines) => You leave it in the app. The clock ticks.
+ 3F Ignore it => You close the app. The amount stays in the system.
+
+fine-notice-2
+ T: Fine: a ticket inspector
+ X: On the tram an inspector writes you a protocol for travelling without a valid ticket. The amount is ₽800. Paying within 20 days gets you a discount (a simplified rule in the game); ignoring it makes it grow.
+ 1F Pay it now with the early discount => You pay ₽400 in the app at once. Receipt saved.
+ 2F Deal with it later (use Online services → Pay fines) => You leave it in the app. The clock ticks.
+ 3F Ignore it => You close the app. The amount stays in the system.
+
+fine-notice-3
+ T: Fine: litter on the pavement
+ X: A police officer says you dropped a cigarette butt next to the bin and writes a protocol. The amount is ₽1,000. Paying within 20 days gets you a discount (a simplified rule in the game); ignoring it makes it grow.
+ 1F Pay it now with the early discount => You pay ₽500 in the app at once. Receipt saved.
+ 2F Deal with it later (use Online services → Pay fines) => You leave it in the app. The clock ticks.
+ 3F Ignore it => You close the app. The amount stays in the system.
+
+fine-notice-4
+ T: Fine: a noisy party
+ X: Neighbours called the police after 23:00. An officer arrives and issues a fine for noise. The amount is ₽2,000. Paying within 20 days gets you a discount (a simplified rule in the game); ignoring it makes it grow.
+ 1F Pay it now with the early discount => You pay ₽1,000 in the app at once. Receipt saved.
+ 2F Deal with it later (use Online services → Pay fines) => You leave it in the app. The clock ticks.
+ 3F Ignore it => You close the app. The amount stays in the system.
+
+fine-notice-5
+ T: Fine: registration late
+ X: A letter says you were late to submit a notice about your new address. The amount is ₽2,000. Paying within 20 days gets you a discount (a simplified rule in the game); ignoring it makes it grow.
+ 1F Pay it now with the early discount => You pay ₽1,000 in the app at once. Receipt saved.
+ 2F Deal with it later (use Online services → Pay fines) => You leave it in the app. The clock ticks.
+ 3F Ignore it => You close the app. The amount stays in the system.
+
+fine-reminder
+ T: A reminder about your unpaid fines
+ X: A message from the bailiffs' service: "You have unpaid fines. After 60 days the amount doubles and enforcement begins."
+ 1F Open Online services and pay them => You switch to the payment screen straight away.
+ 2F Pay later => You promise yourself.
+
+fine-enforcement
+ T: Bailiffs and a blocked card
+ X: The bailiffs have taken the money for the fines (now doubled, with a minimum of ₽1,000) from your card, plus a fee. A note says: "Debt closed. Please read your notifications." In real life a court can also choose up to 15 days of arrest or up to 50 hours of compulsory labour instead; the game uses the doubled fine.
+ 1F Sigh and move on => It is an expensive lesson in paying on time.

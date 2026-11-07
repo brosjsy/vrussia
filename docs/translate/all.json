@@ -1,0 +1,1414 @@
+[
+ {
+  "id": "arc_timur_0",
+  "cat": "arc",
+  "built": true,
+  "title": "Timur moves in",
+  "text": "A new roommate arrives with a duffel bag, a rice cooker and a big smile. \"I am Timur. I work nights. I promise I am quiet.\"",
+  "choices": [
+   {
+    "t": "Share dinner with him",
+    "then": "Plov from his rice cooker, tea from yours. By midnight you are friends.",
+    "fixed": true
+   },
+   {
+    "t": "Agree on house rules first",
+    "then": "Rules on a sheet of paper: dishes, quiet hours, guests. He signs with a flourish.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_timur_1",
+  "cat": "arc",
+  "built": true,
+  "title": "Late-night calls to his mother",
+  "text": "Every night at 2 a.m. Timur whispers into his phone. You hear a mother's voice, tinny and warm, asking if he has eaten.",
+  "choices": [
+   {
+    "t": "Offer him the kitchen so he can talk freely",
+    "then": "He is moved. The next day there is a pot of lagman waiting for you.",
+    "fixed": true
+   },
+   {
+    "t": "Ask him to talk quietly",
+    "then": "He nods and speaks in whispers. Awkward but fine.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_timur_2",
+  "cat": "arc",
+  "built": true,
+  "title": "Timur loses his night job",
+  "text": "Timur sits on his bunk, staring at his phone. \"They let me go. I do not know how I will pay my share this week.\"",
+  "choices": [
+   {
+    "t": "Lend him ₽5,000",
+    "then": "He promises to repay every rouble and means it.",
+    "fixed": true
+   },
+   {
+    "t": "Help him look for a job instead",
+    "then": "You spend an evening on job sites and send his resume to three employers.",
+    "fixed": true
+   },
+   {
+    "t": "Say you cannot help right now",
+    "then": "He swallows his pride and says \"no problem\". The room is quiet for days.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_timur_3",
+  "cat": "arc",
+  "built": true,
+  "title": "Timur finds work",
+  "text": "Timur bursts in, waving his phone. \"I have a job! A real one, with a contract!\"",
+  "choices": [
+   {
+    "t": "Congratulate him",
+    "then": "He hugs you, nearly lifting you off the floor.",
+    "fixed": true
+   },
+   {
+    "t": "Invite him to celebrate",
+    "then": "Tea, cake and a toast to \"the first contract\".",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_timur_4",
+  "cat": "arc",
+  "built": true,
+  "title": "Timur moves on",
+  "text": "A cousin in another city has a flat and a job offer. Timur packs his bag. \"Thank you for everything,\" he says, and hands you the rice cooker.",
+  "choices": [
+   {
+    "t": "Hug him and promise to visit",
+    "then": "You wave from the doorway. A good chapter closes.",
+    "fixed": true
+   },
+   {
+    "t": "Keep the rice cooker and cook for yourself",
+    "then": "Every time you cook, you think of him.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_valya_0",
+  "cat": "arc",
+  "built": true,
+  "title": "Babushka Valya and the pie",
+  "text": "The old woman from flat 12 knocks with a plate of cabbage pirozhki. \"You look thin, dear. Eat.\"",
+  "choices": [
+   {
+    "t": "Thank her and chat on the doorstep",
+    "then": "She tells you the story of the building since 1971. You promise to come for tea.",
+    "fixed": true
+   },
+   {
+    "t": "Accept the pie and say you are busy",
+    "then": "The pie is delicious. The guilt is not.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_valya_1",
+  "cat": "arc",
+  "built": true,
+  "title": "Valya needs medicine",
+  "text": "Valya calls you through the door: her knees hurt and she cannot reach the pharmacy. \"Only if it is not a trouble.\"",
+  "choices": [
+   {
+    "t": "Go to the pharmacy for her",
+    "then": "You return with ointment and drops. She pays you in jam and blessings.",
+    "fixed": true
+   },
+   {
+    "t": "Show her how to order delivery on her phone",
+    "then": "It takes an hour, but she can now order her own medicine. She is proud of herself.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_valya_2",
+  "cat": "arc",
+  "built": true,
+  "title": "Valya falls",
+  "text": "You hear a thud and a faint \"help\". Her door is unlocked; she lies on the kitchen floor, conscious but pale.",
+  "choices": [
+   {
+    "t": "Call 103 and stay with her",
+    "then": "The ambulance takes her to the hospital. You hold her hand until the doors close.",
+    "fixed": true
+   },
+   {
+    "t": "Call a neighbour and 103 together",
+    "then": "Three of you in the corridor, one calling the ambulance, one fetching her pills. She will be fine.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_valya_3",
+  "cat": "arc",
+  "built": true,
+  "title": "Valya comes home",
+  "text": "After two weeks in hospital, Valya returns, thinner and frailer, but in good spirits. She invites you for tea and a story.",
+  "choices": [
+   {
+    "t": "Visit her with flowers",
+    "then": "She tells you about her husband, a driver, and the dance where they met in 1968.",
+    "fixed": true
+   },
+   {
+    "t": "Send a card and call her",
+    "then": "She is touched by the card and hangs it on the fridge.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_valya_4",
+  "cat": "arc",
+  "built": true,
+  "title": "Valya's gift",
+  "text": "Valya leaves a jar of cherry jam outside your door with a note: \"Thank you for the kindness.\"",
+  "choices": [
+   {
+    "t": "Thank her and promise to cook from it",
+    "then": "The first recipe, \"Valya's pirozhki\", comes out almost perfect. You cry a little.",
+    "fixed": true
+   },
+   {
+    "t": "Offer to help her with the shopping every week",
+    "then": "It becomes a Saturday ritual. The building has a new rhythm.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_aigul_0",
+  "cat": "arc",
+  "built": true,
+  "title": "A study partner called Aigul",
+  "text": "In the library a girl with three highlighters asks if she can share your table. \"I am Aigul. I am hopeless at statistics.\"",
+  "choices": [
+   {
+    "t": "Offer to study together",
+    "then": "You trade notes and jokes. Silence in the library has never been so loud.",
+    "fixed": true
+   },
+   {
+    "t": "Let her sit but keep to yourself",
+    "then": "She nods. Both of you work in silence.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_aigul_1",
+  "cat": "arc",
+  "built": true,
+  "title": "Exam week together",
+  "text": "Aigul calls at midnight: \"I will fail tomorrow! Please, just one hour?\" Your own revision is not finished either.",
+  "choices": [
+   {
+    "t": "Spend the hour with her",
+    "then": "You both pass. You swear never to leave things so late again.",
+    "fixed": true
+   },
+   {
+    "t": "Say you cannot, wish her luck",
+    "then": "She passes anyway. She says \"no problem\" in a small voice.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_aigul_2",
+  "cat": "arc",
+  "built": true,
+  "title": "Aigul is struggling",
+  "text": "Aigul confesses she is thinking of dropping out: money, homesickness and a flat that is too cold.",
+  "choices": [
+   {
+    "t": "Listen and help her apply for a hardship grant",
+    "then": "The form is long but the grant comes through. Aigul stays.",
+    "fixed": true
+   },
+   {
+    "t": "Cheer her up with a night out",
+    "then": "Pancakes, karaoke and terrible singing. She laughs for the first time in weeks.",
+    "fixed": true
+   },
+   {
+    "t": "Tell her to push through",
+    "then": "She nods stiffly. You cannot tell if it helped.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_aigul_3",
+  "cat": "arc",
+  "built": true,
+  "title": "Aigul's family",
+  "text": "Aigul invites you to her sister's birthday: \"It would mean a lot.\"",
+  "choices": [
+   {
+    "t": "Go and bring a gift",
+    "then": "A table with twenty dishes, six grandmothers and a toast in your honour.",
+    "fixed": true
+   },
+   {
+    "t": "Politely decline",
+    "then": "She smiles. \"Maybe next time.\"",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_aigul_4",
+  "cat": "arc",
+  "built": true,
+  "title": "Graduation day",
+  "text": "Caps, flowers and exams behind you. Aigul runs across the lawn and hugs you.",
+  "choices": [
+   {
+    "t": "Take a photo together",
+    "then": "A good photo of a good friend.",
+    "fixed": true
+   },
+   {
+    "t": "Promise to start a study group",
+    "then": "The group grows to twelve people and lasts all year.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_petrov_0",
+  "cat": "arc",
+  "built": true,
+  "title": "The landlord drops in",
+  "text": "Mr. Petrov, in a worn jacket, checks the radiators and the kitchen tap. \"Everything in order?\" he asks, running a finger along the shelf.",
+  "choices": [
+   {
+    "t": "Show him the flat proudly",
+    "then": "He nods slowly. \"Rare. Most tenants wreck the place.\"",
+    "fixed": true
+   },
+   {
+    "t": "Ask him to give notice before coming",
+    "then": "He frowns, then agrees. \"Fair enough.\"",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_petrov_1",
+  "cat": "arc",
+  "built": true,
+  "title": "The rent goes up",
+  "text": "A message from Mr. Petrov: \"From next month, ₽500 more per week. Prices are going up everywhere.\"",
+  "choices": [
+   {
+    "t": "Negotiate politely, mention your good record",
+    "then": "He grumbles and settles for ₽250 more.",
+    "fixed": true
+   },
+   {
+    "t": "Accept without comment",
+    "then": "He is pleased. Your wallet is not.",
+    "fixed": true
+   },
+   {
+    "t": "Refuse and threaten to move",
+    "then": "He looks away. \"Then move.\" You keep the old rent for now, but the atmosphere is cold.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_petrov_2",
+  "cat": "arc",
+  "built": true,
+  "title": "A burst pipe at midnight",
+  "text": "Water pours from under the sink. You call Mr. Petrov at 1 a.m. He answers on the first ring.",
+  "choices": [
+   {
+    "t": "Shut the valve and wait for him",
+    "then": "He arrives with a toolbox and a thermos. By 3 a.m. it is fixed.",
+    "fixed": true
+   },
+   {
+    "t": "Call a plumber yourself (₽4,000)",
+    "then": "It works, and he later refunds half. \"You solve problems. I like that.\"",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_petrov_3",
+  "cat": "arc",
+  "built": true,
+  "title": "A six-month offer",
+  "text": "Mr. Petrov offers a standard contract at the current price.",
+  "choices": [
+   {
+    "t": "Sign the longer contract",
+    "then": "A proper lease and a stamp. At least it is in writing.",
+    "fixed": true
+   },
+   {
+    "t": "Keep it flexible",
+    "then": "You keep your freedom, he keeps his price.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_petrov_4",
+  "cat": "arc",
+  "built": true,
+  "title": "He is selling the flat",
+  "text": "Mr. Petrov calls with news: his daughter needs money for a flat of her own. He offers you first refusal.",
+  "choices": [
+   {
+    "t": "Ask about the price and a mortgage",
+    "then": "He gives you a fair price and an honest list of the flat's flaws. You thank him and go home to think.",
+    "fixed": true
+   },
+   {
+    "t": "Start looking for another place",
+    "then": "You thank him for the years and start a viewing list.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_rustam_0",
+  "cat": "arc",
+  "built": true,
+  "title": "The caretaker's advice",
+  "text": "Rustam, the building's caretaker (dvornik), is clearing the entrance. \"You are new here. Come, I will tell you how the city works.\"",
+  "choices": [
+   {
+    "t": "Listen to his tips",
+    "then": "Where the cheap shop is, which bus never comes, who to call when the heating fails.",
+    "fixed": true
+   },
+   {
+    "t": "Thank him and hurry on",
+    "then": "He waves and returns to his shovel.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_rustam_1",
+  "cat": "arc",
+  "built": true,
+  "title": "A snow shovel",
+  "text": "It snowed all night. Rustam is alone with a mountain of snow in front of the building.",
+  "choices": [
+   {
+    "t": "Help him clear the entrance",
+    "then": "An hour of shovelling; hot tea from his thermos afterwards.",
+    "fixed": true
+   },
+   {
+    "t": "Thank him from the window with a wave",
+    "then": "He waves back with a shovel. Quiet respect.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_rustam_2",
+  "cat": "arc",
+  "built": true,
+  "title": "A tip about a job",
+  "text": "Rustam mentions that his cousin runs a small firm that needs a reliable person. \"I can put in a word.\"",
+  "choices": [
+   {
+    "t": "Ask him to introduce you",
+    "then": "A short meeting and a trial day. Rustam's word counts for a lot.",
+    "fixed": true
+   },
+   {
+    "t": "Thank him but decline",
+    "then": "He nods: \"Another time then.\"",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_rustam_3",
+  "cat": "arc",
+  "built": true,
+  "title": "Rustam's daughter's wedding",
+  "text": "Rustam invites everybody in the building to his daughter's wedding.",
+  "choices": [
+   {
+    "t": "Go with a gift envelope (₽3,000)",
+    "then": "Three hundred guests, two hundred dishes, one very loud band. You dance until you cannot feel your feet.",
+    "fixed": true
+   },
+   {
+    "t": "Send a card and a small gift",
+    "then": "He thanks you warmly, a little sorry not to see you.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_rustam_4",
+  "cat": "arc",
+  "built": true,
+  "title": "Rustam hangs up the shovel",
+  "text": "After twenty years Rustam is retiring to his village. A farewell for the whole building is arranged on the stairs.",
+  "choices": [
+   {
+    "t": "Give a farewell speech",
+    "then": "You say a few words. Rustam smiles and shakes your hand.",
+    "fixed": true
+   },
+   {
+    "t": "Organise a collection for a gift",
+    "then": "Three hundred roubles from each flat buys a new coat. He wears it on the train home.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_sergey_0",
+  "cat": "arc",
+  "built": true,
+  "title": "A new colleague, Sergey",
+  "text": "Sergey joined last week. He is quick, sure of himself and has already corrected you twice in front of the manager.",
+  "choices": [
+   {
+    "t": "Ask him to show you what you missed",
+    "then": "He is surprised, then flattered. Within an hour he has shown you two shortcuts.",
+    "fixed": true
+   },
+   {
+    "t": "Compete: do better than him tomorrow",
+    "then": "You arrive early and work flat out. The manager notices both of you.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_sergey_1",
+  "cat": "arc",
+  "built": true,
+  "title": "Credit for your idea",
+  "text": "In a meeting Sergey presents an idea you mentioned at lunch, with no mention of you. The manager nods approvingly.",
+  "choices": [
+   {
+    "t": "Speak to Sergey privately",
+    "then": "He turns red: \"I did not realise... I will tell the manager.\"",
+    "fixed": true
+   },
+   {
+    "t": "Say it out loud in the meeting",
+    "then": "An awkward silence. The manager says \"good, you both contributed\". Sergey avoids you for a week.",
+    "fixed": true
+   },
+   {
+    "t": "Let it go",
+    "then": "You swallow it and keep your head down. It bothers you for days.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_sergey_2",
+  "cat": "arc",
+  "built": true,
+  "title": "Sergey is in trouble",
+  "text": "Sergey made a costly mistake and the manager is furious. He looks at you across the room, pale.",
+  "choices": [
+   {
+    "t": "Help him fix it",
+    "then": "You spend the evening together. The mistake is repaired before the morning. He owes you.",
+    "fixed": true
+   },
+   {
+    "t": "Keep out of it",
+    "then": "You are safe. He notices.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_sergey_3",
+  "cat": "arc",
+  "built": true,
+  "title": "A promotion for one",
+  "text": "The manager announces that one of you will be promoted next month. The room goes quiet.",
+  "choices": [
+   {
+    "t": "Prepare your best results",
+    "then": "You give a strong presentation. The manager says \"we will think about it\".",
+    "fixed": true
+   },
+   {
+    "t": "Ask for feedback instead",
+    "then": "The manager lists your strengths and one weakness. You write them down.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_sergey_4",
+  "cat": "arc",
+  "built": true,
+  "title": "Sergey invites you to the banya",
+  "text": "Sergey: \"No hard feelings. A team outing on Saturday, come if you want.\"",
+  "choices": [
+   {
+    "t": "Go and bring a thermos of tea",
+    "then": "Steam, birch twigs, jokes and a very honest conversation about work. You are a team now.",
+    "fixed": true
+   },
+   {
+    "t": "Politely decline",
+    "then": "He nods. \"Another time.\"",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_olga_0",
+  "cat": "arc",
+  "built": true,
+  "title": "A retired teacher offers help",
+  "text": "Olga Petrovna, a retired Russian-language teacher, notices you struggling with a form at the post office and corrects it kindly. \"I give free lessons on Tuesdays at the community centre,\" she says.",
+  "choices": [
+   {
+    "t": "Go to the first lesson",
+    "then": "A room with a blackboard, a samovar and six students from five countries. She writes \"здравствуйте\" in careful chalk.",
+    "fixed": true
+   },
+   {
+    "t": "Say you will think about it",
+    "then": "She smiles and gives you a leaflet.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_olga_1",
+  "cat": "arc",
+  "built": true,
+  "title": "The case system",
+  "text": "Today Olga Petrovna explains the six cases. Half the class looks at the ceiling. \"Do not fear,\" she says. \"Everyone is afraid of the instrumental case.\"",
+  "choices": [
+   {
+    "t": "Practise with flashcards every evening",
+    "then": "By the end of the week you can say \"I am going to the doctor with my friend\" in four forms.",
+    "fixed": true
+   },
+   {
+    "t": "Copy the table into your notebook and hope",
+    "then": "You will need to see it again.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_olga_2",
+  "cat": "arc",
+  "built": true,
+  "title": "A tea and a story",
+  "text": "After class Olga Petrovna invites you to tea. She tells you about teaching in a village school fifty years ago and about her own travels.",
+  "choices": [
+   {
+    "t": "Listen and ask questions in Russian",
+    "then": "You use five new words and make three mistakes. She corrects you gently every time.",
+    "fixed": true
+   },
+   {
+    "t": "Bring something from your own country to share",
+    "then": "She tastes it and says it is the best thing she has eaten this year. You believe her, a little.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_olga_3",
+  "cat": "arc",
+  "built": true,
+  "title": "Preparing for the test",
+  "text": "Olga Petrovna says: \"The language, history and law test is soon. Let us do a rehearsal.\" She prints a mock exam with a stern look.",
+  "choices": [
+   {
+    "t": "Do a full mock exam under time limit",
+    "then": "Two hours later you are tired and much more confident. She marks every error in green. (Your chance of passing the real test goes up.)",
+    "fixed": true
+   },
+   {
+    "t": "Ask her for the key phrases only",
+    "then": "She gives you a one-page list. It helps, a little.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_olga_4",
+  "cat": "arc",
+  "built": true,
+  "title": "A farewell present",
+  "text": "The course is ending. Olga Petrovna gives each student a small book of Russian proverbs, signed in her round handwriting.",
+  "choices": [
+   {
+    "t": "Thank her and promise to keep practising",
+    "then": "The book sits on your shelf, and her handwriting is the first thing you see in the morning.",
+    "fixed": true
+   },
+   {
+    "t": "Offer to help her teach the next group",
+    "then": "She hesitates, then says yes. A volunteer teacher, you are already a part of the story.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_ginger_0",
+  "cat": "arc",
+  "built": true,
+  "title": "A ginger cat at the door",
+  "text": "A thin ginger cat sits by your entrance every evening, staring at the door with great dignity.",
+  "choices": [
+   {
+    "t": "Put out a saucer of milk and some fish",
+    "then": "The cat eats with great solemnity and then leaves without saying thank you.",
+    "fixed": true
+   },
+   {
+    "t": "Ignore it",
+    "then": "The cat watches you pass. You feel judged.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_ginger_1",
+  "cat": "arc",
+  "built": true,
+  "title": "The cat is limping",
+  "text": "One morning the cat limps to the door and cries. Its paw is swollen.",
+  "choices": [
+   {
+    "t": "Take it to the vet (₽3,500)",
+    "then": "A splinter and an infection. The vet gives an injection and a pill. The cat hates you for an hour and then forgives you.",
+    "fixed": true
+   },
+   {
+    "t": "Wash the paw and wait",
+    "then": "It heals slowly, and you spend three evenings with a cat on your lap.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_ginger_2",
+  "cat": "arc",
+  "built": true,
+  "title": "What to call a cat",
+  "text": "The neighbours are arguing over the cat's name: Ryzhik (Ginger), Barsik or Mikhalych.",
+  "choices": [
+   {
+    "t": "Vote for Ryzhik",
+    "then": "The name sticks. Soon half the building calls it by name.",
+    "fixed": true
+   },
+   {
+    "t": "Suggest a name in your own language",
+    "then": "The cat answers to it at once. The neighbours are charmed.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_ginger_3",
+  "cat": "arc",
+  "built": true,
+  "title": "Ginger and the neighbour's dog",
+  "text": "A big dog barks at Ginger in the courtyard. Ginger arches up, hisses and rushes to your door.",
+  "choices": [
+   {
+    "t": "Carry the cat inside and calm the dog's owner",
+    "then": "Everyone is calm in ten minutes. The dog owner brings a bag of cat food as an apology.",
+    "fixed": true
+   },
+   {
+    "t": "Let them sort it out",
+    "then": "Ginger wins by speed, and the dog retreats looking embarrassed.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_ginger_4",
+  "cat": "arc",
+  "built": true,
+  "title": "Ginger moves in?",
+  "text": "Ginger sits by your door every evening and meows to be let in.",
+  "choices": [
+   {
+    "t": "Let Ginger in for good",
+    "then": "The first night the cat inspects every corner, then curls up on your pillow. You sleep badly and happily.",
+    "fixed": true
+   },
+   {
+    "t": "Keep feeding Ginger at the door",
+    "then": "An arrangement works for both of you: a cat of the courtyard, fed by the whole building.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_vladimir_0",
+  "cat": "arc",
+  "built": true,
+  "title": "A taxi driver with opinions",
+  "text": "The driver, Vladimir, has a thermos, an icon on the dashboard and a view on everything. \"You are new in the city,\" he says. \"I can tell by how you look at the buildings.\"",
+  "choices": [
+   {
+    "t": "Ask him what to see in the city",
+    "then": "He lists three places no guidebook mentions, and a fourth where the soup is good.",
+    "fixed": true
+   },
+   {
+    "t": "Look at your phone and nod",
+    "then": "He turns the radio up a little. The ride is quiet.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_vladimir_1",
+  "cat": "arc",
+  "built": true,
+  "title": "The shortcut",
+  "text": "Vladimir says: \"I know a shortcut through the courtyards that saves ten minutes. The map does not know it.\"",
+  "choices": [
+   {
+    "t": "Let him take it",
+    "then": "Through an arch, past a bakery, across a car park: you arrive early. You learn the route.",
+    "fixed": true
+   },
+   {
+    "t": "Insist on the maps app route",
+    "then": "He shrugs. You arrive on time, a little stiffly.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_vladimir_2",
+  "cat": "arc",
+  "built": true,
+  "title": "He forgot his wallet",
+  "text": "At the end of a ride Vladimir looks stricken: his card reader is broken and he cannot give change for your note.",
+  "choices": [
+   {
+    "t": "Tell him to keep the change",
+    "then": "He puts his hand on his chest. \"I will remember this.\"",
+    "fixed": true
+   },
+   {
+    "t": "Wait while he finds change",
+    "then": "It takes five minutes and an apology. You are fair, he is grateful.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_vladimir_3",
+  "cat": "arc",
+  "built": true,
+  "title": "A call at midnight",
+  "text": "Your phone rings at 23:40. It is Vladimir: \"I have a passenger who says he is lost and has no phone. Do you know the address?\"",
+  "choices": [
+   {
+    "t": "Say you cannot help",
+    "then": "He sighs and thanks you anyway.",
+    "fixed": true
+   },
+   {
+    "t": "Suggest calling the police for lost people",
+    "then": "He nods slowly and does so.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_vladimir_4",
+  "cat": "arc",
+  "built": true,
+  "title": "A job offer",
+  "text": "Vladimir says he is retiring to his dacha and his taxi company needs reliable people. \"You would be good. You are patient, you ask questions.\"",
+  "choices": [
+   {
+    "t": "Ask about the conditions",
+    "then": "A polite introduction and a standard trial.",
+    "fixed": true
+   },
+   {
+    "t": "Thank him and decline",
+    "then": "He shakes your hand. \"If you change your mind, ask for Vladimir.\"",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_zarina_0",
+  "cat": "arc",
+  "built": true,
+  "title": "A person you keep meeting",
+  "text": "In the corridor, at the coffee machine and at the bus stop you keep meeting Zarina, who always has a book. Today she says: \"We should stop pretending we do not know each other.\"",
+  "choices": [
+   {
+    "t": "Say hello and ask what she reads",
+    "then": "She reads poetry, mostly Akhmatova and Mandelstam. You spend ten minutes on a bench.",
+    "fixed": true
+   },
+   {
+    "t": "Nod politely and go on",
+    "then": "She smiles and returns to her book.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_zarina_1",
+  "cat": "arc",
+  "built": true,
+  "title": "A coffee after work",
+  "text": "Zarina suggests a coffee on Friday. \"Not a date,\" she says quickly. \"Probably not a date.\"",
+  "choices": [
+   {
+    "t": "Say yes and choose a quiet café",
+    "then": "Two hours go by in what feels like twenty minutes. Nobody checks a phone.",
+    "fixed": true
+   },
+   {
+    "t": "Suggest a walk instead",
+    "then": "A walk along the river. Her laugh is louder than you expected.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_zarina_2",
+  "cat": "arc",
+  "built": true,
+  "title": "A misunderstanding",
+  "text": "You forget to reply to Zarina for a day. She writes: \"Okay. I understand.\" The tone of the message is cold.",
+  "choices": [
+   {
+    "t": "Call her and explain honestly",
+    "then": "You were overwhelmed with work. She is quiet, then forgives you with a joke.",
+    "fixed": true
+   },
+   {
+    "t": "Send a long message with excuses",
+    "then": "She reads it and answers with a single emoji. You are not sure what it means.",
+    "fixed": true
+   },
+   {
+    "t": "Let it pass",
+    "then": "The silence lasts a week. You see her at the bus stop and both look at the sky.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_zarina_3",
+  "cat": "arc",
+  "built": true,
+  "title": "Meet the friends",
+  "text": "Zarina invites you to her friends' evening: \"They want to meet you.\"",
+  "choices": [
+   {
+    "t": "Go and bring something to share",
+    "then": "Salad, music, an argument about films. Her friends approve, loudly.",
+    "fixed": true
+   },
+   {
+    "t": "Politely decline, you are tired",
+    "then": "She understands, but looks at her phone a bit longer than usual.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_zarina_4",
+  "cat": "arc",
+  "built": true,
+  "title": "What are we?",
+  "text": "On a bench by the river Zarina says: \"I like you. I think you like me. So what are we?\"",
+  "choices": [
+   {
+    "t": "Say you want to be together",
+    "then": "She hesitates, then nods slowly. \"Let us try.\"",
+    "fixed": true
+   },
+   {
+    "t": "Say you need time",
+    "then": "She nods. \"Take your time. I will be reading Akhmatova.\"",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_professor_0",
+  "cat": "arc",
+  "built": true,
+  "title": "Office hours",
+  "text": "Professor Belova, the head of the department, leaves a note on your desk: \"Office hours, room 312, Thursday. Please come.\"",
+  "choices": [
+   {
+    "t": "Go with a prepared question",
+    "then": "She tilts her glasses. \"At last, a student who prepares.\"",
+    "fixed": true
+   },
+   {
+    "t": "Go and ask what she wants",
+    "then": "She wanted to talk about your last assignment. It was not bad.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_professor_1",
+  "cat": "arc",
+  "built": true,
+  "title": "A research project",
+  "text": "Professor Belova offers: \"I need a student for a small research project. Unpaid, but it will look good on your CV and you will learn.\"",
+  "choices": [
+   {
+    "t": "Accept",
+    "then": "Hours in the library and an unexpected love of footnotes.",
+    "fixed": true
+   },
+   {
+    "t": "Decline, you are too busy",
+    "then": "She nods. \"The offer stands until the end of term.\"",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_professor_2",
+  "cat": "arc",
+  "built": true,
+  "title": "A hard conversation",
+  "text": "The professor asks to see you: \"Your results have dropped. Is everything all right?\"",
+  "choices": [
+   {
+    "t": "Tell her honestly about the stress",
+    "then": "She listens, then gives you an extension and the number of the student counsellor.",
+    "fixed": true
+   },
+   {
+    "t": "Say it is nothing",
+    "then": "She looks unconvinced. \"My door is open.\"",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_professor_3",
+  "cat": "arc",
+  "built": true,
+  "title": "A conference",
+  "text": "Professor Belova mentions a student conference. \"You could apply.\"",
+  "choices": [
+   {
+    "t": "Go and present",
+    "then": "You are terrified for ten minutes and then you are not. Someone asks a good question.",
+    "fixed": true
+   },
+   {
+    "t": "Skip it this year",
+    "then": "She does not scold you. \"Next year, then.\"",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_professor_4",
+  "cat": "arc",
+  "built": true,
+  "title": "A letter of recommendation",
+  "text": "At the end of term Professor Belova hands you a sealed envelope. \"I have written a recommendation. Use it well.\"",
+  "choices": [
+   {
+    "t": "Thank her and read it later",
+    "then": "A short, polite letter. It will help.",
+    "fixed": true
+   },
+   {
+    "t": "Thank her and ask what she would advise next",
+    "then": "She tells you about her own first year: the failure, the doubt, the stubbornness.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_connections_0",
+  "cat": "arc",
+  "built": true,
+  "title": "Dad knows a guy",
+  "text": "Your father puts down his phone. \"I spoke to Viktor Palych. There is an internship at his firm. You start Monday. No need to thank me.\"",
+  "choices": [
+   {
+    "t": "Accept the internship gladly",
+    "then": "It is a real office with a real desk. Everyone knows whose child you are. You feel it in every handshake.",
+    "fixed": true
+   },
+   {
+    "t": "Say you will find your own way",
+    "then": "He raises an eyebrow, then shrugs. \"As you like.\"",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_connections_1",
+  "cat": "arc",
+  "built": true,
+  "title": "A favour asked in return",
+  "text": "At the internship Viktor Palych says, smiling: \"Your father and I help each other. Maybe you can ask him to sign one small paper for my nephew?\"",
+  "choices": [
+   {
+    "t": "Pass the message on",
+    "then": "It is just a paper, you tell yourself. You wonder how many \"just papers\" there are.",
+    "fixed": true
+   },
+   {
+    "t": "Say that you do not mix work with your father's business",
+    "then": "The smile freezes for a second. Then he nods. \"Principled. Good.\"",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_connections_2",
+  "cat": "arc",
+  "built": true,
+  "title": "The call after the traffic stop",
+  "text": "A traffic officer stops your friend's car. The friend, panicking, says: \"Call your dad, please. He knows people.\"",
+  "choices": [
+   {
+    "t": "Call your father",
+    "then": "Within five minutes the officer waves them on. Your friend is grateful. You feel a little sick.",
+    "fixed": true
+   },
+   {
+    "t": "Advise your friend to show the documents and ask for the protocol",
+    "then": "It takes an hour, ends with a small fine, and your friend says: \"You are right. It was fair.\"",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_connections_3",
+  "cat": "arc",
+  "built": true,
+  "title": "A friend needs a place",
+  "text": "A friend from a small town has scored very well on the exams but has no connections. A place on a budget programme depends on one conversation your father could have.",
+  "choices": [
+   {
+    "t": "Ask your father to put in a word",
+    "then": "He is happy that you ask. The friend gets in. Nobody asks why.",
+    "fixed": true
+   },
+   {
+    "t": "Help your friend prepare the application and the portfolio instead",
+    "then": "Three evenings of writing and rehearsing. The friend gets in by merit, and both of you know it.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_connections_4",
+  "cat": "arc",
+  "built": true,
+  "title": "Your own path",
+  "text": "Your father says at dinner: \"I have arranged something bigger. A position with a title.\" You realise you have never earned anything yet.",
+  "choices": [
+   {
+    "t": "Decline the position and earn your first real salary",
+    "then": "He is stunned, then proud, then offended, in that order. You start from the bottom of another ladder.",
+    "fixed": true
+   },
+   {
+    "t": "Accept the position and use it well",
+    "then": "You decide that a door is a door and what matters is what you do once you walk through it.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_mum_0",
+  "cat": "arc",
+  "built": true,
+  "title": "Mum calls on Sunday",
+  "text": "Mum calls every Sunday at nine. Today she asks, as always: \"Have you eaten? Is it warm there? Are you keeping to your lessons?\" There is a pause. \"I am fine. Do not worry.\"",
+  "choices": [
+   {
+    "t": "Stay on the phone for an hour",
+    "then": "She tells you about the neighbours, the cat, and the price of buckwheat. You laugh and want to cry.",
+    "fixed": true
+   },
+   {
+    "t": "Promise to call back tomorrow",
+    "then": "She says \"of course\" in a very small voice.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_mum_1",
+  "cat": "arc",
+  "built": true,
+  "title": "A little money from the big city",
+  "text": "You have saved a little. Mum's birthday is in a week, and the boiler in her flat has been broken for a month.",
+  "choices": [
+   {
+    "t": "Send ₽8,000 for a new boiler",
+    "then": "She protests for ten minutes and cries for two. The boiler is installed on Thursday.",
+    "fixed": true
+   },
+   {
+    "t": "Send ₽2,000 and a card",
+    "then": "It is what you can do. She frames the card.",
+    "fixed": true
+   },
+   {
+    "t": "Wait until you have more money",
+    "then": "You tell yourself you will do more later. The guilt walks with you.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_mum_2",
+  "cat": "arc",
+  "built": true,
+  "title": "New Year at home",
+  "text": "Trains to your hometown are crowded before the holiday. A ticket costs ₽5,000 one way. Mum has not said anything, but you know she is setting a table for two.",
+  "choices": [
+   {
+    "t": "Go home for New Year",
+    "then": "Olivier salad, tangerines, a tiny tree and Mum in her best dress. Snow outside, warmth inside.",
+    "fixed": true
+   },
+   {
+    "t": "Stay and work the holiday shifts",
+    "then": "The money is good and the video call at midnight is short and cheerful.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_mum_3",
+  "cat": "arc",
+  "built": true,
+  "title": "A scare",
+  "text": "The neighbour calls instead of Mum: \"She felt dizzy and the doctor says it is her blood pressure. She does not want you to worry.\"",
+  "choices": [
+   {
+    "t": "Call the doctor and arrange help from afar",
+    "then": "The doctor is kind. A neighbour agrees to check in daily. It is not enough, but it is something.",
+    "fixed": true
+   },
+   {
+    "t": "Send money for private tests and stay put",
+    "then": "The tests show nothing serious. You exhale for the first time in two days.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_mum_4",
+  "cat": "arc",
+  "built": true,
+  "title": "What Mum wants",
+  "text": "On the phone, Mum says: \"Whatever you decide, I only want you to be happy. Do not come back for me. Build your life.\" She goes quiet. You hear a kettle.",
+  "choices": [
+   {
+    "t": "Tell her that you will visit every holiday",
+    "then": "A promise is a bridge. She puts the kettle down and says \"I will bake.\"",
+    "fixed": true
+   },
+   {
+    "t": "Tell her that you will bring her to live near you one day",
+    "then": "She laughs, then asks: \"Is there a place for the cat?\" You say yes. It is your first plan for the future.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_valentina_0",
+  "cat": "arc",
+  "built": true,
+  "title": "The woman on the bench",
+  "text": "Every evening a small woman in a headscarf sits on the bench by your entrance. Today she looks at you for a long time. \"You walk by every day and say nothing. Are you from here? Did nobody teach you to say good evening?\"",
+  "choices": [
+   {
+    "t": "Say good evening and introduce yourself",
+    "then": "Her name is Valentina Petrovna. She nods slowly, as if you had passed an exam.",
+    "fixed": true
+   },
+   {
+    "t": "Nod politely and keep walking",
+    "then": "She sighs. \"Young people.\"",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_valentina_1",
+  "cat": "arc",
+  "built": true,
+  "title": "A small favour",
+  "text": "Valentina Petrovna stops you at the door. Her shopping bag is heavy and her flat is on the fifth floor. \"The lift again. Would you mind?\"",
+  "choices": [
+   {
+    "t": "Carry the bag up the stairs",
+    "then": "She is surprised and says nothing, but the next day there is a jar of jam on your door handle.",
+    "fixed": true
+   },
+   {
+    "t": "Say you are in a hurry",
+    "then": "She says \"of course, of course\" in a voice that suggests she does not mind, but she does.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_valentina_2",
+  "cat": "arc",
+  "built": true,
+  "title": "The light is off",
+  "text": "For three days there has been no light under her door and the bench stands empty in the frost. A neighbour says she has caught a cold and does not like to trouble anyone.",
+  "choices": [
+   {
+    "t": "Knock and ask if she needs anything",
+    "then": "She says she is fine, takes a few tablets and thanks you more warmly than you expected.",
+    "fixed": true
+   },
+   {
+    "t": "Leave a note with your phone number",
+    "then": "She calls on the fourth day and says it was nothing. You agree, a bit relieved.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_valentina_3",
+  "cat": "arc",
+  "built": true,
+  "title": "Her grandson",
+  "text": "Valentina Petrovna introduces you to her grandson, a quiet teenager with a notebook. \"Do you tutor maths, by any chance? You look clever, I can see.\" She looks at you hopefully.",
+  "choices": [
+   {
+    "t": "Offer a couple of free lessons",
+    "then": "The boy understands fractions at last. Valentina Petrovna sends a plate of pies after each lesson.",
+    "fixed": true
+   },
+   {
+    "t": "Suggest a paid tutor from the school",
+    "then": "She says \"of course\" and that is the end of the matter.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "arc_valentina_4",
+  "cat": "arc",
+  "built": true,
+  "title": "Spring on the bench",
+  "text": "In April Valentina Petrovna is on the bench again. She watches you walk by and, for the first time, says \"Good evening\" first.",
+  "choices": [
+   {
+    "t": "Stop and answer her greeting",
+    "then": "It takes thirty seconds. You walk on feeling oddly lighter.",
+    "fixed": true
+   },
+   {
+    "t": "Smile and promise to come tomorrow",
+    "then": "Tomorrow becomes next week. She will remember.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "cal_session_w",
+  "cat": "cal",
+  "built": true,
+  "title": "Winter exam session",
+  "text": "The exam session starts. Students around you carry notebooks, energy drinks and the glassy look of the sleepless. You are glad (or sorry) it is not your turn.",
+  "choices": [
+   {
+    "t": "Wish your friends luck",
+    "then": "You send a message and a sticker of a cat. Someone replies with three stars.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "cal_session_s",
+  "cat": "cal",
+  "built": true,
+  "title": "Summer exam session",
+  "text": "The exam session starts. Students around you carry notebooks, energy drinks and the glassy look of the sleepless. You are glad (or sorry) it is not your turn.",
+  "choices": [
+   {
+    "t": "Wish your friends luck",
+    "then": "You send a message and a sticker of a cat. Someone replies with three stars.",
+    "fixed": true
+   }
+  ]
+ },
+ {
+  "id": "cal_year1",
+  "cat": "cal",
+  "built": true,
+  "title": "One year in Russia",
+  "text": "It is 1 September, a year since you arrived. Goals reached: 1 of 15 (finish with zero legal strikes). Status: a labour migrant. Money: ₽45,000. Friends: 1. Achievements: 0 of 45. Still open on the first-month checklist: 8.",
+  "choices": [
+   {
+    "t": "Sit with a cup of tea and think it over",
+    "then": "You write down three things you are proud of and one thing you want to change. The tea goes cold and you do not mind.",
+    "fixed": true
+   },
+   {
+    "t": "Celebrate with friends",
+    "then": "A table of salads, a cake with a single candle and a toast \"to the next year\". Somebody sings.",
+    "fixed": true
+   },
+   {
+    "t": "Make a plan for the second year",
+    "then": "You list papers, money, people and dreams in four columns. The columns look possible.",
+    "fixed": true
+   }
+  ]
+ }
+]

@@ -5,12 +5,12 @@ import * as G from '../src/engine';
 import '../src/content';
 import { contactsFor, phoneBlock, replyFor, chatBonus, callScript, transfer, canReceive, TRANSFER_MAX } from '../src/phone';
 
-const fresh = (origin = 'moscow'): G.State => { const s = G.newState('T', origin); s.queue = []; s.bank = { sber: true }; s.money = 50000; return s; };
+const fresh = (origin = 'moscow'): G.State => { const s = G.newState('T', origin); s.queue = []; s.bank = { sber: true }; s.money = 50000; s.flags.sim = true; return s; };
 
 describe('the phone number and the phone data', () => {
   it('a number looks like a Russian mobile number, is stable, and differs between players', () => {
     const a = G.phoneOf(fresh()).number, b = G.phoneOf(fresh()).number;
-    expect(a).toMatch(/^\+7 9\d\d \d\d\d-\d\d-\d\d$/);
+    expect(a).toMatch(/^\+7 0[1-8]\d\d \d{4}-\d\d-\d\d$/);        // 13 digits with the 7, in the range of players: never a real number
     expect(a).toBe(b);
     const other = G.newState('Other', 'tajik');
     expect(G.phoneOf(other).number).not.toBe(a);
@@ -48,12 +48,12 @@ describe('contacts and when the phone works', () => {
     expect(contactsFor(s).map(c => c.id)).toEqual(expect.arrayContaining(['mum', 'partner', 'friend', 'landlord', 'work', 'bank', 'valentina', 'taxi', '112']));
     expect(new Set(contactsFor(s).map(c => c.number)).size).toBe(contactsFor(s).length);
   });
-  it('a broken phone blocks everything; a newcomer also needs a SIM card; a citizen does not', () => {
+  it('a broken phone blocks everything, and everybody (citizen or newcomer) needs a SIM card first', () => {
     const s = fresh('tajik'); s.phone = 1; s.flags.sim = false;
     expect(phoneBlock(s)).toContain('SIM');
     s.flags.sim = true; expect(phoneBlock(s)).toBeNull();
     s.phone = 0; expect(phoneBlock(s)).toContain('broken');
-    const c = fresh('moscow'); c.phone = 1; expect(phoneBlock(c)).toBeNull();
+    const c = fresh('moscow'); c.phone = 1; c.flags.sim = false; expect(phoneBlock(c)).toContain('SIM'); expect(phoneBlock(c)).toContain('passport'); c.flags.sim = true; expect(phoneBlock(c)).toBeNull();
   });
 });
 
@@ -108,11 +108,12 @@ describe('the phone in the page', () => {
     (document.getElementById('nameInput') as HTMLInputElement).value = 'Caller';
     document.getElementById('startBtn')!.click();
     for (let i = 0; i < 40 && !document.querySelector('#actions button'); i++) (document.getElementById('nextBtn') || document.querySelector<HTMLButtonElement>('#stage .choices button'))?.click();
+    (window as unknown as { __state: () => G.State | null }).__state()!.flags.sim = true;          // nobody has a number until they have bought a SIM card
     const body = (): HTMLElement => document.getElementById('modalBody') as HTMLElement;
     const click = (sel: string): void => { (body().querySelector(sel) as HTMLButtonElement).click(); };
 
     document.getElementById('dockPhone')!.click();
-    expect(body().querySelector('.phoneNum')!.textContent).toMatch(/\+7 9\d\d \d\d\d-\d\d-\d\d/);
+    expect(body().querySelector('.phoneNum')!.textContent).toMatch(/\+7 0[1-8]\d\d \d{4}-\d\d-\d\d/);
 
     // messages: open the thread with Mum, write, get an answer
     click('[data-sys="messages"]'); click('[data-chat="mum"]');

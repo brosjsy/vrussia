@@ -38,3 +38,10 @@ describe('HUD and scene cards', () => {
     expect(sawDelta).toBe(true);
   });
 });
+
+describe('the top bar on a phone (round 159)', () => {
+  it('lets the money row wrap, so the money and the + button are not cut off on a 375 px screen', () => {
+    const css = readFileSync('src/style.css', 'utf8');
+    expect(/@media \(max-width:760px\)\{\.moneyRow\{[^}]*flex-wrap:wrap/.test(css)).toBe(true);
+  });
+});

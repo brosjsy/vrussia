@@ -6,6 +6,7 @@ import { z } from 'zod';
 import type { Db } from './db.js';
 import { AppError } from './auth.js';
 import type { SessionUser } from './auth.js';
+import type { Live } from './live.js';
 
 const uuid = z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
 const city = z.string().min(2).max(40);
@@ -16,7 +17,7 @@ function parse<T extends z.ZodType>(schema: T, v: unknown): z.infer<T> {
   return r.data;
 }
 
-export async function gameRoutes(app: FastifyInstance, db: Db, need: (req: FastifyRequest) => SessionUser): Promise<void> {
+export async function gameRoutes(app: FastifyInstance, db: Db, need: (req: FastifyRequest) => SessionUser, live?: Live): Promise<void> {
   const one = async <T>(sql: string, params: unknown[]): Promise<T | null> => (await db.query<T>(sql, params)).rows[0] ?? null;
   const all = async <T>(sql: string, params: unknown[] = []): Promise<T[]> => (await db.query<T>(sql, params)).rows;
   const ok = { ok: true };
@@ -69,7 +70,9 @@ export async function gameRoutes(app: FastifyInstance, db: Db, need: (req: Fasti
   });
   app.post('/api/messages', async req => {
     const u = need(req), b = parse(z.object({ room: z.string().max(120), body: z.string().max(1000) }), req.body);
-    return { id: (await one<{ id: number }>('select app.send_message($1, $2, $3) as id', [u.userId, b.room, b.body]))!.id };
+    const sent = (await one<{ id: number }>('select app.send_message($1, $2, $3) as id', [u.userId, b.room, b.body]))!.id;
+    live?.publish(b.room, sent);
+    return { id: sent };
   });
   app.post('/api/blocks', async req => {
     const u = need(req), b = parse(z.object({ user: uuid }), req.body);
@@ -94,7 +97,7 @@ export async function gameRoutes(app: FastifyInstance, db: Db, need: (req: Fasti
   });
   app.get('/api/votes', async req => { const q = parse(z.object({ week: z.coerce.number().int().min(0).max(100000), city }), req.query); return all('select * from app.vote_tally($1, $2)', [q.week, q.city]); });
   app.post('/api/counters/:key', async req => {
-    const key = parse(z.object({ key: z.enum(['visits', 'daily_found']) }), req.params).key;
+    const key = parse(z.object({ key: z.enum(['visits', 'daily_found', 'interest_exam', 'interest_plus', 'interest_looks', 'interest_gift']) }), req.params).key;
     if (key === 'daily_found') need(req);
     return { value: (await one<{ v: number }>('select app.bump($1) as v', [key]))!.v };
   });
@@ -167,6 +170,64 @@ export async function gameRoutes(app: FastifyInstance, db: Db, need: (req: Fasti
     const u = need(req), b = parse(z.object({ country: z.string().regex(/^[A-Za-z]{2}$/), region: z.enum(['CIS', 'Europe', 'Asia', 'Africa', 'Americas', 'Oceania']) }), req.body);
     await db.query('select app.set_origin($1, $2, $3)', [u.userId, b.country, b.region]); return ok;
   });
+
+  /* ---------- crews (migrations/0013_crews.sql) ---------- */
+  app.post('/api/crews', async req => {
+    const u = need(req), b = parse(z.object({ name: z.string().max(60), city: city.optional() }), req.body);
+    return { id: (await one<{ id: number }>('select app.create_crew($1, $2, $3) as id', [u.userId, b.name, b.city ?? null]))!.id };
+  });
+  app.get('/api/crews/mine', async req => {
+    const u = need(req);
+    const [crew, invites] = await Promise.all([one('select * from app.my_crew($1)', [u.userId]), all('select * from app.my_crew_invites($1)', [u.userId])]);
+    return { crew, invites };
+  });
+  app.get('/api/crews/top', async req => { need(req); return all('select * from app.top_crews($1)', [20]); });
+  app.post('/api/crews/invite', async req => {
+    const u = need(req), b = parse(z.object({ friend: uuid }), req.body);
+    return { id: (await one<{ id: number }>('select app.crew_invite($1, $2) as id', [u.userId, b.friend]))!.id };
+  });
+  app.post('/api/crews/invites/:id/answer', async req => {
+    const u = need(req), p = parse(z.object({ id }), req.params), b = parse(z.object({ accept: z.boolean() }), req.body);
+    await db.query('select app.crew_answer($1, $2, $3)', [u.userId, p.id, b.accept]); return ok;
+  });
+  app.post('/api/crews/leave', async req => { await db.query('select app.crew_leave($1)', [need(req).userId]); return ok; });
+  app.post('/api/crews/kick', async req => {
+    const u = need(req), b = parse(z.object({ user: uuid }), req.body);
+    await db.query('select app.crew_kick($1, $2)', [u.userId, b.user]); return ok;
+  });
+
+  /* ---------- shared flats (migrations/0014_flats.sql) ---------- */
+  app.post('/api/flats', async req => {
+    const u = need(req), b = parse(z.object({ city }), req.body);
+    return { id: (await one<{ id: number }>('select app.create_flat($1, $2) as id', [u.userId, b.city]))!.id };
+  });
+  app.get('/api/flats/mine', async req => {
+    const u = need(req);
+    const [flat, invites] = await Promise.all([one('select * from app.my_flat($1)', [u.userId]), all('select * from app.my_flat_invites($1)', [u.userId])]);
+    return { flat, invites };
+  });
+  app.post('/api/flats/invite', async req => {
+    const u = need(req), b = parse(z.object({ friend: uuid }), req.body);
+    return { id: (await one<{ id: number }>('select app.flat_invite($1, $2) as id', [u.userId, b.friend]))!.id };
+  });
+  app.post('/api/flats/invites/:id/answer', async req => {
+    const u = need(req), p = parse(z.object({ id }), req.params), b = parse(z.object({ accept: z.boolean() }), req.body);
+    await db.query('select app.flat_answer($1, $2, $3)', [u.userId, p.id, b.accept]); return ok;
+  });
+  app.post('/api/flats/leave', async req => { await db.query('select app.flat_leave($1)', [need(req).userId]); return ok; });
+  app.post('/api/flats/chore', async req => ({ doneToday: (await one<{ n: number }>('select app.flat_chore($1) as n', [need(req).userId]))!.n }));
+
+  /* ---------- gifts between friends and the inbox (migrations/0016_gifts.sql) ---------- */
+  app.post('/api/gifts', async req => {
+    const u = need(req), b = parse(z.object({ to: uuid, kind: z.enum(['tea', 'flowers', 'cake', 'chocolates', 'soup', 'scarf', 'money']), amount: z.number().int().min(0).max(1000).optional(), note: z.string().max(120).optional() }), req.body);
+    return { id: (await one<{ id: number }>('select app.send_gift($1, $2, $3, $4, $5) as id', [u.userId, b.to, b.kind, b.amount ?? 0, b.note ?? '']))!.id };
+  });
+  app.get('/api/gifts', async req => all('select * from app.my_gifts($1)', [need(req).userId]));
+  app.post('/api/gifts/:id/claim', async req => {
+    const u = need(req), p = parse(z.object({ id }), req.params);
+    return one('select * from app.claim_gift($1, $2)', [u.userId, p.id]);
+  });
+  app.get('/api/inbox', async req => one('select * from app.my_inbox($1)', [need(req).userId]));
 
   /* ---------- challenges with other players (migrations 0004, 0005) ---------- */
   app.get('/api/challenges', async req => {

@@ -1,0 +1,43 @@
+/* The platform screens: skip link, privacy banner, tutorial, hub menu, reports, sources, classes, packs. Uses the game's own colour variables. */
+.skip{position:absolute;left:8px;top:-60px;z-index:100;background:var(--red);color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none;font-weight:700}
+.skip:focus{top:8px}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+/* more specific than the theme kit's :root rules, which also set these colours */
+html.hiContrast:root:not([data-theme="none"]){--bg:#000;--card:#0a0a0a;--card2:#1a1a1a;--ink:#fff;--mute:#e0e0e0;--line:#fff;--red:#ff4d4d;--blue:#6ab0ff;--ok:#5dff9a;--warn:#ffd24d;--bad:#ff6b6b}
+.hiContrast :focus-visible{outline:4px solid #ffd24d;outline-offset:3px}
+.hiContrast button,.hiContrast .card,.hiContrast .panel{border-width:2px}
+.lite .layers,.lite .keysBtn{display:none}
+
+#consent{position:fixed;left:12px;right:12px;bottom:12px;z-index:60;max-width:640px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:0 8px 30px #0008}
+#consent h2{margin:0 0 4px;font-size:16px;display:block}#consent p{margin:6px 0;font-size:14px}
+#consent .row{margin:10px 0 0}
+
+#tour{position:fixed;left:12px;right:12px;bottom:84px;z-index:55;max-width:460px;margin:0 auto;background:var(--card);border:2px solid var(--blue);border-radius:14px;padding:14px 16px;box-shadow:0 8px 30px #000a}
+#tour h2{display:block;margin:0 0 4px;font-size:18px}#tour p{margin:6px 0 10px}
+#tour .dots{display:flex;gap:5px;margin:0 0 8px}#tour .dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}#tour .dots i.on{background:var(--blue)}
+#tour .row{margin:0;justify-content:space-between}
+.tourHi{outline:3px solid var(--warn)!important;outline-offset:3px;border-radius:8px;position:relative;z-index:54}
+.lessMotion .tourHi{outline-width:4px}
+
+.hub{display:grid;gap:8px}.hub h3{margin:0 0 6px;font-size:18px;text-transform:none;letter-spacing:0;color:var(--ink)}
+.hub button{text-align:left}
+.hub .back{margin-bottom:6px}
+.legal h3{font-size:20px;text-transform:none;letter-spacing:0;color:var(--ink)}.legal h4{margin:14px 0 4px}.legal p{margin:6px 0}
+.pfBlock{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0}
+.pfBlock h4{margin:0 0 6px}
+.pfList{list-style:none;padding:0;margin:6px 0}.pfList li{padding:3px 0}
+.pfList.ok li::marker{content:'✔ '}
+.srcList{list-style:none;padding:0;margin:8px 0}.src{padding:8px 0;border-bottom:1px solid var(--line)}.src b{display:block}.src small{display:block;color:var(--mute)}
+.src.unchecked small{color:var(--warn)}.src.old small{color:var(--bad)}
+.pfTable{width:100%;border-collapse:collapse;font-size:14px}.pfTable th,.pfTable td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
+.pfTable td.n{text-align:right}
+.dailyBox{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:12px 0;background:var(--card)}
+.dailyBox .season{color:var(--warn);font-size:14px;margin:0 0 6px}
+.dailyBox b{font-size:15px}
+.pfInput{display:block;margin:4px 0 10px;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;width:100%;max-width:320px}
+.pfMsg{min-height:1.4em;font-size:14px}.pfMsg.bad{color:var(--bad)}.pfMsg.ok{color:var(--ok)}
+.codeBig{font:800 34px/1.2 monospace;letter-spacing:.15em;margin:6px 0}
+@media print{#consent,#tour,.dock,.toasts{display:none!important}}
+
+.nextStep{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px;padding:8px 12px;border:1px solid var(--blue);border-radius:12px;background:var(--card);font-size:15px}
+.nextStep .ghost{margin-left:auto}

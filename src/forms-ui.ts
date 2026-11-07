@@ -1,7 +1,11 @@
+/* Screens of the online-services part of the phone: the list of services and the step-by-step forms (registration, patent, MFC and so on).
+   The data, the steps and the checks are in forms.ts and flows.ts (no DOM there); this file only draws them and passes the typed values to validateStep(). */
 import * as G from './engine';
 import type { State, Note } from './engine';
 import { flows, validateStep, codeFor, submitFlow } from './forms';
+import { flowText } from './flows-ru';
 import type { Flow, Field, Data } from './forms';
+import { play, soundForNotes } from './sound';
 
 const esc = (t: string): string => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
 const btn = (id: string, label: string, cls = ''): string => `<button id="${id}" class="${cls}">${label}</button>`;
@@ -12,7 +16,7 @@ export function openOnlineMenu(s: State, host: HTMLElement, onClose: () => void)
     <p class="sub">Each service is a website you fill in step by step. Mistakes cost time and money.</p>
     <div class="choices">${flows.map((f, i) => {
     const why = f.available(s);
-    return `<button data-i="${i}" ${why ? 'disabled' : ''}>${f.icon} <b>${esc(f.title)}</b> <span class="sub">— ${esc(f.site)}</span><br><span class="sub">${esc(why ?? f.blurb)}</span></button>`;
+    return `<button data-i="${i}" ${why ? 'disabled' : ''}>${f.icon} <b>${esc(flowText(f).title)}</b> <span class="sub">— ${esc(flowText(f).site)}</span><br><span class="sub">${esc(why ?? flowText(f).blurb)}</span></button>`;
   }).join('')}<button id="closeMenu" class="ghost">Close</button></div>`;
   host.querySelectorAll<HTMLButtonElement>('button[data-i]').forEach(b => { b.onclick = () => openFlow(s, host, flows[Number(b.dataset.i)], onClose); });
   (document.getElementById('closeMenu') as HTMLElement).onclick = onClose;
@@ -28,7 +32,7 @@ export function openFlow(s: State, host: HTMLElement, flow: Flow, onClose: (done
     const fields = st.fields(s, data);
     codeFor(fields, data);
     const body = fields.map(f => fieldHtml(f, data)).join('');
-    host.innerHTML = `<div class="cat">${esc(flow.site)}</div><div class="site"><div class="siteBar"><b>${flow.icon} ${esc(flow.title)}</b><span>${esc(st.title)} · step ${step + 1}/${flow.steps.length}</span></div>
+    host.innerHTML = `<div class="cat">${esc(flowText(flow).site)}</div><div class="site"><div class="siteBar"><b>${flow.icon} ${esc(flowText(flow).title)}</b><span>${esc(st.title)} · step ${step + 1}/${flow.steps.length}</span></div>
       <div class="siteBody">${error ? `<div class="err">${esc(error)}</div>` : ''}${body}</div>
       <div class="siteBtns">${btn('ffBack', step === 0 ? 'Close the site' : 'Back', 'ghost')}${btn('ffNext', step === flow.steps.length - 1 ? 'Submit' : 'Continue', 'primary')}</div></div>`;
     error = '';
@@ -36,7 +40,7 @@ export function openFlow(s: State, host: HTMLElement, flow: Flow, onClose: (done
     (document.getElementById('ffNext') as HTMLElement).onclick = () => {
       const values = collect(fields);
       const e = validateStep(fields, values, s, data);
-      if (e) { error = e; render(); return; }
+      if (e) { error = e; play('error'); render(); return; }
       Object.assign(data, values);
       if (step < flow.steps.length - 1) { step++; render(); } else submit();
     };
@@ -56,7 +60,8 @@ export function openFlow(s: State, host: HTMLElement, flow: Flow, onClose: (done
   const submit = (): void => {
     const { msg, notes, dayNotes } = submitFlow(s, flow, data);       // the rules of sending a form (forms.ts)
     const res = { msg };
-    host.innerHTML = `<div class="cat">${esc(flow.site)}</div><div class="site"><div class="siteBar"><b>${flow.icon} ${esc(flow.title)}</b><span>Result</span></div>
+    play(soundForNotes(notes));
+    host.innerHTML = `<div class="cat">${esc(flowText(flow).site)}</div><div class="site"><div class="siteBar"><b>${flow.icon} ${esc(flowText(flow).title)}</b><span>Result</span></div>
       <div class="siteBody"><p>${esc(res.msg)}</p>${notes.length ? '<div class="notes">' + notes.map(n => `<span class="note ${n.v < 0 && n.k !== 'stress' ? 'neg' : 'pos'}">${esc(n.label)} ${n.v ? (n.v > 0 ? '+' : '') + (n.k === 'money' ? G.money(n.v) : n.v) : ''}</span>`).join('') + '</div>' : ''}
       ${dayNotes.map(t => `<p class="sub">${esc(t)}</p>`).join('')}</div>
       <div class="siteBtns">${btn('ffDone', 'Done', 'primary')}</div></div>`;

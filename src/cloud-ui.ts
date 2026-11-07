@@ -13,9 +13,12 @@ import { t, lang, originText } from './i18n';
 import { cityName } from './i18n-words';
 import { COUNTRIES, REGIONS, flagOf } from './countries';
 import type { Challenge, Chapter, Coop } from './api-client';
+import { mountCrew } from './crew-ui';
+import { mountFlat } from './flat-ui';
+import { mountGifts } from './gift-ui';
 
 export interface OnlineDeps { cloud: Cloud | null; state: () => State | null; notify: (m: string) => void; onLoad: (s: State) => void; onSignedIn?: () => Promise<void>; onSignedOut?: () => void; /** before logging out: upload the game played since the last automatic save (round 152) */ beforeSignOut?: () => Promise<unknown>; /** the game changed here (money from a reward, a gift, a co-op activity): save it and redraw the money */ changed?: () => void; home?: () => { city: string; dwelling: string; design: import('./cloud').HomeDesign; stars: number } | null; status?: () => { lastSaved: number | null; pending: boolean } | null }
-type Tab = 'account' | 'challenges' | 'top' | 'chat' | 'friends' | 'ads' | 'news';
+type Tab = 'account' | 'challenges' | 'top' | 'chat' | 'crew' | 'flat' | 'gifts' | 'friends' | 'ads' | 'news';
 const esc = (x: string): string => String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
 
 interface View { email: string; ch: { chapters: Chapter[]; challenges: Challenge[] } | null; coops: Coop[]; openChapter: number; myAds: number | null; myAdList: { id: number; city: string; kind: string; title: string }[]; liked: string | null; link: { kind: 'verify' | 'reset'; token: string } | null; forgot: boolean; tab: Tab; busy: boolean; online: number | null; top: ScoreRow[] | null; chat: ChatMessage[]; news: Announcement[] | null; visits: number | null; signup: boolean; ads: PlayerAd[] | null; talks: Talk[]; dm: { id: string; name: string } | null; friends: Friend[] | null; found: { id: string; username: string }[]; best: BestHome[] | null; blocked: { id: string; username: string }[]; visit: { id: string; name: string; home: PublicHome | null; notes: Note[] } | null }
@@ -109,14 +112,17 @@ const newsHtml = (): string => `${view.visits !== null ? `<p class="sub">${esc(t
 
 /** Draws the screen into `host` and keeps it up to date. Returns a function that stops it (call it when the screen is closed). */
 export function mountOnline(host: HTMLElement, d: OnlineDeps): () => void {
-  const c = d.cloud; let alive = true, timer = 0;
+  const c = d.cloud; let alive = true, timer = 0, stopLive: (() => void) | null = null, liveRoom = '', stopCrew: (() => void) | null = null, stopFlat: (() => void) | null = null, stopGifts: (() => void) | null = null;
   syncLine = (): string => { const st = d.status?.(); if (!st) return ''; return `<p class="sub syncLine">☁️ ${st.pending ? esc(t('olSyncPending')) : st.lastSaved ? `${esc(t('olSyncedAt'))} ${new Date(st.lastSaved).toLocaleTimeString(lang() === 'ru' ? 'ru-RU' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}` : esc(t('olSyncAuto'))}</p>`; };
   const draw = (): void => {
     if (!alive) return;
     if (!c) { host.innerHTML = `<div class="online"><h2>🌐 ${esc(t('olTitle'))}</h2><p>${esc(t('olOff'))}</p><p class="sub">${esc(t('olOffHow'))}</p></div>`; return; }
-    const tabs: [Tab, string][] = [['account', t('olTabAccount')], ...(c.challenges ? [['challenges', t('chlTab')] as [Tab, string]] : []), ['top', t('olTabTop')], ['chat', t('olTabChat')], ['friends', t('olTabFriends')], ['ads', t('olTabAds')], ['news', t('olTabNews')]];
+    const tabs: [Tab, string][] = [['account', t('olTabAccount')], ...(c.challenges ? [['challenges', t('chlTab')] as [Tab, string]] : []), ['top', t('olTabTop')], ['chat', t('olTabChat')], ...(c.myCrew ? [['crew', lang() === 'ru' ? 'Команда' : 'Crew'] as [Tab, string]] : []), ...(c.myFlat ? [['flat', lang() === 'ru' ? 'Квартира' : 'Flat'] as [Tab, string]] : []), ...(c.myGifts ? [['gifts', lang() === 'ru' ? 'Подарки' : 'Gifts'] as [Tab, string]] : []), ['friends', t('olTabFriends')], ['ads', t('olTabAds')], ['news', t('olTabNews')]];
     host.innerHTML = `<div class="online"><h2>🌐 ${esc(t('olTitle'))}</h2><div class="olTabs" role="tablist">${tabs.map(([id, l]) => `<button type="button" role="tab" data-tab="${id}" aria-selected="${view.tab === id}">${esc(l)}</button>`).join('')}</div>
-      <div class="olBody">${view.tab === 'account' ? accountHtml(c) : view.tab === 'challenges' ? challengesHtml(c, d.state()) : view.tab === 'top' ? topHtml() : view.tab === 'chat' ? chatHtml(c, d.state()) : view.tab === 'friends' ? friendsHtml(c) : view.tab === 'ads' ? adsHtml(c, d.state()) : newsHtml()}</div></div>`;
+      <div class="olBody">${view.tab === 'account' ? accountHtml(c) : view.tab === 'challenges' ? challengesHtml(c, d.state()) : view.tab === 'top' ? topHtml() : view.tab === 'chat' ? chatHtml(c, d.state()) : view.tab === 'crew' ? '<div id="olCrew"></div>' : view.tab === 'flat' ? '<div id="olFlat"></div>' : view.tab === 'gifts' ? '<div id="olGifts"></div>' : view.tab === 'friends' ? friendsHtml(c) : view.tab === 'ads' ? adsHtml(c, d.state()) : newsHtml()}</div></div>`;
+    stopCrew?.(); stopCrew = null; const crewBox = host.querySelector<HTMLElement>('#olCrew'); if (crewBox) stopCrew = mountCrew(crewBox, c, { notify: d.notify });
+    stopFlat?.(); stopFlat = null; const flatBox = host.querySelector<HTMLElement>('#olFlat'); if (flatBox) stopFlat = mountFlat(flatBox, c, { notify: d.notify, state: d.state });
+    stopGifts?.(); stopGifts = null; const giftBox = host.querySelector<HTMLElement>('#olGifts'); if (giftBox) stopGifts = mountGifts(giftBox, c, { notify: d.notify, state: d.state });
     wire();
   };
   const say = (r: { ok: boolean; msg: string }): void => { if (r.msg) d.notify(msgL(r.msg, lang() === 'ru')); };
@@ -138,6 +144,14 @@ export function mountOnline(host: HTMLElement, d: OnlineDeps): () => void {
     }
     if (view.tab === 'ads') { const s = d.state(); if (s) { const [r, mine] = await Promise.all([c.ads(s.city), c.myAds && c.session()?.username ? c.myAds() : Promise.resolve(null)]); view.ads = r.ok ? r.data ?? [] : []; view.myAds = mine && mine.ok ? (mine.data ?? []).length : null; view.myAdList = mine && mine.ok ? mine.data ?? [] : []; } }
     draw();
+    syncLive();
+  };
+  /** Keeps one live stream open for the room on screen (chat tab only); a nudge from it refreshes the chat at once. */
+  const syncLive = (): void => {
+    const s = d.state(), me = c?.session(), want = c?.live && view.tab === 'chat' && s && me?.adult ? roomNow(s, me.userId) : '';
+    if (want === liveRoom) return;
+    stopLive?.(); stopLive = null; liveRoom = want;
+    if (want && c?.live) stopLive = c.live([want], () => { if (alive && view.tab === 'chat' && !view.busy) void refresh(); });
   };
   const roomNow = (s: State, me: string): string => (view.dm ? directRoom(me, view.dm.id) : placeRoom(s.city, s.loc));
   const val = (id: string): string => (host.querySelector<HTMLInputElement>('#' + id)?.value ?? '');
@@ -197,7 +211,7 @@ export function mountOnline(host: HTMLElement, d: OnlineDeps): () => void {
   if (c && view.link?.kind === 'verify' && c.verifyEmail) { const tok = view.link.token; view.link = null; void busy(async () => { say(await c.verifyEmail!(tok)); }); }
   else if (c?.restore) void c.restore().then(() => { if (alive) draw(); });
   if (c && typeof window !== 'undefined') timer = window.setInterval(() => { if (view.tab === 'chat' && !view.busy && !host.querySelector('#olText:focus')) void refresh(); }, 8000);
-  return () => { alive = false; if (timer) window.clearInterval(timer); };
+  return () => { alive = false; stopLive?.(); stopCrew?.(); stopFlat?.(); stopGifts?.(); if (timer) window.clearInterval(timer); };
 }
 /** The storyline and the challenges with other players: chapters to open, progress bars, a reward to take, a city effort to join,
     a friend to invite for a co-op challenge, and the invitations under way. */

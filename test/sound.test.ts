@@ -104,3 +104,16 @@ describe('sound in the page', () => {
     vi.restoreAllMocks();
   });
 });
+
+describe('result sounds', () => {
+  it('playOk never throws', async () => {
+    const { playOk } = await import('../src/sound');
+    expect(typeof playOk(true)).toBe('boolean'); expect(typeof playOk(false)).toBe('boolean');   // never throws, with or without an audio system
+  });
+  it('every screen that reports the result of an action plays a sound for it', () => {
+    for (const f of ['jobs-ui', 'study-ui', 'law-ui', 'civic-ui', 'homelife-ui', 'lifeacts-ui', 'service-ui', 'land-ui', 'ui', 'shop-ui', 'forms-ui', 'cook-ui', 'booking-ui', 'realworld-ui']) {
+      const src = readFileSync(`src/${f}.ts`, 'utf8');
+      expect(/\bplay(Ok)?\(/.test(src), `${f} is silent`).toBe(true);
+    }
+  });
+});

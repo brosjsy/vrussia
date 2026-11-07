@@ -1,3 +1,6 @@
+/* Scenario families built from lists: jobs and their incidents, and scenes made from a slot x situation table (every pair is its own scenario, with an id
+   such as "pol-3-2"). To add an item, add one row to the list: the scenarios appear by themselves. The Russian text for these generated scenes is made from a
+   phrase list (docs/translate/); after adding a row, see docs/RU_COVERAGE.md to translate it. */
 import { RU } from '../engine';
 
 /** Adds the nine standard workplace incidents for a job. */

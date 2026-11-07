@@ -1,5 +1,8 @@
 /* В России (In Russia) — game engine. DOM-free: runs in the browser and in Node tests. */
 import { decayNeeds, needsOnAction } from './needs';
+import { MORE_ROWS, met } from './achievements-more';
+import { track as trackGoal, settle as settleGoals } from './dailygoals';
+import { numberFrom as numberFromSeed } from './phonenumber';
 import { boostOf, recordShift } from './career';
 import { payOffice } from './election';
 import { tickBuild } from './build';
@@ -53,7 +56,8 @@ export interface CallRec { day: number; who: string; dir: 'out' | 'in' | 'missed
 export interface PhoneData { number: string; chats: Record<string, ChatMsg[]>; calls: CallRec[]; tx: Tx[]; bonus: Record<string, number>; dating?: import('./dating').Datable }
 export interface Place { id: string; n: string; x: number; y: number }
 export interface Note { k: string; v: number; label: string }
-export interface LogEntry { day: number; text: string }
+/** `sid` and `ci` (the scene and the choice) let the journal be shown in Russian later; old saves and other lines have only the English `text`. */
+export interface LogEntry { day: number; text: string; sid?: string; ci?: number }
 
 export interface State {
   /** The online account this game belongs to (its server save); none for a game never played logged in. The automatic cloud save only uploads a game to its owner. */
@@ -119,6 +123,20 @@ export const origins: Origin[] = [
     blurb: 'Cousin has a place in Moscow region. Needs registration, medical exam, patent — in that order.', docs: { reg: 15, patent: 0 } },
   { id: 'kyrgyz', label: 'Kyrgyz (EAEU) Worker', icon: '🇰🇬', status: 'eaeu', home: 'Osh, Kyrgyzstan', city: 'Moscow', money: 30000, allow: 0, rent: 3500, know: 10, rep: 45,
     blurb: 'EAEU citizen: no patent needed, but registration and a contract still matter.', docs: { reg: 30 } },
+  { id: 'kazakh', label: 'Kazakh (EAEU) Worker', icon: '🇰🇿', status: 'eaeu', home: 'Almaty, Kazakhstan', city: 'Moscow', money: 40000, allow: 0, rent: 3500, know: 22, rep: 50,
+    blurb: 'EAEU citizen: you may work without a patent and speak Russian well. Registration and a contract still come first.', docs: { reg: 30 } },
+  { id: 'armenian', label: 'Armenian (EAEU) Worker', icon: '🇦🇲', status: 'eaeu', home: 'Yerevan, Armenia', city: 'Moscow', money: 38000, allow: 0, rent: 3500, know: 18, rep: 50,
+    blurb: 'EAEU citizen with relatives already in Moscow. No patent needed; the community helps, and the paperwork still has to be right.', docs: { reg: 30 } },
+  { id: 'belarusian', label: 'Belarusian (Union State)', icon: '🇧🇾', status: 'eaeu', home: 'Minsk, Belarus', city: 'Moscow', money: 42000, allow: 0, rent: 3500, know: 25, rep: 55,
+    blurb: 'Citizen of Belarus, close to home in language and law: work, school and care are open to you. Registration still has a deadline (90 days).', docs: { reg: 90 } },
+  { id: 'azeri', label: 'Azerbaijani Migrant', icon: '🇦🇿', status: 'migrant', home: 'Ganja, Azerbaijan', city: 'Moscow', money: 42000, allow: 0, rent: 3500, know: 12, rep: 40,
+    blurb: 'Visa-free but outside the EAEU: you need registration and a patent. A relative runs a market stall and can find you a place.', docs: { reg: 15, patent: 0 } },
+  { id: 'moldovan', label: 'Moldovan Migrant', icon: '🇲🇩', status: 'migrant', home: 'Balti, Moldova', city: 'Moscow', money: 40000, allow: 0, rent: 3500, know: 14, rep: 40,
+    blurb: 'Visa-free but outside the EAEU: registration, medical exam and a patent. Construction pays, and the family counts on the transfers.', docs: { reg: 15, patent: 0 } },
+  { id: 'turkmen', label: 'Turkmen Migrant', icon: '🇹🇲', status: 'migrant', home: 'Mary, Turkmenistan', city: 'Moscow', money: 36000, allow: 0, rent: 3500, know: 8, rep: 40,
+    blurb: 'Turkmenistan is an associate of the CIS, not in the EAEU. Few of your countrymen work here, so rules and help are harder to find.', docs: { reg: 15, patent: 0 } },
+  { id: 'worker', label: 'Foreign Worker (any country)', icon: '🌍', status: 'migrant', home: 'Your home country', city: 'Moscow', money: 40000, allow: 0, rent: 3500, know: 12, rep: 40,
+    blurb: 'You choose your country before you leave. Your papers follow from it: no patent for the EAEU, a patent for visa-free countries, a work visa for the rest.', docs: { reg: 15, patent: 0 } },
   { id: 'student', label: 'Foreign Student', icon: '🎓', status: 'student', home: 'Lagos, Nigeria', city: 'Kazan', money: 40000, allow: 5000, rent: 1000, know: 30, rep: 50,
     blurb: 'Government-quota place in Kazan. Dorm, winter, visa extensions, and borscht.', docs: { reg: 60, visa: 300 } },
   { id: 'dagestan', label: 'Dagestani Student', icon: '🏔️', status: 'citizen', home: 'Makhachkala', city: 'Moscow', money: 25000, allow: 8000, rent: 4000, know: 30, rep: 50,
@@ -184,7 +202,6 @@ export function problems(s: State): string[] {
   if (s.docs.reg <= 0) p.push('no valid migration registration');
   if (s.status === 'student') {
     if (s.docs.visa <= 0) p.push('expired student visa');
-    if (s.job && !s.flags.workPermit) p.push('working on a student visa without permission');
   } else if (s.status === 'migrant') {
     if (s.job && s.docs.patent <= 0) p.push('working without a valid patent');
   }
@@ -251,6 +268,10 @@ const monthOk = (sc: Scenario, s: State): boolean => !sc.months || sc.months.inc
 export const eligible = (s: State, cats: string[]): Scenario[] => scenarios.filter(sc => cats.includes(sc.cat) && whoOk(sc, s) && monthOk(sc, s) &&
   (!sc.req || sc.req(s)) && !(sc.once && s.seen[sc.id]));
 
+/** An extra factor for each scenario's weight (src/platform/personalise.ts). Null: none. */
+export let weightHook: ((sc: Scenario, s: State, illegal: boolean) => number) | null = null;
+export const setWeightHook = (h: typeof weightHook): void => { weightHook = h; };
+
 export function draw(s: State, cats: string[]): Scenario | null {
   let pool = eligible(s, cats);
   if (!pool.length) return null;
@@ -266,6 +287,7 @@ export function draw(s: State, cats: string[]): Scenario | null {
       if (illegal) w *= 1.8;
       w *= diffOf(s).police;
     }
+    if (weightHook) w *= weightHook(sc, s, illegal);
     return w;
   });
   let r = Math.random() * ws.reduce((a, b) => a + b, 0);
@@ -282,7 +304,7 @@ export function jobOffers(s: State): Job[] {
 }
 const needPatentHint = (s: State): string => {
   if (s.status === 'migrant' && !s.flags.rvp && s.docs.patent <= 0) return ' Tip: legal employers ask for a valid patent. Register, pass the medical exam and buy a patent first (Paperwork), or you will work illegally and risk fines and deportation.';
-  if (s.status === 'student' && !s.flags.workPermit) return ' Tip: as a student you need a work permission before you can work legally (Paperwork).';
+  if (s.status === 'student' && !s.flags.workPermit) return ' Tip: a full-time student may work in free time without a separate permit; ask the dean for a letter to show employers (Paperwork).';
   return '';
 };
 dyn.job_search = s => {
@@ -300,11 +322,11 @@ dyn.job_search = s => {
 };
 dyn.rent_short = s => ({
   id: 'rent_short', cat: 'home', free: true, dynamic: true, title: 'Rent is due — you are short',
-  text: `Saturday. Rent is ${money(s.rent)} and you only have ${money(s.money)}. The landlord is texting.`,
+  text: `Saturday. Rent is ${money(rentDue(s))} and you only have ${money(s.money)}. The landlord is texting.`,
   choices: [
-    { t: 'Borrow from a friend / relatives', r: () => O('Someone sends you the money with a long voice message about responsibility.', { money: s.rent, rep: -4, stress: 6 }) },
-    { t: 'Sell your phone/laptop', r: () => O('You sell the gadget at a pawnshop for a bad price. Rent covered.', { money: Math.round(s.rent * 0.4), stress: 8, know: -1 }) },
-    { t: 'Ask for a week of grace', r: () => gamble(0.5, O('"One week. Last time," says the landlord.', { stress: 4 }), O('The landlord packs your things into bags and changes the lock.', { money: -s.rent, stress: 15, rep: -5, skip: 1 })) },
+    { t: 'Borrow from a friend / relatives', r: () => O('Someone sends you the money with a long voice message about responsibility.', { money: rentDue(s), rep: -4, stress: 6 }) },
+    { t: 'Sell your phone/laptop', r: () => O('You sell the gadget at a pawnshop for a bad price. Rent covered.', { money: Math.round(rentDue(s) * 0.4), stress: 8, know: -1 }) },
+    { t: 'Ask for a week of grace', r: () => gamble(0.5, O('"One week. Last time," says the landlord.', { stress: 4 }), O('The landlord packs your things into bags and changes the lock.', { money: -rentDue(s), stress: 15, rep: -5, skip: 1 })) },
   ],
 });
 dyn.travel_pick = s => {
@@ -366,6 +388,7 @@ export const actions: Action[] = [
 
 export interface Performed { sc: Scenario | null; notes: Note[]; pre: string }
 export function perform(s: State, actionId: string): Performed {
+  trackGoal(s, { action: actionId });
   const a = actions.find(x => x.id === actionId) as Action;
   let base: Effects = {}, pre = '';
   if (actionId === 'travel') return { sc: dyn.travel_pick(s), notes: [], pre: '' };
@@ -413,9 +436,10 @@ export function choose(s: State, sc: Scenario, i: number): Chosen {
   const res = softenRefusal(c.r ? c.r(s) : O(c.msg || '', c.fx));
   const m0 = s.money;
   const notes = apply(s, res.fx);
+  trackGoal(s, { cat: sc.cat });
   recTx(s, sc.title, s.money - m0);
   if (!sc.dynamic) s.seen[sc.id] = (s.seen[sc.id] || 0) + 1;
-  s.log.unshift({ day: s.day, text: `${sc.title}: ${res.msg}` });
+  s.log.unshift({ day: s.day, text: `${sc.title}: ${res.msg}`, sid: sc.id, ci: i });
   if (s.log.length > 60) s.log.length = 60;
   checkEnd(s);
   let dayNotes: string[] = [];
@@ -432,15 +456,14 @@ export function choose(s: State, sc: Scenario, i: number): Chosen {
 /* ---------- the phone: number, chats, calls and money history ---------- */
 const hashStr = (t: string): number => { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619) >>> 0; return h; };
 
-/** A Russian mobile number such as +7 912 345-67-89, the same for the same text. */
-export function numberFrom(seed: string): string {
-  const h = hashStr(seed); const d = (n: number, w: number): string => String(n % 10 ** w).padStart(w, '0');
-  return `+7 9${d(h, 2)} ${d(h >>> 7, 3)}-${d(h >>> 13, 2)}-${d(h >>> 19, 2)}`;
-}
+/** A number of the game, +7 0XXX XXXX-XX-XX (see phonenumber.ts), the same for the same text: in the range of the game's own characters (contacts, unknown senders). */
+export const numberFrom = (seed: string): string => numberFromSeed(seed, 'game');
+/** The number of a player: the range of players, the same for the same name and origin until the server gives the account its own. */
+export const playerNumberFrom = (seed: string): string => numberFromSeed(seed, 'player');
 export const TX_MAX = 40, CHAT_MAX = 30, CALL_MAX = 20;
 
 export function phoneOf(s: State): PhoneData {
-  if (!s.ph) s.ph = { number: numberFrom(`${s.name}|${s.o}`), chats: {}, calls: [], tx: [], bonus: {} };
+  if (!s.ph) s.ph = { number: playerNumberFrom(`${s.name}|${s.o}`), chats: {}, calls: [], tx: [], bonus: {} };
   return s.ph;
 }
 /** Remembers a change of money (not zero) with a short label. Newest first, limited length. */
@@ -534,6 +557,7 @@ export function advance(s: State): string[] {
 
 export function endDay(s: State): string[] {
   const out: string[] = [];
+  const goalsMet = settleGoals(s); goalsMet.fx.forEach(f => apply(s, f)); goalsMet.lines.forEach(l => out.push(`Daily goal done: ${l}.`));      // the three goals of the day, paid before the day turns
   s.day++;
   const allowance = payOffice(s); if (allowance) out.push(`Your deputy's allowance: ${money(allowance)}.`);
   const built = tickBuild(s); if (built) out.push(built);
@@ -574,7 +598,8 @@ export function endDay(s: State): string[] {
   if (d.getDay() === 6) { const living = Math.round((s.status === 'citizen' ? 3200 : s.status === 'student' ? 2500 : 2200) * (s.status === 'citizen' && (s.city === 'Moscow' || s.city === 'Saint Petersburg') ? 1.3 : 1) * diffOf(s).living); s.money -= living; out.push(`Weekly living costs (food, transport, phone): −${money(living)}.`); }
   if (d.getDay() === 1 && s.allow) { s.money += s.allow; out.push(`Weekly transfer / stipend: +${money(s.allow)}.`); }
   if (d.getDay() === 6 && s.rent > 0) {
-    if (s.money >= s.rent) { s.money -= s.rent; out.push(`Saturday: rent paid, −${money(s.rent)}.`); }
+    const due = rentDue(s);
+    if (s.money >= due) { s.money -= due; out.push(`Saturday: rent paid, −${money(due)}${due < s.rent ? ` (your share: ${Number(s.tmp.flatmates) + 1} people live in the flat)` : ''}.`); }
     else s.queue.push('rent_short');
   }
   if (d.getMonth() === 8 && d.getDate() === 6) s.queue.push('cal_cityday');
@@ -582,6 +607,9 @@ export function endDay(s: State): string[] {
   if (d.getDate() === 1 && s.job === null && s.status !== 'citizen') out.push('New month: remember to check your documents.');
   return out;
 }
+
+/** What the player pays on Saturday: the whole rent, or an equal share of it when friends from the online part live in the same flat (src/flat-ui.ts sets `tmp.flatmates` from the server). */
+export const rentDue = (s: State): number => { const n = Math.max(0, Math.min(3, Math.round(Number(s.tmp.flatmates) || 0))); return n ? Math.round(s.rent / (n + 1)) : s.rent; };
 
 /** Danger zone shown to the player: stress of 75 or more costs health every day (3 a day from 90), and low health calls for rest. */
 export function vitalsLevel(s: State): 'burnout' | 'weak' | null {
@@ -661,6 +689,7 @@ export const BIZ_KINDS: { id: string; name: string; cost: number; weekly: number
   { id: 'repair', name: 'Phone repair shop', cost: 80000, weekly: 14000, minKnow: 25, blurb: 'A counter in a mall, tools and spare parts.' },
   { id: 'shawarma', name: 'Shawarma stand', cost: 120000, weekly: 18000, minKnow: 10, blurb: 'A busy stand near the metro. Hygiene inspections are frequent.' },
   { id: 'bakery', name: 'Neighbourhood bakery', cost: 250000, weekly: 28000, minKnow: 20, blurb: 'Fresh bread at dawn. Early starts, loyal customers.' },
+  { id: 'shop', name: 'Neighbourhood shop', cost: 150000, weekly: 20000, minKnow: 15, blurb: 'Groceries and small goods in a rented unit. Build your own on a plot of land (phone, Land & shop) for a better start.' },
   { id: 'taxi', name: 'Small taxi fleet', cost: 600000, weekly: 40000, minKnow: 30, blurb: 'A few cars with hired drivers. Big money, big headaches.' },
 ];
 
@@ -730,6 +759,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'cooksafe', icon: '🧼', title: 'Safe kitchen', text: 'Cook 10 dishes in a row without a danger mistake.', done: s => (kitchen(s).safeRun ?? 0) >= 10 },
   { id: 'cookhost', icon: '🥂', title: 'The host', text: 'Have friends round for a good dish that every guest could eat.', done: s => !!kitchen(s).hosted },
 ];
+ACHIEVEMENTS.push(...MORE_ROWS.map((r): Achievement => ({ id: r.id, icon: r.icon, title: r.title, text: r.text, done: s => met(r.spec, s) })));
 /** The Kitchen's record, read without loading the Kitchen (it is an on-demand file). */
 const kitchen = (s: State): { count?: Record<string, number>; best?: Record<string, number>; cuisineOf?: Record<string, string>; safeRun?: number; hosted?: boolean } => (s as unknown as { cook?: ReturnType<typeof kitchen> }).cook ?? {};
 

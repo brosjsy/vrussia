@@ -60,11 +60,11 @@ describe('Russian by default', () => {
   const load = async (language: string, saved: string | null): Promise<string> => {
     Object.defineProperty(window.navigator, 'language', { value: language, configurable: true });
     localStorage.clear(); if (saved) localStorage.setItem('vrussia_lang', saved);
-    vi.resetModules(); const i = await import('../src/i18n'); return i.lang();
+    vi.stubEnv('VITE_DEFAULT_LANG', 'ru'); vi.resetModules(); const i = await import('../src/i18n'); return i.lang();
   };
-  it('a browser set to Russian starts in Russian; any other starts in English; a choice made in the game wins', async () => {
-    expect(await load('ru-RU', null)).toBe('ru'); expect(await load('en-GB', null)).toBe('en'); expect(await load('ru-RU', 'en')).toBe('en'); expect(await load('de-DE', 'ru')).toBe('ru');
-    Object.defineProperty(window.navigator, 'language', { value: 'en-US', configurable: true }); localStorage.clear();
+  it('every browser starts in Russian, whatever its language; English is used only when the player chose it', async () => {
+    expect(await load('ru-RU', null)).toBe('ru'); expect(await load('en-GB', null)).toBe('ru'); expect(await load('de-DE', null)).toBe('ru'); expect(await load('ru-RU', 'en')).toBe('en'); expect(await load('de-DE', 'ru')).toBe('ru');
+    Object.defineProperty(window.navigator, 'language', { value: 'en-US', configurable: true }); localStorage.clear(); vi.unstubAllEnvs();
   });
 });
 

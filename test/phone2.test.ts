@@ -5,7 +5,7 @@ import * as G from '../src/engine';
 import '../src/content';
 import { groupsFor, requestsFor, resolveRequest } from '../src/phone';
 
-const fresh = (origin = 'moscow'): G.State => { const s = G.newState('T', origin); s.queue = []; s.money = 50000; return s; };
+const fresh = (origin = 'moscow'): G.State => { const s = G.newState('T', origin); s.queue = []; s.money = 50000; s.flags.sim = true; return s; };
 
 describe('group chats', () => {
   it('follow your life: house always, work, parents, study and newcomers when they apply', () => {
@@ -25,7 +25,7 @@ describe('message requests from unknown numbers', () => {
     expect(a).toEqual(b);
     expect(a.length).toBeGreaterThanOrEqual(1); expect(a.length).toBeLessThanOrEqual(3);
     expect(new Set(a.map(r => r.from)).size).toBe(a.length);
-    for (const r of a) expect(r.from).toMatch(/^\+7 9/);
+    for (const r of a) expect(r.from).toMatch(/^\+7 09/);          // the range of the game's own characters
     let bankSeen = false;
     for (let d = 0; d < 12; d++) { s.day = d; s.bank = {}; if (requestsFor(s).some(r => r.id === 'card')) bankSeen = true; }
     expect(bankSeen).toBe(false);
@@ -62,6 +62,7 @@ describe('the messages screen in the page', () => {
     (document.getElementById('nameInput') as HTMLInputElement).value = 'Msg';
     document.getElementById('startBtn')!.click();
     for (let i = 0; i < 40 && !document.querySelector('#actions button'); i++) (document.getElementById('nextBtn') || document.querySelector<HTMLButtonElement>('#stage .choices button'))?.click();
+    (window as unknown as { __state: () => G.State | null }).__state()!.flags.sim = true;          // nobody has a number until they have bought a SIM card
     const body = (): HTMLElement => document.getElementById('modalBody') as HTMLElement;
     const click = (sel: string): void => { (body().querySelector(sel) as HTMLButtonElement).click(); };
     document.getElementById('dockPhone')!.click();

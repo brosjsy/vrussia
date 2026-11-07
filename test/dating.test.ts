@@ -90,6 +90,7 @@ describe('the meet app in the page', () => {
     (document.getElementById('nameInput') as HTMLInputElement).value = 'Dater';
     document.getElementById('startBtn')!.click();
     for (let i = 0; i < 40 && !document.querySelector('#actions button'); i++) (document.getElementById('nextBtn') || document.querySelector<HTMLButtonElement>('#stage .choices button'))?.click();
+    (window as unknown as { __state: () => { flags: Record<string, unknown> } | null }).__state()!.flags.sim = true;          // nobody has a number until they have bought a SIM card
     const body = (): HTMLElement => document.getElementById('modalBody') as HTMLElement;
     document.getElementById('dockPhone')!.click();
     (body().querySelector('[data-sys="dating"]') as HTMLButtonElement).click();

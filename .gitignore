@@ -12,6 +12,11 @@ server/backups/
 
 # the local test database of npm run local
 server/.devdata/
+server/.devdata.old-*/
 
 # the play-test database (npm run local -- --db dev/playtest-db)
 dev/playtest-db/
+
+# People and recruiting: names, Telegram handles, messages and the task tracker. Never publish.
+docs/team/
+docs/memo/

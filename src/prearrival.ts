@@ -34,7 +34,11 @@ export const LEAD = 70;
 export const STARTS: Record<Track, number> = { study: 0, study_free: 30, migrant: 56, eaeu: 56 };
 /** CIS countries whose citizens need no visa to enter Russia (a passport; for some an ID card). Turkmenistan needs a visa. */
 export const VISA_FREE = ['AM', 'AZ', 'BY', 'KZ', 'KG', 'MD', 'TJ', 'UZ'];
+/** Other countries whose citizens enter Russia without a visa (a simplified list for the game: the rules and the number of days change, check the Foreign Ministry). */
+export const OTHER_VISA_FREE = ['RS', 'TR', 'IL', 'AR', 'BR', 'CL', 'CO', 'CU', 'PY', 'PE', 'UY', 'VE', 'BO', 'EC', 'MN', 'GE', 'TH', 'VN', 'MY', 'AE', 'ME'];
 export const ID_CARD_OK = ['AM', 'BY', 'KZ', 'KG'];          // EAEU members: an ID card is enough
+/** The country of each worker origin (the student chooses theirs). Together with Russia these are all the CIS countries. */
+export const ORIGIN_COUNTRY: Record<string, string> = { tajik: 'TJ', uzbek: 'UZ', kyrgyz: 'KG', kazakh: 'KZ', armenian: 'AM', belarusian: 'BY', azeri: 'AZ', moldovan: 'MD', turkmen: 'TM' };
 export const UNI = 'Kazan Federal University';
 export const PRICES = { renew: 3500, renewFast: 8000, hiv: 1500, insurance: 4000, photo: 500, consular: 2500, consularFast: 5000, centre: 1800 };
 export const DAYS = { renew: 21, renewFast: 7, invite: 25, admission: 10, hiv: 2, decision: 10, decisionFast: 3, fix: 3, refused: 30 };
@@ -62,7 +66,7 @@ export function trackFor(status: string, country: string): Track {
 }
 /** Starts the preparation at home. The worker origins have their country already; the student chooses one first (country ''). */
 export function startAtHome(s: State): Pre {
-  const country = s.o === 'tajik' ? 'TJ' : s.o === 'uzbek' ? 'UZ' : s.o === 'kyrgyz' ? 'KG' : '';
+  const country = ORIGIN_COUNTRY[s.o] ?? '';
   const p: Pre = {
     track: trackFor(s.status, country), country, t: STARTS[trackFor(s.status, country)], spent: 0, done: false, log: [],
     passportUntil: 6 + (hash(s.name + s.o) % 30), renewReady: null, inviteReady: null, invite: false, hiv: false, insurance: false, photo: false, course: false,
@@ -70,12 +74,23 @@ export function startAtHome(s: State): Pre {
   };
   (s as S).pre = p; return p;
 }
-/** The student's country: it decides whether a visa is needed. */
+/** A worker from any country: the EAEU members need no patent, the other visa-free countries need registration and a patent, and everyone else needs a work visa
+    (a game simplification: the visa steps are the same as for a study visa, and the permission to work is not modelled further). */
+function chooseWorkerCountry(s: State, p: Pre, code: string, en: string): Result {
+  if (['AM', 'BY', 'KZ', 'KG'].includes(code)) { p.track = 'eaeu'; (s as { status: string }).status = 'eaeu'; s.docs.reg = 30; }
+  else if (VISA_FREE.includes(code) || OTHER_VISA_FREE.includes(code)) p.track = 'migrant';
+  else p.track = 'study';
+  if (p.t === 0) p.t = STARTS[p.track];
+  return note(p, p.track === 'study' ? `${en}: you need a Russian work visa.` : p.track === 'eaeu' ? `${en}: an EAEU member, no patent needed.` : `${en}: no visa needed, but registration and a patent are.`);
+}
+/** The student's (or the worker's) country: it decides whether a visa is needed. */
 export function chooseCountry(s: State, code: string): Result {
   const p = preOf(s), c = countryByCode(code); if (!p) return no('Not preparing.');
   if (!c || c.code === 'RU') return no('Choose your country (not Russia: a Russian citizen needs no visa).');
-  if (s.status !== 'student') return no('Your country is already set.');
-  p.country = c.code; p.track = trackFor(s.status, c.code); s.home = c.en; if (p.t === 0) p.t = STARTS[p.track];
+  if (s.status !== 'student' && s.o !== 'worker') return no('Your country is already set.');
+  p.country = c.code; s.home = c.en;
+  if (s.o === 'worker') return chooseWorkerCountry(s, p, c.code, c.en);
+  p.track = trackFor(s.status, c.code); if (p.t === 0) p.t = STARTS[p.track];
   return note(p, p.track === 'study' ? `${c.en}: you need a Russian study visa.` : `${c.en}: no visa needed, a passport and the letter of admission are enough.`);
 }
 

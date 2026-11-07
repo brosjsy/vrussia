@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as G from '../src/engine';
 import '../src/content';
 import { readTile, buildGraph, route, directions, pathLength, realFor, searchPois, kindOf, llOfTilePoint, toXZ, toLL, tileOfLL, KIND } from '../src/realworld';
 import type { LatLon } from '../src/realworld';
 import { mountRealWorld } from '../src/realworld3d';
+import { doorOf, inOutline } from '../src/collide';
 import { openRealCity } from '../src/realworld-ui';
 import { setLang } from '../src/i18n';
 
@@ -116,5 +117,154 @@ describe('the real city screen', () => {
       expect(host.textContent).toContain('OpenStreetMap');
       close(); expect(host.innerHTML).toBe('');
     } finally { setLang('en'); }
+  });
+});
+
+/* Nobody walks into a house through its wall: a place on the map is a point inside a building, and the walk to it must end at the building's edge (its door),
+   not carry the player through the wall to the middle of it. */
+describe('the real city: walking up to a house', () => {
+  const withHouses = (): Uint8Array => new Uint8Array([...testTile(), ...layer('building', [
+    { type: 3, geom: [[[2060, 3770], [2140, 3770], [2140, 3830], [2060, 3830], [2060, 3770]]], props: { render_height: 20, render_min_height: 0 } },
+    { type: 3, geom: [[[3760, 2060], [3840, 2060], [3840, 2100], [3760, 2100], [3760, 2060]]], props: { render_height: 20, render_min_height: 0 } },
+    { type: 3, geom: [[[2960, 2960], [3040, 2960], [3040, 3040], [2960, 3040], [2960, 2960]]], props: { render_height: 20, render_min_height: 0 } },
+  ])]);
+  const inside = (b: { x: number; z: number }[], x: number, z: number): boolean => { let c = false; for (let i = 0, j = b.length - 1; i < b.length; j = i++) if ((b[i].z > z) !== (b[j].z > z) && x < ((b[j].x - b[i].x) * (z - b[i].z)) / (b[j].z - b[i].z) + b[i].x) c = !c; return c; };
+  const houseTiles = async (z: number, x: number, y: number): Promise<ArrayBuffer | null> => (x === TX && y === TY ? withHouses().buffer as ArrayBuffer : null);
+
+  it('stops at the wall of the house of every place, and never stands or steps inside any house on the way', async () => {
+    const houses = readTile(withHouses(), Z, TX, TY, ORIGIN).buildings.filter(b => b.pts.length >= 3);
+    expect(houses.length).toBeGreaterThanOrEqual(3);
+    const s = G.newState('Walker', 'moscow'); let arrived = false;
+    const h = await mountRealWorld({ host: document.body.appendChild(document.createElement('div')), s, origin: ORIGIN, onPoi: () => undefined, onArrive: () => { arrived = true; }, onFail: () => undefined, rendererFactory: stub(), fetchTile: houseTiles } as never);
+    let last = h.player();
+    for (const kind of ['church', 'gov', 'metro', 'mosque']) {
+      const poi = h.pois().find(p => p.kind === kind)!; arrived = false;
+      expect(h.goTo(poi).ok, kind).toBe(true);
+      for (let i = 0; i < 4000 && !arrived; i++) {
+        h.tick(0.1); const me = h.player();
+        for (const b of houses) {
+          expect(inside(b.pts, me.x, me.z), `${kind}: inside a house at ${me.x.toFixed(1)},${me.z.toFixed(1)}`).toBe(false);
+          const n = Math.max(1, Math.ceil(Math.hypot(me.x - last.x, me.z - last.z) / 0.1));
+          for (let k = 1; k < n; k++) expect(inside(b.pts, last.x + ((me.x - last.x) * k) / n, last.z + ((me.z - last.z) * k) / n), `${kind}: walked through a wall`).toBe(false);
+        }
+        last = me;
+      }
+      expect(arrived, kind).toBe(true);
+      const here = h.player(), near = Math.hypot(here.x - poi.at.x, here.z - poi.at.z); expect(near, `${kind} is close to the player at the end`).toBeLessThan(25);
+    }
+    h.destroy();
+  });
+
+  it('a player who is standing inside a house when the map loads is put outside it, and a door is on the outside of the wall', async () => {
+    const big = new Uint8Array([...testTile(), ...layer('building', [{ type: 3, geom: [[[1990, 1990], [2106, 1990], [2106, 2106], [1990, 2106], [1990, 1990]]], props: { render_height: 20, render_min_height: 0 } }])]);
+    const h = await mountRealWorld({ host: document.body.appendChild(document.createElement('div')), s: G.newState('Walker', 'moscow'), origin: ORIGIN, onPoi: () => undefined, onArrive: () => undefined, onFail: () => undefined, rendererFactory: stub(), fetchTile: async (z: number, x: number, y: number) => (x === TX && y === TY ? big.buffer as ArrayBuffer : null) } as never);
+    const me = h.player(), houses = readTile(big, Z, TX, TY, ORIGIN).buildings;
+    for (const b of houses) expect(inside(b.pts, me.x, me.z)).toBe(false);
+    h.destroy();
+    const sq: [number, number][] = [[0, 0], [10, 0], [10, 10], [0, 10]], d = doorOf(sq, { x: 30, z: 5 });
+    expect(d.x).toBeCloseTo(10.7, 5); expect(d.z).toBeCloseTo(5, 5); expect(inOutline(sq, d)).toBe(false);
+    const w = doorOf(sq, { x: -9, z: 3 }); expect(w.x).toBeCloseTo(-0.7, 5); expect(inOutline(sq, w)).toBe(false);
+  });
+});
+
+/* Round 154, phase 1 of the Russia-wide map: house numbers from the tiles, the address of a spot, the address search and starting anywhere. */
+import { geocode, clearGeoCache, inRussia, geoConsent, giveGeoConsent, CONSENT_KEY } from '../src/geocode';
+import { addressNear } from '../src/realworld';
+
+describe('house numbers and the address of a spot', () => {
+  const tile = (): Uint8Array => new Uint8Array([...testTile(), ...layer('housenumber', [
+    { type: 1, geom: [[[2070, 2200]]], props: { housenumber: '10' } }, { type: 1, geom: [[[2070, 2400]]], props: { housenumber: '12к1' } }, { type: 1, geom: [[[900, 900]]], props: { housenumber: '' } },
+  ])]);
+  it('reads the numbers (and drops empty ones) and says "street, number" for a spot beside the street', () => {
+    const c = readTile(tile(), Z, TX, TY, ORIGIN);
+    expect(c.addresses.map(a => a.num).sort()).toEqual(['10', '12к1']);
+    const a = c.addresses.find(x => x.num === '10')!;
+    const here = addressNear({ x: a.at.x - 3, z: a.at.z }, c.addresses, c.roads);
+    expect(here.num).toBe('10'); expect(here.street).toBe('Вторая улица');
+    expect(addressNear({ x: 5000, z: 5000 }, c.addresses, c.roads)).toEqual({ street: undefined, streetEn: undefined, num: undefined });      // far from anything: no address
+  });
+});
+
+describe('the address search', () => {
+  const ok = (rows: unknown) => async () => ({ ok: true, json: async () => rows });
+  const row = (name: string, lat: string, lon: string): Record<string, string> => ({ display_name: name, lat, lon, type: 'house' });
+  beforeEach(() => clearGeoCache());
+  it('keeps to Russia, to short text and to six answers, ignores rubbish, and refuses short questions', async () => {
+    const rows = [row('Тверская улица, 10, Москва', '55.76', '37.61'), row('Paris, France', '48.85', '2.35'), row('<b>x</b>', 'nope', '37'), { nothing: 1 }, row('Анадырь', '64.73', '177.5'), row('Уэлен', '66.16', '-169.8')];
+    const hits = await geocode('  Тверская   10 ', { fetch: ok(rows), wait: async () => undefined });
+    expect(hits.map(h => h.name)).toEqual(['Тверская улица, 10, Москва', 'Анадырь', 'Уэлен']);       // the far east crosses the 180th meridian
+    expect(await geocode('ab', { fetch: ok(rows) })).toEqual([]);
+    expect(await geocode('Moscow x', { fetch: ok({ not: 'a list' }), wait: async () => undefined })).toEqual([]);
+    expect(inRussia(55, 37)).toBe(true); expect(inRussia(0, 0)).toBe(false); expect(inRussia(NaN, 37)).toBe(false);
+  });
+  it('asks at most once every 1.2 seconds, remembers answers, and fails clearly when the service does', async () => {
+    let calls = 0, t = 1000; const waits: number[] = [];
+    const deps = { fetch: async (url: string) => { calls++; expect(url).toContain('countrycodes=ru'); expect(url).toContain('q='); return { ok: true, json: async () => [row('Казань', '55.79', '49.12')] }; }, now: () => t, wait: async (ms: number) => { waits.push(ms); t += ms; } };
+    await geocode('Казань', deps); await geocode('Казань', deps);                    // the second answer comes from memory
+    expect(calls).toBe(1);
+    t += 100; await geocode('Самара', deps); expect(calls).toBe(2); expect(waits.length).toBeGreaterThan(0); expect(waits[waits.length - 1]).toBeLessThanOrEqual(1200);
+    await expect(geocode('Омск', { fetch: async () => ({ ok: false, json: async () => [] }), wait: async () => undefined })).rejects.toThrow(/not available/);
+  });
+  it('remembers the players agreement', () => {
+    const mem: Record<string, string> = {}, kv = { getItem: (k: string) => mem[k] ?? null, setItem: (k: string, v: string) => { mem[k] = v; } };
+    expect(geoConsent(kv)).toBe(false); giveGeoConsent(kv); expect(mem[CONSENT_KEY]).toBe('yes'); expect(geoConsent(kv)).toBe(true);
+  });
+});
+
+describe('the real city screen: starting anywhere', () => {
+  beforeEach(() => { clearGeoCache(); localStorage.clear(); });
+  const mk = async (geoRows: unknown): Promise<{ host: HTMLElement; fetched: string[]; close: () => void }> => {
+    const host = document.body.appendChild(document.createElement('div')), fetched: string[] = [];
+    const close = await openRealCity(host, G.newState('Walker', 'moscow'), ORIGIN, { notify: () => undefined, act: () => undefined, close: () => undefined, onFail: () => undefined,
+      world: { rendererFactory: stub(), fetchTile: async (z: number, x: number, y: number) => { fetched.push(`${x}/${y}`); return x === TX && y === TY ? testTile().buffer as ArrayBuffer : null; } },
+      geo: { fetch: async () => ({ ok: true, json: async () => geoRows }), wait: async () => undefined } });
+    return { host, fetched, close };
+  };
+  const type = (host: HTMLElement, text: string): void => { const i = host.querySelector<HTMLInputElement>('#realAddr')!; i.value = text; i.dispatchEvent(new Event('input')); host.querySelector<HTMLFormElement>('#realAddrForm')!.dispatchEvent(new Event('submit', { cancelable: true })); };
+  it('asks before the first address search, then lists the answers and builds the map around the one chosen', async () => {
+    const { host, fetched, close } = await mk([{ display_name: 'Невский проспект, 1, Санкт-Петербург', lat: '59.9386', lon: '30.3141', type: 'house' }]);
+    type(host, 'Невский 1');
+    expect(host.querySelector('#realAllow')).toBeTruthy(); expect(host.textContent).toContain('nominatim.openstreetmap.org');
+    host.querySelector<HTMLButtonElement>('#realAllow')!.click();
+    await vi.waitFor(() => expect(host.querySelector('[data-realhit]')).toBeTruthy());
+    expect(localStorage.getItem(CONSENT_KEY)).toBe('yes');
+    const before = fetched.length; host.querySelector<HTMLButtonElement>('[data-realhit]')!.click();
+    await vi.waitFor(() => expect(host.textContent).toContain('You are looking at: Невский проспект, 1'));
+    expect(fetched.length).toBeGreaterThan(before); expect(fetched.some(f => f !== `${TX}/${TY}`)).toBe(true);        // tiles of another place were asked for
+    expect(host.textContent).toContain('The game stays in');
+    close(); expect(host.innerHTML).toBe('');
+  });
+  it('jumps to a city from the list, lists every place of a kind, and says nothing found politely', async () => {
+    localStorage.setItem(CONSENT_KEY, 'yes');
+    const { host, fetched, close } = await mk([]);
+    expect(host.querySelectorAll('#realCity option').length).toBeGreaterThan(30);
+    const sel = host.querySelector<HTMLSelectElement>('#realCity')!; sel.value = 'Kazan'; sel.dispatchEvent(new Event('change'));
+    await vi.waitFor(() => expect(host.textContent).toContain('You are looking at: Kazan'));
+    expect(fetched.length).toBeGreaterThan(9);
+    host.querySelector<HTMLButtonElement>('[data-realkind="school"]')!.click(); expect(host.querySelector('[data-realkind="school"]')!.getAttribute('aria-pressed')).toBe('true');
+    type(host, 'zzzzzz'); await vi.waitFor(() => expect(host.textContent).toContain('Nothing found'));
+    close();
+  });
+});
+
+describe('the address search shows what it finds only as text', () => {
+  it('a hostile place name from the geocoder is shown as plain text and runs nothing', async () => {
+    clearGeoCache(); localStorage.clear(); localStorage.setItem(CONSENT_KEY, 'yes');
+    const host = document.body.appendChild(document.createElement('div'));
+    const close = await openRealCity(host, G.newState('Walker', 'moscow'), ORIGIN, { notify: () => undefined, act: () => undefined, close: () => undefined, onFail: () => undefined,
+      world: { rendererFactory: stub(), fetchTile: tiles }, geo: { fetch: async () => ({ ok: true, json: async () => [{ display_name: '<img src=x onerror="window.__pwned=1">Улица', lat: '55.7', lon: '37.6', type: 'x' }] }), wait: async () => undefined } });
+    const i = host.querySelector<HTMLInputElement>('#realAddr')!; i.value = 'Улица тест'; i.dispatchEvent(new Event('input')); host.querySelector<HTMLFormElement>('#realAddrForm')!.dispatchEvent(new Event('submit', { cancelable: true }));
+    await vi.waitFor(() => expect(host.querySelector('[data-realhit]')).toBeTruthy());
+    expect(host.querySelector('img')).toBeNull(); expect(host.querySelector('[data-realhit]')!.textContent).toContain('<img src=x'); expect((window as unknown as { __pwned?: number }).__pwned).toBeUndefined();
+    close();
+  });
+});
+
+describe('a found place in a few words', () => {
+  it('puts the street before the house number', async () => {
+    const { shortName } = await import('../src/realworld-ui');
+    expect(shortName('1, улица Баумана, Старо-Татарская слобода, Казань, Россия')).toBe('улица Баумана, 1, Старо-Татарская слобода');
+    expect(shortName('Казань, городской округ Казань, Татарстан')).toBe('Казань, городской округ Казань, Татарстан');
+    expect(shortName('')).toBe('');
   });
 });

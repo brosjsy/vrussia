@@ -1475,3 +1475,69 @@ At the owner's request a recurring job now runs every 15 minutes (at :07, :22, :
 - **Sizes:** the first download is 255.2 KB of 256 KB. On-demand code is 398.5 KB of 400 KB, so the next feature needs that limit raised or code slimmed.
 - **Not done:** routes are on foot only (no buses or metro rides inside them); there are no underground metro tunnels; the map needs the internet.
 - Nothing committed or pushed.
+
+## Round 154 - Sounds for the results of actions
+
+- **Why:** every button already made a tap (one global click handler in `src/ui.ts`), but the result of an action (done, refused, paid) was silent in many screens.
+- **Change:** one helper, `playOk(ok, good = 'pop')` in `src/sound.ts` (pop, or the error tone). It is used for the results in: the 3D world (activities, washing up, TV/tea/sit, toilet, kitchen, groceries, furniture place/pick-up and failures, city-day gift), jobs (coin on a finished shift), study, rent and chores, law (a crime plays the low tone, a report plays pop), civic (vote and run play a chime), home life, life acts, services and land.
+- **Checked:** typecheck; `test/sound.test.ts` (new: `playOk` never throws; every result screen plays a sound); the full `npm test` (1128 pass, after `node scripts/module-map.mjs` regenerated docs/MODULES.md for two new server files); `npm run build`; `node scripts/check-bundle.mjs` (start-up scripts 255.94 kB, inside the limit). In the browser pane (dev server): starting a game, choosing a scene option and clicking buttons created audio oscillators; the sound button switched sound off (no oscillators, stored as off) and on again.
+- **Not checked:** I did not hear the sounds (no speakers), only counted oscillators. Home life, jobs, law, civic and the 3D room actions were not clicked in the browser, only covered by the source test. The volume slider in Settings was not exercised.
+- **Next:** round 155: database setup (`npm run db:setup` on a clean database, a section in docs/DEPLOY_VPS.md).
+
+## Round 155 - Database set-up checked on a clean database
+
+- **What I did:** started an empty PostgreSQL-compatible database (the PGlite socket server used by `npm run local`, but with no roles or tables), ran `npm run db:setup` against it, started the built server as `vr_app` and signed up through `POST /api/auth/register`.
+- **Result:** roles and passwords were created, all 12 migrations applied (`Done: 12 migration(s) applied.`). The server listened and the confirmation link `http://127.0.0.1:5173/#verify=...` was printed in its console. Login before the link: "email not confirmed"; `POST /api/auth/verify` with the token: ok; login and `/api/auth/me`: ok; a wrong password: "invalid login credentials".
+- **Docs:** new section "Database setup in one command" in docs/DEPLOY_VPS.md (command, expected output, how to check the server and the account, and what was and was not checked).
+- **Could not check:** a real PostgreSQL 17 (no `psql` or Docker on this computer). Running `db:setup` a second time failed here with "permission denied to alter role"; the test database keeps one session for every connection, so the first run's `set role vr_owner` carried over, which most likely explains it, but I could not prove it. Worth one run on the VPS. Also the registration `username` field was ignored by `/register` (the account got no username), which I left alone as it looks like a separate step.
+- **Not changed:** no code; no data was deleted (the scratch database was in memory, the temporary script was removed, the ports are free again).
+- **Next:** round 156: bundle size (start-up scripts 255.94 kB of 256 KB budget).
+
+## Round 156 - Smaller first download: the Russian interface texts load only in Russian
+
+- **Analysis:** a source-map breakdown of the first-download script showed it is mostly story content (`src/content/*`, about 300 KB raw), then `ui.ts` (60 KB), `i18n.ts` (45 KB), `engine.ts` (34 KB). The story content is needed at start, so the cheapest big win was the Russian dictionary in `i18n.ts` (about 34 KB raw), which English players never use.
+- **Change:** `RU`, `ACTIONS_RU`, `ORIGINS_RU` and `ENDINGS_RU` moved to a new file `src/i18n-ru.ts`. In `src/i18n.ts` they are empty objects filled by `loadInterfaceRu()` (a dynamic import, runs once). It is started with the other Russian lists (`loadRussian` in `src/i18n-words.ts`), and by `setLocale` for Russian and for Uzbek, Tajik and Kyrgyz (which sit on Russian), which then fires a `vr-lang` event so the screen redraws. Until the texts arrive, English is shown (same as the word lists before). `test/setup-i18n.ts` loads them before every test file.
+- **Result:** first download (scripts, gzip) 255.94 → 243.56 KB. The new chunk `i18n-ru` is 13.6 KB gzip and is counted with the Russian texts in `test/perf.test.ts` (its own 450 KB budget); no limit was raised.
+- **Tried and dropped:** build target `es2022` saved only 0.7 KB and would drop older phones, so it was reverted.
+- **Checked:** typecheck; `npm test` (all 144 files after regenerating docs/MODULES.md); `npm run build`; `node scripts/check-bundle.mjs`. In the browser pane: with the language set to English no `i18n-ru` file is fetched; the RU button fetches it and the title screen turns Russian; a reload with Russian saved shows Russian with no errors from the change (the console shows only refused connections to the optional online server, which is not running).
+- **Not checked:** the Uzbek, Tajik and Kyrgyz picker in the browser (covered only by `test/platform.test.ts`); a slow network, where a Russian player briefly sees English before the texts arrive.
+- **Next:** round 157: buses and metro in real-city routes, and offline map tiles.
+
+## Round 157 - The real city: a metro ride in the directions
+
+- **Request (priority 4, first half):** routes in the real city were on foot only.
+- **Change:** new `src/realtransit.ts` (about 3 KB, loaded with the real city). `metroPlan` looks for the nearest metro entrances at both ends of a route, matches them by English name to the game's real metro (`src/metro-data.ts`, 7 cities), asks `metroRoute` for the ride, and, when walk + wait (3 min) + ride + walk beats walking by at least 4 minutes, puts the plan above the walking steps: "Quicker by metro: about 14 min (on foot 48 min)", walk to the station, the line and stops, any change between differently named stations of an interchange, and the walk from the exit. The walking directions follow under "On foot, step by step". The character still walks the street route; the ride is advice, and the game clock is unchanged.
+- **Checked:** typecheck; `test/realtransit.test.ts` (new, 5 tests: a ride is suggested, Russian wording and plurals, no suggestion when walking is as quick or the stations are far or unmatched, spelling variants, interchange change step); the full `npm test` (145 files, 1133 tests); `npm run build`; `node scripts/check-bundle.mjs` (first download unchanged, 243.58 KB). In the browser pane with real OpenFreeMap data around Red Square (16,171 places): to Kurskaya metro the panel showed the ride (Teatralnaya → change → Ploshchad Revolyutsii → Kurskaya, 14 min against 48 on foot) in Russian, followed by the walking steps.
+- **Known gaps:** a station's Russian name comes from the loaded map; one that is not on the map (here Ploshchad Revolyutsii in the change step) is shown in English in a Russian text. Stations are matched by English spelling, so some OpenStreetMap names may not match and are then ignored. **Buses and trams are not done:** the map tiles carry stops but not routes, so a bus ride cannot be worked out without another data source (an Overpass or GTFS download); I did not add one. Nothing in the metro plan knows about the metro's opening hours.
+- **Next:** round 158: the real map offline from tiles already loaded.
+
+## Round 158 - The real city works offline from tiles already loaded
+
+- **Request (priority 4, second half):** the map must open with no connection from tiles it has loaded before.
+- **Change:** new `src/tilecache.ts` (loads with the real city). `cachedTile` looks a map tile up in the browser's Cache Storage first and fetches it only when it is missing; a tile older than 30 days is fetched again, with the old copy used if that fails; the 400 newest tiles are kept (the oldest are removed first). `tileTemplateOf` remembers the tile address template from OpenFreeMap's TileJSON in `localStorage`, so it is known offline. `src/realworld3d.ts` uses both. A side fix: a failed TileJSON request was remembered for the rest of the session and broke the real city until a reload; it is now tried again.
+- **Checked:** typecheck; `test/tilecache.test.ts` (new, 6 tests: first fetch then offline hit, never-seen tile fails as before, 30-day refresh with stale fallback, 400-tile limit, no cache available, template remembered); the full `npm test` (146 files, 1139 tests); `npm run build`; `node scripts/check-bundle.mjs` (inside the budget, first download unchanged). In the browser pane: after one visit around Red Square 9 tiles were in the cache and the template in `localStorage`; after a reload with every request to the map service made to fail, the real city still opened with the same 16,171 places and no error.
+- **Not checked:** a real disconnect of the network (the failure was simulated by replacing `fetch` in the page); the service worker and the cache on a phone; how much space the tiles take in practice (a tile is usually 20-100 KB, so up to a few tens of MB). The browser may clear the cache when space is low, then the map needs the internet again. The address search (Nominatim) and any place far from visited tiles still need the internet, and there is no "offline" label in the panel yet.
+- **Next:** round 159: play through as a new player and fix the bugs, unclear texts and Russian/English mismatches.
+
+## Round 159 - Playing as a new player: phone header and Russian text
+
+- **How:** in the browser pane at phone size (375 x 812) I started a new game in English, then in Russian, opened the help, profile, journal and settings screens and the first scenes, and ran a small script that lists visible text in the wrong language (Cyrillic in English; three or more Latin words in a row in Russian).
+- **Found and fixed:**
+  - **Phone header:** the row with the money and the "+" button did not wrap, so on a 375 px screen the money (₽450,000) and "+" were cut off at the right edge. `.moneyRow` now wraps at 760 px and below (`src/style.css`).
+  - **Russian mode, profile screen:** 45 achievement titles and texts, the achievement toast ("Achievement unlocked"), and the labels in the profile (Home, Day, Standing, merit, Goals achieved, Friends, Children, Partner, Achievements) were English. They are now translated (`ACH_RU` in `src/i18n-words-ru.ts`, `achL` in `src/i18n-words.ts`, new interface keys in `src/i18n.ts` and `src/i18n-ru.ts`).
+  - **Goals panel** (side panel, profile, end screen) and seven first-month checklist items were English in Russian: 22 labels added to `CHECK_RU`.
+  - **"Skip to the game"** link now follows the language.
+- **Tests:** `test/i18n.test.ts` (every goal, checklist item and achievement has a Russian text; the achievement ids match one to one), `test/hud.test.ts` (the money row wraps). Full run: 146 files, 1141 tests; build and bundle check pass (first download 243.76 KB; the new achievement texts are in the Russian download (i18n-words-ru, 7.7 KB gzip now), not in the first one).
+- **Checked in the browser:** header no longer overflows; the Russian profile screen shows no English left except the news ticker and chat.
+- **Still English in Russian (found, not fixed):** the news ticker line ("Today: The Day of Knowledge..."); the three ambient chat lines in the chat panel (written in English on purpose so far); journal lines such as "Welcome to Russia: Day 1 begins." (the journal is stored in English); the job-search scene text ("You scroll Avito Rabota...") and other scenes that have no Russian yet (the earlier report says about 1,500 of 4,300 are missing). I did not click through every action screen of the game, only the first level of each action, so more such places are likely.
+- **Next:** round 160: the same check for the remaining action screens (jobs, study, law, home) and the journal language, then balance.
+
+## Round 160 - News ticker and small talk in Russian
+
+- **Found in round 159, fixed now:**
+  - **News ticker** (`newsItems` in `src/city.ts`): holidays, passport and patent deadlines, fines, loan, flight, rent, cold weather, 112 and the state duties are now Russian when the game is in Russian, with the right form of "день / дня / дней". The English text is still the default because the street billboards read it (`src/billboards.ts`).
+  - **Small talk at the places** (the chat under the map): the 51 background lines and the neighbours' answers are translated (`CHAT_RU` in `src/i18n-words-ru.ts`, `chatL` in `src/i18n-words.ts`, used where the chat is drawn). What the player types is shown as it is.
+- **Tests:** `test/city.test.ts` (the Russian ticker: same number of lines, plural forms, no English left) and `test/i18n.test.ts` (every chat line and answer of every place has a Russian text). Full run: 146 files, 1143 tests; build and bundle check pass (first download 244.62 KB).
+- **Checked in the browser:** with Russian saved, the ticker reads "Сегодня: День знаний (1 сентября)" and the three chat lines are Russian; the EN button turns both back to English at once.
+- **Not done:** the journal still stores its lines in English ("Welcome to Russia: Day 1 begins."); scenes with no Russian yet (the job-search scene is one) are still English; I did not click through the other action screens.
+- **Next:** round 161: the journal in the player's language, then the same language check on the jobs, study, law and home screens.

@@ -18,7 +18,9 @@ export interface Building { pts: XZ[]; h: number; base: number }
 export interface Area { pts: XZ[]; kind: 'water' | 'park' }
 export type PoiKind = 'metro' | 'worship' | 'mosque' | 'church' | 'food' | 'shop' | 'grocery' | 'bank' | 'health' | 'pharmacy' | 'school' | 'uni' | 'gov' | 'police' | 'post' | 'culture' | 'park' | 'sport' | 'hotel' | 'transport' | 'other';
 export interface Poi { id: string; name: string; nameEn?: string; kind: PoiKind; sub: string; at: XZ }
-export interface Chunk { key: string; buildings: Building[]; roads: Road[]; areas: Area[]; pois: Poi[] }
+/** A house number from the map (the tiles carry them from zoom 14): the number as written ("10", "12к1", "5А") and where the entrance is. */
+export interface Address { num: string; at: XZ }
+export interface Chunk { key: string; buildings: Building[]; roads: Road[]; areas: Area[]; pois: Poi[]; addresses: Address[] }
 
 /* ---------- tiles and coordinates ---------- */
 export const tileOfLL = (p: LatLon, z = ZOOM): { x: number; y: number } => {
@@ -100,7 +102,7 @@ type GP = { x: number; y: number };
 export function readTile(data: ArrayBuffer | Uint8Array, z: number, tx: number, ty: number, origin: LatLon): Chunk {
   const t = new VectorTile(new PbfReader(data instanceof Uint8Array ? data : new Uint8Array(data)));
   const key = `${z}/${tx}/${ty}`, conv = (ext: number) => (p: GP): XZ => toXZ(origin, llOfTilePoint(z, tx, ty, p.x, p.y, ext));
-  const out: Chunk = { key, buildings: [], roads: [], areas: [], pois: [] };
+  const out: Chunk = { key, buildings: [], roads: [], areas: [], pois: [], addresses: [] };
   const b = t.layers.building;
   if (b) for (let i = 0; i < b.length; i++) {
     const f = b.feature(i), c = conv(b.extent), pr = f.properties as Record<string, unknown>;
@@ -120,6 +122,11 @@ export function readTile(data: ArrayBuffer | Uint8Array, z: number, tx: number, 
     const c = conv(tr.extent);
     for (const line of f.loadGeometry()) { const pts = line.map(c); if (pts.length < 2) continue; const nm = nameFor(pts, named); out.roads.push({ pts, cls, name: nm?.name, nameEn: nm?.en }); }
   }
+  const hn = t.layers.housenumber;
+  if (hn) for (let i = 0; i < hn.length; i++) {
+    const f = hn.feature(i), pr = f.properties as Record<string, unknown>, num = String(pr.housenumber ?? '').trim().slice(0, 12); if (f.type !== 1 || !num) continue;
+    const pt = f.loadGeometry()[0]?.[0]; if (pt) out.addresses.push({ num, at: conv(hn.extent)(pt) });
+  }
   const p = t.layers.poi;
   if (p) for (let i = 0; i < p.length; i++) {
     const f = p.feature(i), pr = f.properties as Record<string, string>; if (f.type !== 1) continue;
@@ -128,6 +135,20 @@ export function readTile(data: ArrayBuffer | Uint8Array, z: number, tx: number, 
     out.pois.push({ id: `${key}/${f.id ?? i}`, name: name || KIND[kind].ru, nameEn: pr['name:en'] || pr.name_en || undefined, kind, sub: pr.subclass || pr.class, at: conv(p.extent)(pt) });
   }
   return out;
+}
+/** The address of a spot as people say it: the street (the named road nearest to it, within 45 m) and the number of the nearest house (within 40 m); either may be missing. */
+export function addressNear(p: XZ, addresses: Address[], roads: Road[]): { street?: string; streetEn?: string; num?: string } {
+  let num: string | undefined, nd = 40;
+  for (const a of addresses) { const d = Math.hypot(a.at.x - p.x, a.at.z - p.z); if (d < nd) { nd = d; num = a.num; } }
+  let street: string | undefined, streetEn: string | undefined, sd = 45;
+  for (const r of roads) {
+    if (!r.name) continue;
+    for (let i = 1; i < r.pts.length; i++) {
+      const a = r.pts[i - 1], b = r.pts[i], dx = b.x - a.x, dz = b.z - a.z, l2 = dx * dx + dz * dz || 1, t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.z - a.z) * dz) / l2));
+      const d = Math.hypot(p.x - (a.x + t * dx), p.z - (a.z + t * dz)); if (d < sd) { sd = d; street = r.name; streetEn = r.nameEn; }
+    }
+  }
+  return { street, streetEn, num };
 }
 /** The name line that runs along a road: the middles of the road's segments must all lie close to it (a single point can sit where two streets cross). */
 function nameFor(pts: XZ[], named: { pts: XZ[]; name: string; en?: string }[]): { name: string; en?: string } | null {

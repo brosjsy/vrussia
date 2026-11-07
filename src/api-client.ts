@@ -42,6 +42,16 @@ export interface Coop { id: number; challenge_id: string; status: 'invited' | 'a
 
 /** Today's table of the Kitchen's online challenge. */
 export interface CookTable { top: { username: string; score: number; stars: number }[]; mine: { score: number; place: number } | null; count: number }
+/** The anonymous counters the server keeps: visits, the daily find, and the interest in each planned extra (nothing about the player is stored). */
+export type CounterKey = 'visits' | 'daily_found' | 'interest_exam' | 'interest_plus' | 'interest_looks' | 'interest_gift';
+/** A crew (a group of up to 12 friends with its own chat room "crew:<id>") and the invitations to one. */
+export interface CrewMember { id: string; username: string; role: 'owner' | 'member'; online: boolean }
+export interface MyCrew { id: number; name: string; city: string | null; role: 'owner' | 'member'; members: CrewMember[] }
+export interface CrewInvite { id: number; crew_id: number; crew_name: string; inviter_name: string; created_at: string }
+/** A shared flat (up to 4 friends split the rent) and the invitations to one. */
+export interface FlatMember { id: string; username: string; chore_today: boolean }
+export interface MyFlat { id: number; city: string; owner: string; members: FlatMember[] }
+export interface FlatInvite { id: number; flat_id: number; city: string; inviter_name: string; created_at: string }
 export class ApiCloud {
   readonly cfg: CloudConfig;
   private readonly f: typeof fetch;
@@ -71,6 +81,13 @@ export class ApiCloud {
     this.keep({ access: '', refresh: '', expires: 0, userId: me.id, email: me.email, username: me.username, adult: me.adult });
   }
   /** Asks the server who is logged in (after a reload, or a link from an e-mail). */
+  /** Listens for news of new messages in these rooms (a server-sent-events stream). `onNews` is called with nothing but a nudge: the page then fetches the messages the normal way. Returns the function that stops it; where the browser has no EventSource it does nothing and the page's timer still refreshes. */
+  live(rooms: string[], onNews: () => void): () => void {
+    if (typeof EventSource === 'undefined' || !rooms.length) return () => undefined;
+    const es = new EventSource(`${this.base}/api/live?rooms=${encodeURIComponent(rooms.join(','))}`, { withCredentials: true });
+    es.addEventListener('msg', () => onNews());
+    return () => es.close();
+  }
   async restore(): Promise<Session | null> {
     const r = await this.call<{ id: string; email: string; username: string | null; adult: boolean }>('GET', '/api/auth/me');
     if (r.ok && r.data) this.adopt(r.data); else if (!r.ok && r.msg !== 'No connection. The game goes on offline.') this.keep(null);
@@ -149,7 +166,7 @@ export class ApiCloud {
   }
   castVote(week: number, city: string, candidate: string): Promise<Result> { return this.call('POST', '/api/votes', { week, city, candidate }); }
   tally(week: number, city: string): Promise<Result<{ candidate: string; votes: number }[]>> { return this.call('GET', `/api/votes?week=${week}&city=${encodeURIComponent(city)}`); }
-  async bump(key: 'visits' | 'daily_found'): Promise<Result<number>> { const r = await this.call<{ value: number }>('POST', `/api/counters/${key}`, {}); return r.ok ? { ok: true, msg: '', data: r.data?.value } : { ok: false, msg: r.msg }; }
+  async bump(key: CounterKey): Promise<Result<number>> { const r = await this.call<{ value: number }>('POST', `/api/counters/${key}`, {}); return r.ok ? { ok: true, msg: '', data: r.data?.value } : { ok: false, msg: r.msg }; }
   counters(): Promise<Result<{ key: string; value: number }[]>> { return this.call('GET', '/api/counters'); }
   announcements(): Promise<Result<Announcement[]>> { return this.call('GET', '/api/announcements'); }
   ads(city: string): Promise<Result<PlayerAd[]>> { return this.call('GET', `/api/ads?city=${encodeURIComponent(city)}`); }
@@ -201,5 +218,22 @@ export class ApiCloud {
   voteHome(owner: string): Promise<Result> { return this.call('POST', `/api/homes/${encodeURIComponent(owner)}/vote`, {}); }
   bestHomes(): Promise<Result<BestHome[]>> { return this.call('GET', '/api/homes/best'); }
   friends(): Promise<Result<Friend[]>> { return this.call('GET', '/api/friends'); }
+  sendGift(to: string, kind: string, amount = 0, note = ''): Promise<Result<{ id: number }>> { return this.call('POST', '/api/gifts', { to, kind, amount: kind === 'money' ? Math.round(amount) : 0, note }); }
+  myGifts(): Promise<Result<{ id: number; sender: string; sender_name: string; kind: string; amount: number; note: string; created_at: string }[]>> { return this.call('GET', '/api/gifts'); }
+  claimGift(id: number): Promise<Result<{ kind: string; amount: number; sender_name: string }>> { return this.call('POST', `/api/gifts/${Math.round(id)}/claim`, {}); }
+  inbox(): Promise<Result<{ gifts: number; crew_invites: number; flat_invites: number; coops: number }>> { return this.call('GET', '/api/inbox'); }
+  myFlat(): Promise<Result<{ flat: MyFlat | null; invites: FlatInvite[] }>> { return this.call('GET', '/api/flats/mine'); }
+  createFlat(city: string): Promise<Result<{ id: number }>> { return this.call('POST', '/api/flats', { city }); }
+  inviteToFlat(friend: string): Promise<Result<{ id: number }>> { return this.call('POST', '/api/flats/invite', { friend }); }
+  answerFlatInvite(id: number, accept: boolean): Promise<Result<{ ok: true }>> { return this.call('POST', `/api/flats/invites/${Math.round(id)}/answer`, { accept }); }
+  leaveFlat(): Promise<Result<{ ok: true }>> { return this.call('POST', '/api/flats/leave', {}); }
+  doChore(): Promise<Result<{ doneToday: number }>> { return this.call('POST', '/api/flats/chore', {}); }
+  topCrews(): Promise<Result<{ id: number; name: string; city: string | null; members: number | string; points: number | string }[]>> { return this.call('GET', '/api/crews/top'); }
+  myCrew(): Promise<Result<{ crew: MyCrew | null; invites: CrewInvite[] }>> { return this.call('GET', '/api/crews/mine'); }
+  createCrew(name: string, city?: string): Promise<Result<{ id: number }>> { return this.call('POST', '/api/crews', { name, city }); }
+  inviteToCrew(friend: string): Promise<Result<{ id: number }>> { return this.call('POST', '/api/crews/invite', { friend }); }
+  answerCrewInvite(id: number, accept: boolean): Promise<Result<{ ok: true }>> { return this.call('POST', `/api/crews/invites/${Math.round(id)}/answer`, { accept }); }
+  leaveCrew(): Promise<Result<{ ok: true }>> { return this.call('POST', '/api/crews/leave', {}); }
+  kickFromCrew(user: string): Promise<Result<{ ok: true }>> { return this.call('POST', '/api/crews/kick', { user }); }
   findPlayers(name: string): Promise<Result<{ id: string; username: string }[]>> { const q = name.trim().toLowerCase().replace(/[^a-z0-9_]/g, ''); if (q.length < 2) return Promise.resolve({ ok: true, msg: '', data: [] }); return this.call('GET', `/api/players?q=${encodeURIComponent(q)}`); }
 }

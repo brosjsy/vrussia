@@ -14,6 +14,7 @@ import type { Route } from './trains';
 import { tripScenario, classesFor } from './train-trip';
 import { choresOf, hasWasher, planActive, cardName, LAUNDROMAT, PLAN_MONTH, WIFI_INSTALL, WIFI_MONTH, CARD_DEPOSIT } from './chores';
 import { washClothes, topUpPhone, connectWifi, buyCard, topUpCard } from './chores-do';
+import { playOk } from './sound';
 
 const esc = (x: string): string => String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
 export interface AppDeps { back: () => void; refresh: () => void; scenario: (sc: Scenario) => void; random?: () => number; speak?: (word: string) => void }
@@ -39,15 +40,15 @@ export function openStudy(host: HTMLElement, s: State, d: AppDeps): void {
     wire();
   };
   const wire = (): void => {
-    host.querySelectorAll<HTMLButtonElement>('[data-enrol]').forEach(b => { b.onclick = () => { const r = enrol(s, b.dataset.enrol as string); flash = r.msg; if (r.ok) d.refresh(); draw(); }; });
-    host.querySelectorAll<HTMLButtonElement>('[data-word]').forEach(b => { b.onclick = () => { const r = answerWord(s, Number(b.dataset.word), b.dataset.ans as string); flash = r.msg; if (r.ok) d.refresh(); draw(); }; });
+    host.querySelectorAll<HTMLButtonElement>('[data-enrol]').forEach(b => { b.onclick = () => { const r = enrol(s, b.dataset.enrol as string); flash = r.msg; playOk(r.ok); if (r.ok) d.refresh(); draw(); }; });
+    host.querySelectorAll<HTMLButtonElement>('[data-word]').forEach(b => { b.onclick = () => { const r = answerWord(s, Number(b.dataset.word), b.dataset.ans as string); flash = r.msg; playOk(r.ok); if (r.ok) d.refresh(); draw(); }; });
     host.querySelectorAll<HTMLButtonElement>('[data-say]').forEach(b => { b.onclick = () => (d.speak ?? speakRu)(b.dataset.say as string); });
     host.querySelectorAll<HTMLButtonElement>('[data-ap]').forEach(b => { b.onclick = () => {
       const a = b.dataset.ap;
       if (a === 'back') return d.back();
       if (a === 'lecture') { const sc = lectureScenario(s, ru); if (sc) d.scenario(sc); return; }
-      if (a === 'hw') { const r = homework(s); flash = r.msg; if (r.ok) d.refresh(); return draw(); }
-      if (a === 'exam') { const r = sitExam(s, (d.random ?? Math.random)()); flash = r.msg; d.refresh(); return draw(); }
+      if (a === 'hw') { const r = homework(s); flash = r.msg; playOk(r.ok); if (r.ok) d.refresh(); return draw(); }
+      if (a === 'exam') { const r = sitExam(s, (d.random ?? Math.random)()); flash = r.msg; playOk(r.ok); d.refresh(); return draw(); }
     }; });
   };
   draw();
@@ -64,8 +65,8 @@ export function openHousing(host: HTMLElement, s: State, d: AppDeps): void {
       <h3>🧾 ${esc(t('hsBills'))}</h3>${now ? (bills.length ? `<p class="${worst ? 'phWarn' : 'sub'}">${esc(t('hsDue'))}: <b>${esc(G.money(sum))}</b>${worst ? ` · ⚠️ ${esc(t('hsWarnings'))} ${worst}/${MAX_WARNINGS}` : ''}</p><button type="button" class="primary" data-ap="pay">${esc(t('hsPay'))}</button>` : `<p class="sub">${esc(t('hsNoBills'))}</p>`) : `<p class="sub">${esc(t('hsNoUtilities'))}</p>`}
       <h3>${esc(t('hsLadder'))}</h3><ul class="msgs">${ladder}</ul><p class="sub">${esc(t('hsHint'))}</p>
       <p class="sub">${esc(t('hsHistory'))}: ${homeOf(s).bills.filter(b => b.paid).length}</p></div>`;
-    host.querySelectorAll<HTMLButtonElement>('[data-move]').forEach(b => { b.onclick = () => { const r = moveTo(s, b.dataset.move as RentalId); flash = r.msg; if (r.ok) { tickBills(s); d.refresh(); } draw(); }; });
-    host.querySelectorAll<HTMLButtonElement>('[data-ap]').forEach(b => { b.onclick = () => { if (b.dataset.ap === 'back') return d.back(); const r = payBills(s); flash = r.msg; if (r.ok) d.refresh(); draw(); }; });
+    host.querySelectorAll<HTMLButtonElement>('[data-move]').forEach(b => { b.onclick = () => { const r = moveTo(s, b.dataset.move as RentalId); flash = r.msg; playOk(r.ok); if (r.ok) { tickBills(s); d.refresh(); } draw(); }; });
+    host.querySelectorAll<HTMLButtonElement>('[data-ap]').forEach(b => { b.onclick = () => { if (b.dataset.ap === 'back') return d.back(); const r = payBills(s); flash = r.msg; playOk(r.ok); if (r.ok) d.refresh(); draw(); }; });
   };
   draw();
 }
@@ -86,7 +87,7 @@ export function openChores(host: HTMLElement, s: State, d: AppDeps): void {
     host.querySelectorAll<HTMLButtonElement>('[data-ap]').forEach(b => { b.onclick = () => d.back(); });
     host.querySelectorAll<HTMLButtonElement>('[data-ch]').forEach(b => { b.onclick = () => {
       const k = b.dataset.ch, r = k === 'washHome' ? washClothes(s, 'home') : k === 'laundromat' ? washClothes(s, 'laundromat') : k === 'plan' ? topUpPhone(s, 1) : k === 'wifi' ? connectWifi(s) : k === 'card' ? buyCard(s) : topUpCard(s, 500);
-      flash = r.msg; if (r.ok) d.refresh(); draw();
+      flash = r.msg; playOk(r.ok); if (r.ok) d.refresh(); draw();
     }; });
   };
   draw();

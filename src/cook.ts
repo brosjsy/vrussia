@@ -319,7 +319,7 @@ export function fromIngredients(keys: string[], n = 6, diet: Diet = 'any'): { d:
 export function suggest(s: State): { why: string; d: DishInfo }[] {
   const C = cookOf(s), r = rankOf(s), out: { why: string; d: DishInfo }[] = [];
   const day = dishOfDay(s); if (day && dietOk(day, dietOf(s))) out.push({ why: 'Dish of the day', d: day });
-  const home = /Nigeria/.test(s.home) ? 'ng' : /Tajik|Uzbek/.test(s.home) ? 'uz' : /Kyrgyz|Kazakh/.test(s.home) ? 'kz' : 'ru';
+  const home = /Nigeria/.test(s.home) ? 'ng' : /Tajik|Uzbek|Turkmen/.test(s.home) ? 'uz' : /Kyrgyz|Kazakh/.test(s.home) ? 'kz' : /Armenia/.test(s.home) ? 'cauc' : /Azerbaijan/.test(s.home) ? 'az' : /Belarus/.test(s.home) ? 'by' : 'ru';
   const diet = dietOf(s), fresh = DISHES.filter(d => !C.count[d.id] && dietOk(d, diet));
   const pick = (why: string, xs: DishInfo[]): void => { const d = xs.find(x => !out.some(o => o.d.id === x.id)); if (d) out.push({ why, d }); };
   pick('A taste of home', shuffle(fresh.filter(d => d.cuisine === home), `${s.day}|home`));

@@ -1,11 +1,11 @@
 # Play-test: 20 players, 100 days, every feature, on the game's own server
 
-Seed 1 (the same seed plays the same run). 96 s. 109 features driven by the bots, plus the account steps, presence, saving, the city vote and the leaderboard. Styles: careful, social, hustler, random. Every 7th player is under 18 (no chat).
+Seed 1 (the same seed plays the same run). 156 s. 109 features driven by the bots, plus the account steps, presence, saving, the city vote and the leaderboard. Styles: careful, social, hustler, random. Every 7th player is under 18 (no chat).
 
 ## Verdict
 
 - Crashes (bugs): none.
-- Features that worked for nobody: online service: fines (You have no unpaid fines. (114)).
+- Features that worked for nobody: online service: fines (You have no unpaid fines. (117)).
 - Server errors: 0. World problems: 0.
 
 ## Every feature
@@ -25,142 +25,142 @@ Seed 1 (the same seed plays the same run). 96 s. 109 features driven by the bots
 | Account | account: reset password | 1 / 1 | 1 | 100% | — |
 | Account | account: sign up | 20 / 20 | 20 | 100% | — |
 | City | holiday pass | 1 / 1 | 1 | 100% | — |
-| City | run for governor | 18 / 20 | 112 | 90% | Not enough money for the campaign fee. (11) |
-| City | vote for governor | 20 / 20 | 112 | 98% | You vote in person: go to the polling station in the MFC hal (2) |
-| Daily life | connect home internet | 19 / 20 | 25 | 76% | Installation and the first month cost 2100 ₽. (6) |
-| Daily life | top up the mobile plan | 17 / 19 | 102 | 97% | That costs 450 ₽. (3) |
-| Daily life | transport card | 19 / 20 | 113 | 96% | You do not have that much. (3); The deposit is 80 ₽. (2) |
-| Daily life | wash clothes | 19 / 20 | 114 | 96% | A load at the laundromat costs 350 ₽. (5) |
-| Food | buy groceries | 20 / 20 | 106 | 98% | Not enough money for a bag of groceries. (2) |
-| Food | cook a meal | 20 / 20 | 107 | 99% | Needs 1 portion of groceries (you have 0). (1) |
-| Home | build own house | 11 / 20 | 116 | 30% | Only citizens can buy land and build here. Get citizenship f (51); Not enough money for this stage. (23); Your house is finished. (7) |
-| Home | buy and place furniture | 20 / 20 | 115 | 82% | bought, but no free spot in the flat (19); cannot afford any piece (2) |
-| Home | pay bills | 17 / 17 | 89 | 99% | The bills come to 8670 roubles; you have 8111. (1) |
-| Home | renovate: floor | 16 / 20 | 115 | 63% | It is already like that. (32); Not enough money. (11) |
-| Home | renovate: walls | 20 / 20 | 115 | 68% | It is already like that. (33); Not enough money. (4) |
-| Home | rent a better flat | 17 / 20 | 116 | 53% | You already live here. (27); The landlord wants a job and four weeks of rent in the bank. (8); You own your home: there is no need to rent. (7) |
-| Home life | home activity: chair · gossip | 20 / 20 | 106 | 98% | Not enough money. (2) |
-| Home life | home activity: plant · water | 20 / 20 | 107 | 99% | Not enough money. (1) |
-| Home life | home activity: table · breakfast | 20 / 20 | 107 | 98% | Not enough money. (2) |
-| Home life | home activity: tv · news | 20 / 20 | 107 | 99% | Not enough money. (1) |
-| Home life | home activity: window · look | 20 / 20 | 108 | 99% | Not enough money. (1) |
-| Home life | sit and rest | 20 / 20 | 106 | 100% | — |
-| Home life | tea / samovar | 20 / 20 | 106 | 100% | — |
-| Home life | watch TV | 20 / 20 | 107 | 100% | — |
-| Jobs | shift: barista | 20 / 20 | 110 | 99% | You are too tired for a shift. (1) |
-| Jobs | shift: courier | 20 / 20 | 109 | 98% | You are too tired for a shift. (2) |
-| Kitchen | kitchen: buy equipment | 20 / 20 | 85 | 95% | It costs 5,900 ₽. (4) |
-| Kitchen | kitchen: call home for a recipe | 20 / 20 | 106 | 100% | — |
-| Kitchen | kitchen: cook a dish | 12 / 12 | 26 | 100% | — |
-| Kitchen | kitchen: eat leftovers | 3 / 3 | 3 | 100% | — |
-| Kitchen | kitchen: share a dish | 12 / 12 | 53 | 49% | This one is already shared. (26); There is no family at home to feed. (1) |
-| Kitchen | kitchen: shop at the market and haggle | 19 / 19 | 56 | 100% | — |
-| Kitchen | kitchen: wash the dishes | 11 / 20 | 106 | 22% | You are not at home. (74); You lost your keys: you cannot get in. Call a locksmith. (6); You did that today already. (3) |
-| Life | action: biz | 20 / 20 | 106 | 100% | — |
-| Life | action: culture | 20 / 20 | 105 | 100% | — |
-| Life | action: edu | 20 / 20 | 106 | 100% | — |
-| Life | action: family | 20 / 20 | 106 | 100% | — |
-| Life | action: food | 20 / 20 | 106 | 100% | — |
-| Life | action: home | 20 / 20 | 105 | 100% | — |
-| Life | action: money | 20 / 20 | 106 | 100% | — |
-| Life | action: out | 20 / 20 | 106 | 100% | — |
-| Life | action: paper | 20 / 20 | 105 | 100% | — |
-| Life | action: people | 20 / 20 | 106 | 100% | — |
-| Life | action: pets | 20 / 20 | 105 | 100% | — |
-| Life | action: travel | 20 / 20 | 105 | 100% | — |
-| Life | action: work | 20 / 20 | 106 | 100% | — |
-| Money | put money aside | 20 / 20 | 116 | 99% | You do not have that much. (1) |
-| Money | savings goal | 20 / 20 | 22 | 100% | — |
-| Needs | shower | 20 / 20 | 106 | 100% | — |
-| Needs | toilet | 20 / 20 | 106 | 100% | — |
+| City | run for governor | 20 / 20 | 115 | 89% | Not enough money for the campaign fee. (13) |
+| City | vote for governor | 20 / 20 | 116 | 96% | You vote in person: go to the polling station in the MFC hal (5) |
+| Daily life | connect home internet | 20 / 20 | 32 | 75% | Installation and the first month cost 2100 ₽. (8) |
+| Daily life | top up the mobile plan | 18 / 20 | 107 | 94% | That costs 450 ₽. (6) |
+| Daily life | transport card | 20 / 20 | 117 | 93% | The deposit is 80 ₽. (7); You do not have that much. (1) |
+| Daily life | wash clothes | 20 / 20 | 117 | 95% | A load at the laundromat costs 350 ₽. (6) |
+| Food | buy groceries | 20 / 20 | 111 | 95% | Not enough money for a bag of groceries. (5) |
+| Food | cook a meal | 20 / 20 | 112 | 97% | Needs 1 portion of groceries (you have 0). (3) |
+| Home | build own house | 7 / 20 | 122 | 18% | Only citizens can buy land and build here. Get citizenship f (78); Not enough money for this stage. (18); Your house is finished. (4) |
+| Home | buy and place furniture | 20 / 20 | 121 | 96% | bought, but no free spot in the flat (4); cannot afford any piece (1) |
+| Home | pay bills | 20 / 20 | 101 | 88% | The bills come to 2520 roubles; you have 2477. (1); The bills come to 1620 roubles; you have 1501. (1); The bills come to 11390 roubles; you have 10845. (1) |
+| Home | renovate: floor | 20 / 20 | 121 | 62% | It is already like that. (34); Not enough money. (12) |
+| Home | renovate: walls | 20 / 20 | 121 | 73% | It is already like that. (24); Not enough money. (9) |
+| Home | rent a better flat | 20 / 20 | 122 | 58% | You already live here. (23); The landlord wants a job and four weeks of rent in the bank. (11); The deposit is two weeks of rent: 18000 roubles. (5) |
+| Home life | home activity: chair · gossip | 20 / 20 | 114 | 98% | Not enough money. (2) |
+| Home life | home activity: plant · water | 20 / 20 | 115 | 99% | Not enough money. (1) |
+| Home life | home activity: table · breakfast | 20 / 20 | 115 | 98% | Not enough money. (2) |
+| Home life | home activity: tv · news | 20 / 20 | 114 | 99% | Not enough money. (1) |
+| Home life | home activity: window · look | 20 / 20 | 114 | 99% | Not enough money. (1) |
+| Home life | sit and rest | 20 / 20 | 114 | 100% | — |
+| Home life | tea / samovar | 20 / 20 | 113 | 100% | — |
+| Home life | watch TV | 20 / 20 | 114 | 100% | — |
+| Jobs | shift: barista | 20 / 20 | 116 | 99% | You are too tired for a shift. (1) |
+| Jobs | shift: courier | 20 / 20 | 115 | 100% | — |
+| Kitchen | kitchen: buy equipment | 20 / 20 | 92 | 95% | It costs 5,900 ₽. (4); It costs 900 ₽. (1) |
+| Kitchen | kitchen: call home for a recipe | 20 / 20 | 112 | 100% | — |
+| Kitchen | kitchen: cook a dish | 14 / 15 | 27 | 96% | You lost your keys: you cannot get into the kitchen. Call a  (1) |
+| Kitchen | kitchen: eat leftovers | 4 / 4 | 4 | 100% | — |
+| Kitchen | kitchen: share a dish | 14 / 14 | 54 | 48% | This one is already shared. (27); You have no partner to cook for. (1) |
+| Kitchen | kitchen: shop at the market and haggle | 19 / 19 | 66 | 100% | — |
+| Kitchen | kitchen: wash the dishes | 15 / 20 | 111 | 20% | You are not at home. (78); You lost your keys: you cannot get in. Call a locksmith. (9); You did that today already. (2) |
+| Life | action: biz | 20 / 20 | 113 | 100% | — |
+| Life | action: culture | 20 / 20 | 112 | 100% | — |
+| Life | action: edu | 20 / 20 | 113 | 100% | — |
+| Life | action: family | 20 / 20 | 111 | 100% | — |
+| Life | action: food | 20 / 20 | 112 | 100% | — |
+| Life | action: home | 20 / 20 | 113 | 100% | — |
+| Life | action: money | 20 / 20 | 114 | 100% | — |
+| Life | action: out | 20 / 20 | 114 | 100% | — |
+| Life | action: paper | 20 / 20 | 114 | 100% | — |
+| Life | action: people | 20 / 20 | 115 | 100% | — |
+| Life | action: pets | 20 / 20 | 113 | 100% | — |
+| Life | action: travel | 20 / 20 | 112 | 100% | — |
+| Life | action: work | 20 / 20 | 113 | 100% | — |
+| Money | put money aside | 20 / 20 | 122 | 97% | You do not have that much. (4) |
+| Money | savings goal | 20 / 20 | 25 | 100% | — |
+| Needs | shower | 20 / 20 | 111 | 100% | — |
+| Needs | toilet | 20 / 20 | 113 | 100% | — |
 | Online | automatic save | 20 / 20 | 398 | 100% | — |
-| Online | block a player | 8 / 8 | 12 | 100% | — |
-| Online | chat at a place | 18 / 18 | 99 | 77% | You are writing too fast. Wait a little. (23) |
-| Online | chat: a rude word is refused | 18 / 18 | 97 | 100% | — |
+| Online | block a player | 10 / 10 | 15 | 100% | — |
+| Online | chat at a place | 18 / 18 | 102 | 80% | You are writing too fast. Wait a little. (20) |
+| Online | chat: a rude word is refused | 18 / 18 | 102 | 100% | — |
 | Online | city vote online | 20 / 20 | 20 | 100% | — |
-| Online | find a player by name | 20 / 20 | 109 | 100% | — |
-| Online | follow a player | 20 / 20 | 109 | 100% | — |
-| Online | friends list | 20 / 20 | 109 | 100% | — |
-| Online | leaderboard | 20 / 20 | 106 | 100% | — |
-| Online | leaderboard: send my score | 20 / 20 | 23 | 100% | — |
-| Online | like a home (once a week) | 20 / 20 | 30 | 70% | This player has not shown their home yet. (9) |
-| Online | list of private talks | 18 / 18 | 97 | 100% | — |
-| Online | load my save | 20 / 20 | 106 | 100% | — |
-| Online | news and counters | 20 / 20 | 106 | 100% | — |
-| Online | post an advert | 20 / 20 | 56 | 100% | — |
+| Online | find a player by name | 20 / 20 | 115 | 100% | — |
+| Online | follow a player | 20 / 20 | 115 | 100% | — |
+| Online | friends list | 20 / 20 | 115 | 100% | — |
+| Online | leaderboard | 20 / 20 | 112 | 100% | — |
+| Online | leaderboard: send my score | 20 / 20 | 26 | 100% | — |
+| Online | like a home (once a week) | 20 / 20 | 28 | 75% | This player has not shown their home yet. (7) |
+| Online | list of private talks | 18 / 18 | 102 | 100% | — |
+| Online | load my save | 20 / 20 | 112 | 100% | — |
+| Online | news and counters | 20 / 20 | 112 | 100% | — |
+| Online | post an advert | 20 / 20 | 58 | 100% | — |
 | Online | presence in the city | 20 / 20 | 1990 | 100% | — |
-| Online | private message | 18 / 18 | 97 | 77% | You are writing too fast. Wait a little. (22) |
-| Online | read adverts | 20 / 20 | 108 | 100% | — |
-| Online | report a message | 16 / 16 | 40 | 100% | — |
-| Online | see my adverts | 20 / 20 | 106 | 100% | — |
-| Online | show my home | 20 / 20 | 108 | 100% | — |
-| Online | visit a home + guest book | 20 / 20 | 94 | 100% | — |
-| Online | who is online | 20 / 20 | 106 | 100% | — |
-| Phone | phone: call someone | 20 / 20 | 116 | 100% | — |
-| Phone | phone: dating app | 20 / 20 | 115 | 74% | You are already with Katya. It would not be fair to Aleksey. (4); You are already with Anna. It would not be fair to Kamila. (4); You are already with Maxim. It would not be fair to Rustam. (3) |
-| Phone | phone: memory game | 20 / 20 | 115 | 100% | — |
-| Phone | phone: send money | 15 / 20 | 116 | 63% | You need a bank account first (Online services, Open a bank  (23); You have no Russian SIM card yet. Buy one at an operator sho (20) |
-| Phone | phone: strange messages | 20 / 20 | 116 | 100% | — |
-| Phone | phone: word game | 20 / 20 | 116 | 100% | — |
-| Places | go out: banya | 19 / 20 | 110 | 97% | Not enough money for the ticket and the fare. (3) |
-| Places | go out: cafe | 19 / 20 | 111 | 97% | Not enough money for the ticket and the fare. (3) |
-| Places | go out: cathedral | 20 / 20 | 113 | 99% | Not enough money for the ticket and the fare. (1) |
-| Places | go out: cinema | 20 / 20 | 111 | 99% | Not enough money for the ticket and the fare. (1) |
-| Places | go out: embankment | 20 / 20 | 112 | 99% | Not enough money for the ticket and the fare. (1) |
-| Places | go out: gym | 20 / 20 | 110 | 100% | — |
-| Places | go out: library | 20 / 20 | 112 | 99% | Not enough money for the ticket and the fare. (1) |
-| Places | go out: park | 19 / 20 | 110 | 97% | Not enough money for the ticket and the fare. (3) |
-| Places | go out: rink | 15 / 20 | 111 | 23% | Only in winter. (86) |
-| Places | go out: stadium | 20 / 20 | 113 | 99% | Not enough money for the ticket and the fare. (1) |
-| Places | go out: tower | 20 / 20 | 113 | 99% | Not enough money for the ticket and the fare. (1) |
-| Services | online service: bank | 20 / 20 | 116 | 47% | You already have all three banks. (62) |
-| Services | online service: biz | 15 / 20 | 114 | 19% | You already run a business. (65); A patent holder cannot register as self-employed. You need R (21); Students need a work permission before registering a busines (3) |
-| Services | online service: dms | 5 / 20 | 115 | 5% | Citizens use the state insurance (OMS) policy. (64); You already hold a policy. (32); With residence you use the state insurance (OMS) policy. (13) |
-| Services | online service: doctor | 20 / 20 | 116 | 100% | — |
-| Services | online service: fines | 0 / 20 | 114 | 0% | You have no unpaid fines. (114) |
-| Services | online service: hh | 20 / 20 | 116 | 100% | — |
-| Services | online service: kg | 4 / 20 | 115 | 3% | You do not have children yet. (103); You are already in the queue. (8) |
-| Services | online service: migr | 5 / 20 | 115 | 4% | No application is possible yet: check the language test, a g (110) |
-| Services | online service: rent | 20 / 20 | 116 | 100% | — |
-| Services | online service: rzd | 20 / 20 | 115 | 100% | — |
-| Services | online service: shop | 20 / 20 | 116 | 100% | — |
-| Services | online service: simid | 12 / 20 | 114 | 14% | Citizens only need a passport at the operator shop. (63); You are already identified. Now buy the SIM card at an opera (35) |
-| Services | online service: uni | 14 / 20 | 116 | 12% | The application window is June and July. (63); You have already applied this year. (39) |
-| Services | online service: zags | 2 / 20 | 116 | 2% | Your relationship is not ready yet. (83); You are already married. (16); You need a partner first. (13) |
-| Shop | buy a gift | 20 / 20 | 114 | 98% | You need ₽800; you have −₽1,506. (1); You need ₽800; you have −₽1,624. (1) |
-| Shop | buy clothes | 19 / 20 | 114 | 97% | You need ₽7,500; you have ₽5,910. (1); You need ₽1,200; you have −₽1,446. (1); You need ₽24,000; you have ₽23,027. (1) |
-| Shop | wear something | 19 / 19 | 112 | 100% | — |
-| Study | enrol in a course | 20 / 20 | 37 | 97% | The fee is 3000 roubles. (1) |
-| Study | exam | 14 / 15 | 26 | 73% | Failed this time. Do two more pieces of homework and try aga (7) |
-| Study | homework | 20 / 20 | 107 | 100% | — |
+| Online | private message | 18 / 18 | 102 | 75% | You are writing too fast. Wait a little. (23); This player does not accept messages from you. (2) |
+| Online | read adverts | 20 / 20 | 115 | 100% | — |
+| Online | report a message | 17 / 17 | 38 | 100% | — |
+| Online | see my adverts | 20 / 20 | 112 | 100% | — |
+| Online | show my home | 20 / 20 | 115 | 100% | — |
+| Online | visit a home + guest book | 20 / 20 | 104 | 99% | This player does not accept messages from you. (1) |
+| Online | who is online | 20 / 20 | 112 | 100% | — |
+| Phone | phone: call someone | 20 / 20 | 121 | 100% | — |
+| Phone | phone: dating app | 20 / 20 | 121 | 76% | You are already with Nia. It would not be fair to Elena. (4); You are already with Anna. It would not be fair to Aigul. (4); You are already with Sofia. It would not be fair to Aleksey. (3) |
+| Phone | phone: memory game | 20 / 20 | 120 | 100% | — |
+| Phone | phone: send money | 12 / 20 | 121 | 40% | You have no Russian SIM card yet. Buy one at an operator sho (35); You need a bank account first (Online services, Open a bank  (24); You have no SIM card yet, so no number to call or text from. (13) |
+| Phone | phone: strange messages | 20 / 20 | 121 | 100% | — |
+| Phone | phone: word game | 20 / 20 | 120 | 100% | — |
+| Places | go out: banya | 20 / 20 | 116 | 98% | Not enough money for the ticket and the fare. (2) |
+| Places | go out: cafe | 20 / 20 | 117 | 98% | Not enough money for the ticket and the fare. (2) |
+| Places | go out: cathedral | 20 / 20 | 119 | 99% | Not enough money for the ticket and the fare. (1) |
+| Places | go out: cinema | 20 / 20 | 117 | 98% | Not enough money for the ticket and the fare. (2) |
+| Places | go out: embankment | 20 / 20 | 118 | 99% | Not enough money for the ticket and the fare. (1) |
+| Places | go out: gym | 20 / 20 | 117 | 97% | Not enough money for the ticket and the fare. (3) |
+| Places | go out: library | 20 / 20 | 118 | 99% | Not enough money for the ticket and the fare. (1) |
+| Places | go out: park | 20 / 20 | 116 | 99% | Not enough money for the ticket and the fare. (1) |
+| Places | go out: rink | 17 / 20 | 118 | 24% | Only in winter. (90) |
+| Places | go out: stadium | 20 / 20 | 119 | 98% | Not enough money for the ticket and the fare. (2) |
+| Places | go out: tower | 20 / 20 | 119 | 98% | Not enough money for the ticket and the fare. (2) |
+| Services | online service: bank | 20 / 20 | 121 | 52% | You already have all three banks. (58) |
+| Services | online service: biz | 14 / 20 | 117 | 24% | You already run a business. (44); A patent holder cannot register as self-employed. You need R (39); Students need a work permission before registering a busines (4) |
+| Services | online service: dms | 9 / 20 | 118 | 12% | You already hold a policy. (49); Citizens use the state insurance (OMS) policy. (42); With residence you use the state insurance (OMS) policy. (13) |
+| Services | online service: doctor | 20 / 20 | 121 | 100% | — |
+| Services | online service: fines | 0 / 20 | 117 | 0% | You have no unpaid fines. (117) |
+| Services | online service: hh | 20 / 20 | 121 | 100% | — |
+| Services | online service: kg | 7 / 20 | 121 | 6% | You do not have children yet. (102); You are already in the queue. (12) |
+| Services | online service: migr | 4 / 20 | 117 | 4% | No application is possible yet: check the language test, a g (112) |
+| Services | online service: rent | 20 / 20 | 121 | 100% | — |
+| Services | online service: rzd | 20 / 20 | 119 | 100% | — |
+| Services | online service: shop | 20 / 20 | 121 | 100% | — |
+| Services | online service: simid | 15 / 20 | 117 | 19% | You are already identified. Now buy the SIM card at an opera (54); Citizens only need a passport at the operator shop. (41) |
+| Services | online service: uni | 13 / 20 | 121 | 11% | The application window is June and July. (75); You have already applied this year. (33) |
+| Services | online service: zags | 4 / 20 | 121 | 3% | Your relationship is not ready yet. (85); You are already married. (20); You need a partner first. (12) |
+| Shop | buy a gift | 20 / 20 | 120 | 99% | You need ₽500; you have −₽6,869. (1) |
+| Shop | buy clothes | 20 / 20 | 120 | 97% | You need ₽24,000; you have ₽1,204. (1); You need ₽24,000; you have ₽20,905. (1); You need ₽7,500; you have ₽3,994. (1) |
+| Shop | wear something | 20 / 20 | 118 | 100% | — |
+| Study | enrol in a course | 20 / 20 | 36 | 100% | — |
+| Study | exam | 15 / 17 | 31 | 68% | Failed this time. Do two more pieces of homework and try aga (10) |
+| Study | homework | 20 / 20 | 114 | 100% | — |
 | Study | lecture | 20 / 20 | 96 | 100% | — |
-| Travel | book a flight | 19 / 20 | 114 | 83% | Not enough money for this ticket. (19) |
-| Travel | metro or bus to a place | 20 / 20 | 106 | 100% | — |
-| Travel | train to another city | 11 / 19 | 41 | 34% | open berths) · 3,960 ₽ (2); open berths) · 5,760 ₽ (2); open berths) · 25,870 ₽ (1) |
+| Travel | book a flight | 19 / 20 | 117 | 78% | Not enough money for this ticket. (26) |
+| Travel | metro or bus to a place | 20 / 20 | 112 | 100% | — |
+| Travel | train to another city | 16 / 20 | 50 | 46% | open berths) · 11,980 ₽ (2); open berths) · 5,150 ₽ (2); The tickets cost 3,740 roubles. (1) |
 
 ## Each player
 
 | Player | Style | Origin | Features that worked | Lives | How the last life ended | Money then |
 |---|---|---|---|---|---|---|
-| aigerim | careful | Moscow Baby | 109 of 125 | 2 | time on day 730 | ₽2,275,988 |
-| bakhrom | social | Regional Kid | 110 of 125 | 2 | time on day 730 | ₽226,086 |
-| chidi | hustler | Tajik Migrant | 107 of 125 | 2 | time on day 730 | ₽1,962,441 |
-| dasha | random | Uzbek Migrant | 97 of 125 | 4 | deported on day 60 | ₽9,146 |
-| emeka | careful | Kyrgyz (EAEU) Worker | 112 of 125 | 2 | time on day 730 | ₽68,148 |
-| farida | social | Foreign Student | 111 of 125 | 2 | time on day 730 | ₽344,802 |
-| gulnara | hustler | Dagestani Student | 104 of 125 | 2 | time on day 730 | ₽2,620,035 |
-| hiro | random | Moscow Baby | 108 of 125 | 2 | time on day 730 | ₽2,478,306 |
-| ivan | careful | Regional Kid | 113 of 125 | 2 | time on day 730 | ₽41,713 |
-| jamila | social | Tajik Migrant | 87 of 125 | 2 | deported on day 108 | −₽11,146 |
-| kofi | hustler | Uzbek Migrant | 109 of 125 | 2 | time on day 730 | ₽1,907,679 |
-| lena | random | Kyrgyz (EAEU) Worker | 101 of 125 | 2 | deported on day 113 | ₽60,529 |
-| maksim | careful | Foreign Student | 113 of 125 | 2 | time on day 730 | ₽617,625 |
-| nodira | social | Dagestani Student | 103 of 125 | 2 | time on day 730 | ₽145,540 |
-| olu | hustler | Moscow Baby | 106 of 125 | 2 | time on day 730 | ₽3,830,832 |
-| pavel | random | Regional Kid | 110 of 125 | 2 | time on day 730 | ₽314,307 |
-| qudrat | careful | Tajik Migrant | 111 of 125 | 2 | time on day 730 | ₽231,518 |
-| rustam | social | Uzbek Migrant | 94 of 125 | 3 | deported on day 127 | ₽596 |
-| sveta | hustler | Kyrgyz (EAEU) Worker | 106 of 125 | 2 | time on day 730 | ₽2,900,172 |
+| aigerim | careful | Moscow Baby | 109 of 125 | 2 | time on day 730 | ₽2,623,680 |
+| bakhrom | social | Regional Kid | 109 of 125 | 2 | time on day 730 | ₽151,737 |
+| chidi | hustler | Tajik Migrant | 106 of 125 | 2 | time on day 730 | ₽2,173,584 |
+| dasha | random | Uzbek Migrant | 99 of 125 | 4 | deported on day 36 | ₽583 |
+| emeka | careful | Kyrgyz (EAEU) Worker | 114 of 125 | 2 | time on day 730 | ₽609,820 |
+| farida | social | Kazakh (EAEU) Worker | 111 of 125 | 2 | time on day 730 | ₽5,786 |
+| gulnara | hustler | Armenian (EAEU) Worker | 107 of 125 | 2 | time on day 730 | ₽2,163,461 |
+| hiro | random | Belarusian (Union State) | 108 of 125 | 2 | deported on day 237 | ₽241,947 |
+| ivan | careful | Azerbaijani Migrant | 114 of 125 | 2 | time on day 730 | ₽96,976 |
+| jamila | social | Moldovan Migrant | 108 of 125 | 3 | time on day 730 | ₽91,229 |
+| kofi | hustler | Turkmen Migrant | 107 of 125 | 2 | time on day 730 | ₽1,870,318 |
+| lena | random | Foreign Worker (any country) | 101 of 125 | 4 | deported on day 318 | ₽323,204 |
+| maksim | careful | Foreign Student | 117 of 125 | 2 | time on day 730 | ₽94,874 |
+| nodira | social | Dagestani Student | 105 of 125 | 2 | time on day 730 | ₽261,948 |
+| olu | hustler | Moscow Baby | 108 of 125 | 2 | time on day 730 | ₽3,932,473 |
+| pavel | random | Regional Kid | 105 of 125 | 2 | time on day 730 | ₽559,424 |
+| qudrat | careful | Tajik Migrant | 109 of 125 | 2 | time on day 730 | ₽160,708 |
+| rustam | social | Uzbek Migrant | 107 of 125 | 2 | deported on day 371 | −₽13,165 |
+| sveta | hustler | Kyrgyz (EAEU) Worker | 109 of 125 | 2 | time on day 730 | ₽2,995,760 |
 
 ## The world, checked every 10 days
 
@@ -183,7 +183,7 @@ Seed 1 (the same seed plays the same run). 96 s. 109 features driven by the bots
 
 - none
 
-Leaderboard top: @olu 10269, @gulnara 9052, @aigerim 8708, @sveta 8146, @kofi 7944.
+Leaderboard top: @olu 10362, @aigerim 8254, @sveta 8226, @gulnara 8193, @emeka 7048.
 
 ## The learning rounds (round 124): what each play-test taught, and what was changed
 

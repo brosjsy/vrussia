@@ -1,3 +1,5 @@
+/* Life systems and the scenes that go with them: banking, weather and getting lost, clothes, relationships and children, health, immigration extras and the
+   small regional flavour scenes. The helpers O(), gamble(), rnd() and pick() come from engine.ts (RU.util); O(message, effects) is the usual way to end a choice. */
 import { RU } from '../engine';
 import type { State, Outcome, Partner, Choice } from '../engine';
 type Fn = (s: State) => Outcome;

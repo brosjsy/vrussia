@@ -47,7 +47,7 @@ describe('no dead content', () => {
       s => { s.biz = { kind: 'bakery', name: 'B', level: 1, staff: 1, rep: 50, regime: 'npd', profit: 200000, weeks: 20, revenueYear: 1 }; },
       s => { s.biz = { kind: 'bakery', name: 'B', level: 1, staff: 0, rep: 50, regime: 'ip', profit: -5000, weeks: 20, revenueYear: 1 }; },
       s => { s.flags.pregnant = true; s.marks.pregnant = s.day - 60; }, s => { s.flags.admitted = false; s.flags.expelled = true; },
-      s => { s.health = 10; }, s => { s.booking = { dest: 'sochi', intl: false, dep: s.day + 3, stay: 3, price: 1, pnr: 'A', passenger: 'X', passport: 'Y', baggage: false, done: false }; },
+      s => { s.health = 10; }, s => { s.tmp.flatmates = 2; }, s => { s.booking = { dest: 'sochi', intl: false, dep: s.day + 3, stay: 3, price: 1, pnr: 'A', passenger: 'X', passport: 'Y', baggage: false, done: false }; },
     ];
     for (const origin of G.origins.map(o => o.id)) for (const rich of [false, true]) for (const f of specials) for (const m of [3, 7, 8, 12]) for (const w of ['clear', 'frost', 'rain', 'heat', 'snow'] as const) {
       if (w !== 'clear' && f !== specials[0] && f !== specials[2]) continue;           // weather only needs a couple of variants

@@ -5,6 +5,7 @@ import * as G from './engine';
 import { DECREES } from './decrees';
 import { decreeFor, governorOf, standings, openWeek, daysLeft, vote, run, civicOf, POLLING_PLACE, RUN_FEE, ALLOWANCE } from './election';
 import { t } from './i18n';
+import { playOk } from './sound';
 
 const esc = (x: string): string => x.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
 const policyText = (id: string): string => DECREES.find(d => d.id === id)?.text ?? '';
@@ -33,7 +34,7 @@ const hashPick = (s: State, i: number): number => { let h = 2166136261; const t 
 
 /** Wires the buttons of the screen inside `root`. `again` is called after anything changed (it should draw the screen again and refresh the money). */
 export function wireCivic(root: HTMLElement, s: State, ui: { notify: (m: string) => void; again: () => void }): void {
-  root.querySelectorAll<HTMLButtonElement>('.cvVote').forEach(b => { b.onclick = () => { const r = vote(s, b.dataset.cand as string); ui.notify(r.msg); ui.again(); }; });
+  root.querySelectorAll<HTMLButtonElement>('.cvVote').forEach(b => { b.onclick = () => { const r = vote(s, b.dataset.cand as string); ui.notify(r.msg); playOk(r.ok, 'chime'); ui.again(); }; });
   const sel = root.querySelector<HTMLSelectElement>('#cvPolicy'); if (sel) sel.onchange = () => { chosenPolicy = sel.value; };
-  const go = root.querySelector<HTMLButtonElement>('#cvRun'); if (go) go.onclick = () => { const r = run(s, sel?.value ?? chosenPolicy); ui.notify(r.msg); ui.again(); };
+  const go = root.querySelector<HTMLButtonElement>('#cvRun'); if (go) go.onclick = () => { const r = run(s, sel?.value ?? chosenPolicy); ui.notify(r.msg); playOk(r.ok, 'chime'); ui.again(); };
 }

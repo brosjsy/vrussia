@@ -89,7 +89,7 @@ describe('starting looks in the creator', () => {
     // choosing a character before touching the look suggests a matching look
     (document.querySelectorAll('.ocard')[2] as HTMLButtonElement).click();                  // the Tajik migrant
     expect(pressed('eyes')).toBe('1'); expect(pressed('skin')).toBe('3');
-    (document.querySelectorAll('.ocard')[5] as HTMLButtonElement).click();                  // the foreign student
+    (document.querySelector('.ocard[data-o="student"]') as HTMLButtonElement).click();                  // the foreign student
     expect(pressed('skin')).toBe('7');
     // a preset, then own choices, then another character: the look is no longer replaced
     const before = preview();

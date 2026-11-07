@@ -3,10 +3,18 @@
    the player's rights. The rules are in law.ts. */
 import type { State } from './engine';
 import * as L from './law';
+import * as F from './foreign-law';
 import type { CrimeId } from './law';
 import { lang } from './i18n';
+import { play, playOk } from './sound';
 
 const W: Record<string, [string, string]> = {
+  foreign: ['Foreigner rules', 'Правила для иностранцев'],
+  'fl.confirmed': ['Confirmed online', 'Подтверждено в сети'], 'fl.partly': ['Partly confirmed online', 'Частично подтверждено в сети'], 'fl.open': ['Not confirmed online', 'Не подтверждено в сети'], 'fl.source': ['source', 'источник'],
+  'fl.hint': ['The law for foreigners in Russia, simplified for the game: entry, registration, work, study, residence, offences and your rights.', 'Закон об иностранцах в России, упрощённо для игры: въезд, учёт, работа, учёба, проживание, нарушения и ваши права.'],
+  'fl.breach': ['You are breaking the rules in red right now.', 'Сейчас вы нарушаете правила, выделенные красным.'],
+  'fl.citizen': ['You are a citizen: the rules for foreigners do not apply to you.', 'Вы гражданин: правила для иностранцев к вам не относятся.'],
+  'fl.check': ['A game summary, not legal advice. The real rules and figures change often: check the official source (Ministry of Interior, Gosuslugi, pravo.gov.ru).', 'Игровое изложение, не юридическая консультация. Настоящие правила и суммы часто меняются: проверяйте официальный источник (МВД, Госуслуги, pravo.gov.ru).'],
   title: ['Police & law', 'Полиция и закон'], street: ['Street', 'Улица'], call: ['Call 102 / 112', 'Звонок 102 / 112'], record: ['My record', 'Моё досье'], rights: ['Your rights', 'Ваши права'],
   streetHint: ['Breaking the law is your choice here, and so are the consequences: the station, the court, fines, arrest, a record; for a foreigner, expulsion.', 'Нарушать закон — ваш выбор, как и последствия: отдел полиции, суд, штрафы, арест, судимость; для иностранца — выдворение.'],
   risk: ['chance of being caught', 'шанс попасться'], doIt: ['Do it', 'Сделать'], heat: ['Police attention', 'Внимание полиции'],
@@ -20,7 +28,7 @@ const w = (k: string): string => W[k]?.[lang() === 'ru' ? 1 : 0] ?? k;
 const ru = (): boolean => lang() === 'ru';
 const esc = (x: unknown): string => String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
 const money = (n: number): string => `${Math.round(n).toLocaleString('en-US')} ₽`;
-type Tab = 'street' | 'call' | 'record' | 'rights';
+type Tab = 'street' | 'call' | 'record' | 'rights' | 'foreign';
 const view: { tab: Tab } = { tab: 'street' };
 
 function street(s: State): string {
@@ -42,18 +50,33 @@ function record(s: State): string {
     ${st.record.length ? `<ul class="svCases">${st.record.map(r => `<li class="svCase"><b>${esc(r.what)}</b><p>${esc(r.law)} · ${esc(r.sentence)} · day ${r.day + 1}</p></li>`).join('')}</ul>` : `<p class="hint">${esc(w('clean'))}</p>`}`;
 }
 const rights = (): string => `<ul class="lwRights">${L.RIGHTS.map(r => `<li>${esc(r)}</li>`).join('')}</ul>`;
+/** How well the online check of the rule went (a person's check against the official text is still to be done). */
+function checkLine(id: string, i: number): string {
+  const c = F.CHECKS[id]; if (!c) return '';
+  const mark = c.s === 'confirmed' ? '✔' : c.s === 'partly' ? '◐' : '?', word = w('fl.' + c.s);
+  return `<p class="sub">${mark} ${esc(word)} (${F.CHECKED_ON}): ${esc(i ? c.ru : c.en)} <a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(w('fl.source'))}</a></p>`;
+}
+/** The rulebook for foreigners: the rules the player is breaking now first, then their own status's, then everyone's. */
+function rulebook(s: State): string {
+  const i = ru() ? 1 : 0, bad = new Set(F.breaches(s).map(r => r.id)), list = F.rulesFor(s).sort((a, b) => Number(bad.has(b.id)) - Number(bad.has(a.id)));
+  if (s.status === 'citizen') return `<p class="hint">${esc(w('fl.citizen'))}</p>`;
+  return `<p class="sub">${esc(w('fl.hint'))}</p>${bad.size ? `<p class="lwAlert">⚠ ${esc(w('fl.breach'))}</p>` : ''}
+    <ul class="svCases">${list.map(r => `<li class="svCase${bad.has(r.id) ? ' lwCrime criminal' : ''}"><b>${F.TOPICS[r.topic].icon} ${esc(F.TOPICS[r.topic][i ? 'ru' : 'en'])}</b>
+      <p>${esc(i ? r.ru : r.en)}</p>${checkLine(r.id, i)}<p class="sub"><span class="lwCrim">${esc(r.law)}</span> · ${esc(r.game[i ? 'ru' : 'en'])}</p></li>`).join('')}</ul>
+    <p class="hint">${esc(w('fl.check'))}</p>`;
+}
 
 export function lawHtml(s: State): string {
-  const tabs = (['street', 'call', 'record', 'rights'] as Tab[]).map(t => `<button type="button" role="tab" class="asTab${t === view.tab ? ' on' : ''}" data-lw="tab:${t}" aria-selected="${t === view.tab}">${esc(w(t))}</button>`).join('');
-  return `<div class="svc"><div class="asTabs" role="tablist">${tabs}</div>${view.tab === 'street' ? street(s) : view.tab === 'call' ? call(s) : view.tab === 'record' ? record(s) : rights()}</div>`;
+  const tabs = (['street', 'call', 'record', 'rights', 'foreign'] as Tab[]).map(t => `<button type="button" role="tab" class="asTab${t === view.tab ? ' on' : ''}" data-lw="tab:${t}" aria-selected="${t === view.tab}">${esc(w(t))}</button>`).join('');
+  return `<div class="svc"><div class="asTabs" role="tablist">${tabs}</div>${view.tab === 'street' ? street(s) : view.tab === 'call' ? call(s) : view.tab === 'record' ? record(s) : view.tab === 'foreign' ? rulebook(s) : rights()}</div>`;
 }
 /** Connects the screen. `again` saves and draws again; `turnOver` is called when something sent the game on (a court, arrest days, the end). */
 export function wireLaw(host: HTMLElement, s: State, d: { notify: (m: string) => void; again: () => void }): void {
   host.querySelectorAll<HTMLButtonElement>('[data-lw]').forEach(b => { b.onclick = () => {
     const [act, arg] = (b.dataset.lw as string).split(':');
     if (act === 'tab') { view.tab = arg as Tab; return d.again(); }
-    if (act === 'commit') { d.notify(L.commit(s, arg as CrimeId).msg); return d.again(); }
-    if (act === 'report') { d.notify(L.report(s, arg).msg); return d.again(); }
+    if (act === 'commit') { { const r = L.commit(s, arg as CrimeId); d.notify(r.msg); play(r.ok ? 'bad' : 'error'); } return d.again(); }
+    if (act === 'report') { { const r = L.report(s, arg); d.notify(r.msg); playOk(r.ok); } return d.again(); }
   }; });
 }
 /** Takes over the phone screen (the same way as the other apps). */

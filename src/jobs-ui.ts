@@ -5,6 +5,7 @@ import * as G from './engine';
 import { GIGS, gigsOf, rankOf, cannotWork, courierRound, routeLength, bestRoute, courierScore, baristaRound, baristaScore, orderText, finishShift, RANK_AT, DRINKS, DRINKS_RU, MILKS, MILKS_RU, SUGARS } from './gigs';
 import type { GigId, Order } from './gigs';
 import { t, lang } from './i18n';
+import { playOk } from './sound';
 
 const esc = (x: string): string => String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
 export interface JobsDeps { back: () => void; refresh: () => void; notify: (m: string) => void }
@@ -40,7 +41,7 @@ export function openJobs(host: HTMLElement, s: State, d: JobsDeps): void {
   };
 
   const draw = (): void => { host.innerHTML = mode === 'list' ? list() : mode === 'courier' ? courier() : barista(); wire(); };
-  const end = (id: GigId, score: number): void => { const r = finishShift(s, id, score); d.notify(r.msg); flash = r.msg; if (r.ok) d.refresh(); mode = 'list'; draw(); };
+  const end = (id: GigId, score: number): void => { const r = finishShift(s, id, score); d.notify(r.msg); playOk(r.ok, 'coin'); flash = r.msg; if (r.ok) d.refresh(); mode = 'list'; draw(); };
   function wire(): void {
     host.querySelectorAll<HTMLButtonElement>('[data-shift]').forEach(b => { b.onclick = () => { mode = b.dataset.shift as GigId; order = []; made = []; cur = { drink: 0, milk: 0, sugar: 0 }; draw(); }; });
     host.querySelectorAll<HTMLButtonElement>('[data-stop]').forEach(b => { b.onclick = () => { const k = Number(b.dataset.stop); if (!order.includes(k)) order.push(k); draw(); }; });
