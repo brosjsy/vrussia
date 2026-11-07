@@ -36,3 +36,36 @@ Who sets the assignment (the teacher, the client or the team lead) decides the e
 - It must not break the tests (`npm test`) or the size budgets (`test/perf.test.ts`): big model files are loaded on demand, never in the first download.
 - No personal data in the training data. The playtest files contain only invented players.
 - Content for Russia must follow Russian law (for example, no same-sex relationships and no forbidden topics); a model that writes text needs a filter and tests for that.
+
+## More tasks for learning and a strong portfolio
+
+The same list is in [ML_TASKS.xlsx](ML_TASKS.xlsx), where each task has an owner, a status and notes to fill in.
+
+**Starter tasks (weeks 1 to 2)**
+1. Play the game for 30 minutes and write 10 observations, as the first tester did.
+2. Run `npm run balance` and `npm run playtest`, then write a one-page summary: rare endings, places where players get stuck.
+3. Make a dashboard of the bot results (`docs/BALANCE.md`, `dev/playtest/`): money over days, ending rates.
+
+**Data and analysis**
+4. Group the bot players by behaviour (rich, broke, studious, law-breaking) and describe each group.
+5. Find the hardest days or scenes (most health or money lost) and suggest fixes.
+6. Plan what the game should record about players (`src/platform/telemetry.ts`), with no personal data.
+
+**Model building**
+7. Predict the ending from the first 10 days (a good first real ML project).
+8. Imitation bot: copy the choices of good players.
+9. Reinforcement learning bot: maximise the game score (needs a clear reward).
+10. Choice recommender: suggest the best action for the current state, feeding the Next step card (`src/nextstep.ts`).
+
+**Language (Russian and English)**
+11. A script that finds English text still shown in Russian mode.
+12. Safe text generation with a filter for banned topics and Russian law.
+13. Dialogue quality tests: polite, on topic, legal.
+
+**Engineering habits**
+14. Write tests for every model.
+15. Respect the size limits: load models on demand (`test/perf.test.ts`).
+16. Review each other's code in pull requests.
+17. Write a short report for each task: what was tried, what worked, one number that proves it.
+
+**Suggested plan:** weeks 1 to 3 tasks 1 to 7; weeks 4 to 6 tasks 8 to 10 with the habits from 14 to 17.
